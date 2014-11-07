@@ -1,6 +1,7 @@
 import flask
 import easypg
 
+
 easypg.config_name = 'bookserver'
 
 app = flask.Flask('BookServer')
