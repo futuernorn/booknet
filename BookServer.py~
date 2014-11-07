@@ -11,8 +11,13 @@ def get_resource_as_string(name, charset='utf-8'):
 app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
 
 @app.route("/")
-def main_index(:)
-    return "Hello World!"
+def home(:)
+    #with easypg.cursor() as cur:
+    #    narts = articles.get_article_count(cur)
+    #    nproc, nser = proceedings.get_proceedings_stats(cur)
+    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
+    return flask.render_template('home.html')
+
 
 if __name__ == "__main__":
     app.run()
