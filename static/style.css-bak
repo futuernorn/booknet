@@ -1,0 +1,127 @@
+/* =Tables
+lutrov.com/fancy-html-tables-with-css
+-------------------------------------------------------------- */
+table.fancy {
+  margin: 1em 1em 1em 0;
+  background: whitesmoke;
+  border-collapse: collapse;
+}
+table.fancy th, table.fancy td {
+  border: 1px silver gainsboro;
+  padding: 0.2em;
+}
+table.fancy th {
+  background: gainsboro;
+  text-align: left;
+}
+table.fancy tr:hover td {
+   background: mintcream !important;
+}
+table.fancy caption {
+  margin-left: inherit;
+  margin-right: inherit;
+} 
+/* =Nav
+http://callmenick.com/2013/12/21/simple-responsive-navigation-menu/
+-------------------------------------------------------------- */
+#nav-trigger {
+  display: none;
+  text-align: center; }
+  #nav-trigger span {
+    display: inline-block;
+    padding: 10px 30px;
+    background-color: #c80032;
+    color: white;
+    cursor: pointer;
+    text-transform: uppercase; }
+    #nav-trigger span:after {
+      display: inline-block;
+      margin-left: 10px;
+      width: 20px;
+      height: 10px;
+      content: "";
+      border-left: solid 10px transparent;
+      border-top: solid 10px #fff;
+      border-right: solid 10px transparent; }
+    #nav-trigger span:hover {
+      background-color: #af002c; }
+    #nav-trigger span.open:after {
+      border-left: solid 10px transparent;
+      border-top: none;
+      border-bottom: solid 10px #fff;
+      border-right: solid 10px transparent; }
+
+nav {
+  margin-bottom: 30px; }
+
+nav#nav-main {
+  background-color: #c80032;
+  padding: 10px 0; }
+  nav#nav-main ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    text-align: center; }
+  nav#nav-main li {
+    display: inline-block;
+    border-right: solid 1px #950025;
+    padding: 0 5px; }
+    nav#nav-main li:last-child {
+      border-right: none; }
+  nav#nav-main a {
+    display: block;
+    color: white;
+    padding: 10px 30px; }
+    nav#nav-main a:hover {
+      background-color: #af002c;
+      color: #fff; }
+
+nav#nav-mobile {
+  position: relative;
+  display: none; }
+  nav#nav-mobile ul {
+    display: none;
+    list-style-type: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    background-color: #c80032; }
+  nav#nav-mobile li {
+    display: block;
+    padding: 5px 0;
+    margin: 0 5px;
+    border-bottom: solid 1px #950025; }
+    nav#nav-mobile li:last-child {
+      border-bottom: none; }
+  nav#nav-mobile a {
+    display: block;
+    color: white;
+    padding: 10px 30px; }
+    nav#nav-mobile a:hover {
+      background-color: #af002c;
+      color: #fff; }
+
+/* =Sections
+-------------------------------------------------------------- */
+section h1 {
+  margin-bottom: 10px; }
+
+section p {
+  margin-bottom: 30px; }
+  section p:last-child {
+    margin-bottom: 0; }
+
+/* =Media Queries
+-------------------------------------------------------------- */
+@media all and (max-width: 900px) {
+  #nav-trigger {
+    display: block; }
+
+  nav#nav-main {
+    display: none; }
+
+  nav#nav-mobile {
+    display: block; } }

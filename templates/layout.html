@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>BookServer</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="{{ url_for('static', filename='js/jquery-2.1.1.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/classie.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='base.css') }}">
+
+	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    </head>
+<div id="wrapper">
+
+<header>
+    <div class="container clearfix">
+        <h1 id="logo">
+            G4 Booknet
+        </h1>
+         <nav>
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="">Books</a>
+            <a href="">Reviews</a>
+	    {% if not session.logged_in %}
+	    <a href="{{ url_for('login') }}">Login</a>
+	    {% else %}
+	    <a href="{{ url_for('logout') }}">Logout</a>
+	    {% endif %}
+        </nav>
+    </div>
+
+
+</header><!-- /header -->
+
+<div id="main">
+    <div id="content">
+        <section>
+            <div class="container">
+                <h1>Cupcakes for the people!</h1>
+	      {% for message in get_flashed_messages() %}
+                <p class=flash>{{ message }}Flask</p>
+	      {% endfor %}
+	   </div>
+	</section>
+        <section>
+            <div class="container">
+	    <p>{% block body %}{% endblock %}</p>
+            </div>
+        </section>
+        <section class="color">
+            <div class="container">
+                <h1>Cupcakes for the people!</h1>
+                <p>Cupcake ipsum dolor sit amet lollipop. Macaroon candy cotton candy bear claw macaroon carrot cake pastry icing dessert. Cupcake pastry tart sesame snaps lollipop donut pie. Cookie apple pie toffee lemon drops jelly beans cheesecake sweet roll. Jelly-o soufflé donut candy canes wafer dragée sweet cheesecake. Macaroon caramels pie cookie gummi bears. Ice cream jelly-o toffee cookie gingerbread cookie. Soufflé fruitcake jelly-o jelly chupa chups jelly beans. Dragée marzipan pastry macaroon oat cake muffin soufflé topping liquorice. Jelly-o chocolate cake lollipop.</p>
+                <p>Sugar plum muffin cookie pastry oat cake icing candy canes chocolate. Gummi bears chupa chups fruitcake dessert jelly. Muffin cookie ice cream soufflé pastry lollipop gingerbread sweet. Unerdwear.com bonbon candy marzipan bonbon gummies chocolate cake gummi bears powder. Unerdwear.com tart halvah chocolate cake dragée liquorice. Sugar plum chocolate bar pastry liquorice dragée jelly powder. Jelly tootsie roll applicake caramels. Marzipan candy tootsie roll donut. Gummies ice cream macaroon applicake.</p>
+            </div>
+        </section>
+    </div>
+</div><!-- #main -->
+
+
+<footer>
+<div id="info-bar">
+    <div class="container clearfix">
+      Footer
+    </div>
+</div><!-- /#top-bar -->
+</footer><!-- /footer -->
+
+
+
+</div><!-- /#wrapper -->
+
+
+</body>
+</html>
