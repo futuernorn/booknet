@@ -1,5 +1,5 @@
 import flask
-from lib import easypg
+from lib import easypg1
 from lib import books, users
 
 easypg.config_name = 'bookserver'
