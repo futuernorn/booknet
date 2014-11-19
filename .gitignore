@@ -55,3 +55,9 @@ target/
 
 # PyCharm
 .idea
+
+# Ignore large sample data
+authors.json
+books.json
+works.json
+

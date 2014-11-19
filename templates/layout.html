@@ -5,6 +5,51 @@
 </li>
 {% endmacro %}
 
+{% macro render_paginator(endpoint, align='', showCount=false) %}
+    <div class="btn-group {{align}}">
+    <nav>
+      <ul class="pagination">
+        {% if prevPage %}
+            <li>
+        {% else %}
+            <li class="disabled">
+        {% endif %}
+            <a href="#"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
+        {% if totalPages > 15 %}
+            {% if ((page > 6) and (page < totalPages - 5)) %}
+                {{ render_paginator_range(endpoint,1,4) }}
+                <li><span>...<span class="sr-only">(spacer)</span></span></li>
+                {{ render_paginator_range(endpoint,page-2,page+2) }}
+                <li><span>...<span class="sr-only">(spacer)</span></span></li>
+                {{ render_paginator_range(endpoint,totalPages-3,totalPages) }}
+            {% else %}
+                {{ render_paginator_range(endpoint,1,7) }}
+                <li><span>...<span class="sr-only">(spacer)</span></span></li>
+                {{ render_paginator_range(endpoint,totalPages-6,totalPages) }}
+            {% endif %}
+        {% else %}
+            {{ render_paginator_range(endpoint,1,10) }}
+        {% endif %}
+        {% if nextPage %}
+            <li>
+        {% else %}
+            <li class="disabled">
+        {% endif %}
+            <a href="#"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
+
+      </ul>
+    </nav>
+    <!-- <div class="pull-right">Page {{ page }} of {{ totalPages }}<div class="pull-right"> -->
+    </div>
+{% endmacro %}
+
+{% macro render_paginator_range(endpoint, start, end) %}
+{% for currentPage in range(start,end+1) %}
+    <li {% if currentPage == page %} class='active' {% endif %}>
+        <a href="{{ url_for(endpoint) }}?page={{ currentPage }}">{{ currentPage }}</a>
+    </li>
+{% endfor %}
+{% endmacro %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
