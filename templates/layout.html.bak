@@ -1,9 +1,3 @@
-{% macro render_menuitem(endpoint, display,  active='') %}
-<li {% if request.endpoint == endpoint or active == endpoint %} class='active' {% endif %}>
-    <a href="{{url_for(endpoint)}}">{{display}}</a>
-</li>
-{% endmacro %}
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,21 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Simple social book review website.">
     <meta name="author" content="CS4332 - Fall 2014 - Group 4 (Round Rock)">
-<!--    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}"> -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <title>Booknet</title>
 
     <!-- Bootstrap -->
 
 
     <!-- Bootstrap theme -->
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
     <!-- Custom styles for this template --
     <link href="theme.css" rel="stylesheet"> -->
 
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-
-      {% block head %}{% endblock %}
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -36,8 +27,8 @@
   </head>
 
   <!-- more Bootstrap content examples: view-source:http://getbootstrap.com/examples/theme/# -->
-  <body>
-
+  <body role="document">
+    <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
@@ -50,17 +41,30 @@
           <a class="navbar-brand" href="#">Booknet</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-	  <ul class="nav navbar-nav">
-            <li {% if page=="home" %}class="active" {% endif %}><a href="#">Home</a></li>
-            <li {% if page=="books" %}class="active" {% endif %}><a href="#">Books</a></li>
-            <li {% if page=="reviews" %}class="active" {% endif %}><a href="#">Reviews</a></li>
-            {% if not session.logged_in %}
-            <li {% if page=="login" %}class="active" {% endif %}><a href="{{ url_for('login') }}">Login</a></li>
-            {% else %}
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            {% endif %}
-	  </ul>
-<!--          <form class="navbar-form navbar-right" role="form">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#">Books</a></li>
+            <li><a href="#">Reviews</a></li>
+	    {% if not session.logged_in %}
+	    <li><a href="{{ url_for('login') }}">Login</a></li>
+	    {% else %}
+	    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+	    {% endif %}
+
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="navbar-form navbar-right" role="form">
             <div class="form-group">
               <input type="text" placeholder="Email" class="form-control">
             </div>
@@ -68,54 +72,51 @@
               <input type="password" placeholder="Password" class="form-control">
             </div>
             <button type="submit" class="btn btn-success">Sign in</button>
-          </form>-->
-        </div><!--/.navbar-collapse -->
+          </form>
+
+        </div><!--/.nav-collapse -->
       </div>
     </nav>
 
-
-
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
       <div class="container">
-    {% for message in get_flashed_messages() %}
-        <p class=flash>{{ message }}Flask</p>
-        {% endfor %}
+        <h1>Hello, world!</h1>
+        <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+      </div>
+    </div>
+    <div class="container theme-showcase" role="main">
 
-<!--     <div class="alert alert-success" role="alert">
-        <strong>Well done!</strong> You successfully read this important alert message.
-      </div>
-      <div class="alert alert-info" role="alert">
-        <strong>Heads up!</strong> This alert needs your attention, but it's not super important.
-      </div>
-      <div class="alert alert-warning" role="alert">
-        <strong>Warning!</strong> Best check yo self, you're not looking too good.
-      </div>
-      <div class="alert alert-danger" role="alert">
-        <strong>Oh snap!</strong> Change a few things up and try submitting again.
-      </div>-->
-    
-    
-
-      </div>
 
 
     <div class="container">
-      {% block body %}{% endblock %}
+      <!-- Example row of columns -->
+      <div class="row">
+        {% for message in get_flashed_messages() %}
+        <p class=flash>{{ message }}Flask</p>
+        {% endfor %}
+        <p><a href="#" class="btn btn-primary btn-lg" role="button">Learn more &raquo;</a></p>
 
-      <hr>
+    {% block body %}{% endblock %}
 
+      </div>
+	<hr>
       <footer>
         <p>&copy; Booknet 2014</p>
       </footer>
+
     </div> <!-- /container -->
 
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
-    <script src="{{ url_for('static', filename='js/jquery-2.1.1.min.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+    <!-- <script src="../../assets/js/docs.min.js"></script> 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
+    <!--<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
   </body>
 </html>
