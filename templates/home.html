@@ -5,29 +5,41 @@
 
 {% endblock %}
 {% block body %}
+    {% if not session.logged_in %}
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Welcome to RR Group 4's Booknet!</h1>
+        <p>Hey you haven't logged in yet. What are you waiting for?</p>
+        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('login_index')}}" role="button">Login</a><a class="btn btn-primary btn-lg" href="#" role="button">Register &raquo;</a></div>
+      </div>
+    </div>
+    {% endif %}
 
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-md-4">
-          <h2>Books</h2>
-
-
-
-
-
-
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <h2>Book Spotlight</h2>
+            {% for book in books %}
+            <div class="media">
+              <a class="media-left" href="/books/{{ book.id }}">
+                <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
+              </a>
+              <div class="media-body">
+                <h4 class="media-heading">{{ book.title }}</h4>
+                {{ book.description }}
+              </div>
+            </div>
+          {% endfor %}
+          <p><a class="btn btn-default" href="{{url_for('books_index')}}" role="button">View more &raquo;</a></p>
         </div>
         <div class="col-md-4">
           <h2>Reviews</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p>Nothing yet!</p>
        </div>
         <div class="col-md-4">
           <h2>Users</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p>Nothing yet!</p>
         </div>
       </div>
 

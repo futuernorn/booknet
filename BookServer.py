@@ -2,11 +2,15 @@ import flask
 # https://github.com/maxcountryman/flask-login
 # pip install flask-login
 from flask.ext.login import LoginManager
-from lib import easypg
-from lib import books, users
+import easypg
+
+from lib import books
 
 easypg.config_name = 'bookserver'
 
+import sys
+reload(sys)
+sys.setdefaultencoding('Cp1252')
 
 app = flask.Flask('BookServer')
 app.secret_key = 'ItLWMzHsirkwfiiI9kIa'
@@ -26,19 +30,42 @@ def load_user(userid):
 
 @app.route("/")
 def home_index():
-    #with easypg.cursor() as cur:
-    #    narts = articles.get_article_count(cur)
-    #    nproc, nser = proceedings.get_proceedings_stats(cur)
-    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
-    return flask.render_template('home.html')
+    with easypg.cursor() as cur:
+        book_info = books.get_spotlight_books(cur,4)
+    return flask.render_template('home.html',
+                                 books=book_info)
 
 @app.route("/books")
 def books_index():
-    #with easypg.cursor() as cur:
-    #    narts = articles.get_article_count(cur)
-    #    nproc, nser = proceedings.get_proceedings_stats(cur)
-    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
-    return flask.render_template('books.html')
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = books.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        book_info = books.get_all_books(cur, page)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('books.html',
+                                 books=book_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
 
 @app.route("/reviews")
 def reviews_index():

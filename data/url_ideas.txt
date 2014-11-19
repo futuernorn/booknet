@@ -1,9 +1,0 @@
-Pulled from goodreads.com:
-===============================
-/user/sign_in
-main landing page for logins / simple login form
-
-user/reset_password?resetParameters
-
-
-/review/list
