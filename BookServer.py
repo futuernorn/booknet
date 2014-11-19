@@ -1,31 +1,77 @@
 import flask
+# https://github.com/maxcountryman/flask-login
+# pip install flask-login
+from flask.ext.login import LoginManager
 from lib import easypg
 from lib import books, users
 
 easypg.config_name = 'bookserver'
 
-app = flask.Flask('BookServer')
-def get_resource_as_string(name, charset='utf-8'):
-    # http://flask.pocoo.org/snippets/77/
-    with app.open_resource(name) as f:
-        return f.read().decode(charset)
 
-app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
+app = flask.Flask('BookServer')
+app.secret_key = 'ItLWMzHsirkwfiiI9kIa'
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
 
 # during developement
 app.debug = True
 
+@login_manager.user_loader
+def load_user(userid):
+    return User.get(userid)
+
+
 @app.route("/")
-def home():
+def home_index():
     #with easypg.cursor() as cur:
     #    narts = articles.get_article_count(cur)
     #    nproc, nser = proceedings.get_proceedings_stats(cur)
     #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
     return flask.render_template('home.html')
 
+@app.route("/books")
+def books_index():
+    #with easypg.cursor() as cur:
+    #    narts = articles.get_article_count(cur)
+    #    nproc, nser = proceedings.get_proceedings_stats(cur)
+    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
+    return flask.render_template('books.html')
+
+@app.route("/reviews")
+def reviews_index():
+    #with easypg.cursor() as cur:
+    #    narts = articles.get_article_count(cur)
+    #    nproc, nser = proceedings.get_proceedings_stats(cur)
+    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
+    return flask.render_template('reviews.html')
+
+
 @app.route("/user/<uid>")
 def display_user(uid):
     # Other user's profile page
+    raise NotImplementedError
+
+@app.route("/user/login", methods=['GET', 'POST'])
+def login_index():
+    # Login page
+    if flask.request.method == 'POST':
+        # login and validate the user...
+        #login_user(user)
+        flask.flash("Logged in successfully.")
+        return flask.redirect(request.args.get("next") or url_for("index"))
+    return flask.render_template("login.html")
+
+
+
+
+
+
+@app.route("/user/logout")
+def display_user_logout(request):
+    # Logout page
     raise NotImplementedError
 
 @app.route('/search')
@@ -51,4 +97,4 @@ def add_comment(aid):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=5000)

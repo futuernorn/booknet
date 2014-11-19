@@ -1,0 +1,126 @@
+<!-- from: http://stackoverflow.com/a/11665879/1431509 -->
+{% macro render_menuitem(endpoint, display,  active='') %}
+<li {% if request.endpoint == endpoint or active == endpoint %} class='active' {% endif %}>
+    <a href="{{url_for(endpoint)}}">{{display}}</a>
+</li>
+{% endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Simple social book review website.">
+    <meta name="author" content="CS4332 - Fall 2014 - Group 4 (Round Rock)">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Booknet -- {{ page_title }}</title>
+
+    <!-- Bootstrap -->
+
+
+    <!-- Bootstrap theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
+    <!-- Custom styles for this template --
+    <link href="theme.css" rel="stylesheet"> -->
+
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+      {% block head %}{% endblock %}
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <!-- more Bootstrap content examples: view-source:http://getbootstrap.com/examples/theme/# -->
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{{url_for('home_index')}}">Booknet</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+	    <ul class="nav navbar-nav">
+            {{render_menuitem('home_index', 'Home', active=active_page)}}
+            {{render_menuitem('books_index', 'Books', active=active_page)}}
+            {{render_menuitem('reviews_index','Reviews', active=active_page)}}
+            {% if not session.logged_in %}
+                {{render_menuitem('login_index', 'Login', active=active_page)}}
+            {% else %}
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% endif %}
+	    </ul>
+        <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search">
+            </div>
+        </form>
+        <!-- <form class="navbar-form navbar-right" role="form">
+            <div class="form-group">
+              <input type="text" placeholder="Email" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </form>-->
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+
+
+
+      <div class="container">
+    {% for message in get_flashed_messages() %}
+        <p class=flash>{{ message }}Flask</p>
+        {% endfor %}
+
+<!--     <div class="alert alert-success" role="alert">
+        <strong>Well done!</strong> You successfully read this important alert message.
+      </div>
+      <div class="alert alert-info" role="alert">
+        <strong>Heads up!</strong> This alert needs your attention, but it's not super important.
+      </div>
+      <div class="alert alert-warning" role="alert">
+        <strong>Warning!</strong> Best check yo self, you're not looking too good.
+      </div>
+      <div class="alert alert-danger" role="alert">
+        <strong>Oh snap!</strong> Change a few things up and try submitting again.
+      </div>-->
+    
+    
+
+      </div>
+
+
+    <div class="container">
+      {% block body %}{% endblock %}
+    </div> <!-- /container -->
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">&copy; Booknet 2014</p>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+    <script src="{{ url_for('static', filename='js/jquery-2.1.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
+  </body>
+</html>
