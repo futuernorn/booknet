@@ -1,3 +1,4 @@
+<!-- from: http://stackoverflow.com/a/11665879/1431509 -->
 {% macro render_menuitem(endpoint, display,  active='') %}
 <li {% if request.endpoint == endpoint or active == endpoint %} class='active' {% endif %}>
     <a href="{{url_for(endpoint)}}">{{display}}</a>
@@ -12,8 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Simple social book review website.">
     <meta name="author" content="CS4332 - Fall 2014 - Group 4 (Round Rock)">
-<!--    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}"> -->
-    <title>Booknet</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Booknet -- {{ page_title }}</title>
 
     <!-- Bootstrap -->
 
@@ -47,20 +48,25 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Booknet</a>
+          <a class="navbar-brand" href="{{url_for('home_index')}}">Booknet</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
-	  <ul class="nav navbar-nav">
-            <li {% if page=="home" %}class="active" {% endif %}><a href="#">Home</a></li>
-            <li {% if page=="books" %}class="active" {% endif %}><a href="#">Books</a></li>
-            <li {% if page=="reviews" %}class="active" {% endif %}><a href="#">Reviews</a></li>
+	    <ul class="nav navbar-nav">
+            {{render_menuitem('home_index', 'Home', active=active_page)}}
+            {{render_menuitem('books_index', 'Books', active=active_page)}}
+            {{render_menuitem('reviews_index','Reviews', active=active_page)}}
             {% if not session.logged_in %}
-            <li {% if page=="login" %}class="active" {% endif %}><a href="{{ url_for('login') }}">Login</a></li>
+                {{render_menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
             {% endif %}
-	  </ul>
-<!--          <form class="navbar-form navbar-right" role="form">
+	    </ul>
+        <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search">
+            </div>
+        </form>
+        <!-- <form class="navbar-form navbar-right" role="form">
             <div class="form-group">
               <input type="text" placeholder="Email" class="form-control">
             </div>
@@ -100,14 +106,13 @@
 
     <div class="container">
       {% block body %}{% endblock %}
-
-      <hr>
-
-      <footer>
-        <p>&copy; Booknet 2014</p>
-      </footer>
     </div> <!-- /container -->
 
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted">&copy; Booknet 2014</p>
+      </div>
+    </footer>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

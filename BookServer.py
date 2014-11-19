@@ -1,4 +1,6 @@
 import flask
+# https://github.com/maxcountryman/flask-login
+# pip install flask-login
 from flask.ext.login import LoginManager
 from lib import easypg
 from lib import books, users
@@ -23,12 +25,29 @@ def load_user(userid):
 
 
 @app.route("/")
-def home():
+def home_index():
     #with easypg.cursor() as cur:
     #    narts = articles.get_article_count(cur)
     #    nproc, nser = proceedings.get_proceedings_stats(cur)
     #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
     return flask.render_template('home.html')
+
+@app.route("/books")
+def books_index():
+    #with easypg.cursor() as cur:
+    #    narts = articles.get_article_count(cur)
+    #    nproc, nser = proceedings.get_proceedings_stats(cur)
+    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
+    return flask.render_template('books.html')
+
+@app.route("/reviews")
+def reviews_index():
+    #with easypg.cursor() as cur:
+    #    narts = articles.get_article_count(cur)
+    #    nproc, nser = proceedings.get_proceedings_stats(cur)
+    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
+    return flask.render_template('reviews.html')
+
 
 @app.route("/user/<uid>")
 def display_user(uid):
@@ -36,7 +55,7 @@ def display_user(uid):
     raise NotImplementedError
 
 @app.route("/user/login", methods=['GET', 'POST'])
-def login():
+def login_index():
     # Login page
     if flask.request.method == 'POST':
         # login and validate the user...
@@ -78,4 +97,4 @@ def add_comment(aid):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
