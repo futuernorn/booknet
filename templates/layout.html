@@ -14,7 +14,7 @@
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="#"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
+            <a href="{{ url_for(endpoint) }}?page={{ prevPage }}"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
         {% if totalPages > 15 %}
             {% if ((page > 6) and (page < totalPages - 5)) %}
                 {{ render_paginator_range(endpoint,1,4) }}
@@ -35,7 +35,7 @@
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="#"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
+            <a href="{{ url_for(endpoint) }}?page={{ nextPage }}"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
 
       </ul>
     </nav>
@@ -100,9 +100,10 @@
             {{render_menuitem('home_index', 'Home', active=active_page)}}
             {{render_menuitem('books_index', 'Books', active=active_page)}}
             {{render_menuitem('reviews_index','Reviews', active=active_page)}}
-            {% if not session.logged_in %}
+            {% if not current_user.is_authenticated() %}
                 {{render_menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
+                {{render_menuitem('user_dashboard','Dashboard', active=active_page)}}
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
             {% endif %}
 	    </ul>
@@ -127,9 +128,7 @@
 
 
       <div class="container">
-    {% for message in get_flashed_messages() %}
-        <p class=flash>{{ message }}Flask</p>
-        {% endfor %}
+
 
 <!--     <div class="alert alert-success" role="alert">
         <strong>Well done!</strong> You successfully read this important alert message.
@@ -150,6 +149,10 @@
 
 
     <div class="container">
+        <br>
+    {% for message in get_flashed_messages() %}
+        <div class="alert alert-info" role="alert">{{ message }}</div>
+    {% endfor %}
       {% block body %}{% endblock %}
     </div> <!-- /container -->
 

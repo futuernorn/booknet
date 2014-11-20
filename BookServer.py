@@ -1,22 +1,19 @@
 import flask
+import sys
 # https://github.com/maxcountryman/flask-login
 # pip install flask-login
 from flask.ext.login import LoginManager
 import easypg
-
-from lib import books
-
 easypg.config_name = 'bookserver'
 
-import sys
-reload(sys)
-sys.setdefaultencoding('Cp1252')
+from lib import books, users
+
 
 app = flask.Flask('BookServer')
 app.secret_key = 'ItLWMzHsirkwfiiI9kIa'
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login_index'
 
 # app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
 
@@ -34,6 +31,10 @@ def home_index():
         book_info = books.get_spotlight_books(cur,4)
     return flask.render_template('home.html',
                                  books=book_info)
+
+@app.route("/dashboard")
+def user_dashboard():
+    return flask.render_template('dashboard.html')
 
 @app.route("/books")
 def books_index():
@@ -84,12 +85,29 @@ def display_user(uid):
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
+
+    error = None
     if flask.request.method == 'POST':
         # login and validate the user...
-        #login_user(user)
-        flask.flash("Logged in successfully.")
-        return flask.redirect(request.args.get("next") or url_for("index"))
-    return flask.render_template("login.html")
+        with easypg.cursor() as cur:
+
+            login_status = users.validate_login(cur, flask.request.form['username'], flask.request.form['password'])
+            if login_status > 0:
+                user = User.get(login_status)
+                try:
+                    if flask.request.form['remeberLogin'] == "remeber-me":
+                        remeber = True
+                except KeyError:
+                    remeber = False
+                print "Rember: %s" % remeber
+                print user.is_active
+                flask.ext.login.login_user(user, remeber)
+                flask.flash("Logged in successfully.")
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("home_index"))
+            else:
+                error = "Username or password not accepted."
+
+    return flask.render_template("login.html", error=error)
 
 
 
@@ -97,9 +115,11 @@ def login_index():
 
 
 @app.route("/user/logout")
-def display_user_logout(request):
-    # Logout page
-    raise NotImplementedError
+@flask.ext.login.login_required
+def logout():
+    flask.ext.login.logout_user()
+    flask.flash("You have been logged out!")
+    return flask.redirect(flask.url_for('home_index'))
 
 @app.route('/search')
 def get_search_results():
@@ -123,5 +143,65 @@ def add_comment(aid):
     return flask.redirect('/articles/' + aid)
 
 
+
+class UserNotFoundError(Exception):
+    pass
+
+
+
+# Simple user class base on UserMixin
+# http://flask-login.readthedocs.org/en/latest/_modules/flask/ext/login.html#UserMixin
+class User():
+    '''
+    This provides default implementations for the methods that Flask-Login
+    expects user objects to have.
+    '''
+
+    def is_active(self):
+        return True
+
+    def is_authenticated(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        try:
+            return unicode(self.id)
+        except AttributeError:
+            raise NotImplementedError('No `id` attribute - override `get_id`')
+
+    def __init__(self, id):
+        with easypg.cursor() as cur:
+            cur.execute('''
+                SELECT user_id, login_name, password
+                FROM "user"
+                WHERE user_id = %s
+            ''', (id,))
+
+
+            for id, login_name, password in cur:
+                self.id = id
+                self.name = login_name
+                self.password = password
+
+    @classmethod
+    def get(self_class, id):
+        '''Return user instance of id, return None if not exist'''
+        try:
+            return self_class(id)
+        except UserNotFoundError:
+            return None
+
+    def __repr__(self):
+        return '<User %r>' % (self.name)
+
+
+
+
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
+
