@@ -5,16 +5,22 @@
 
 {% endblock %}
 {% block body %}
-    {% if not session.logged_in %}
+
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
+        {% if not current_user.is_authenticated() %}
         <h1>Welcome to RR Group 4's Booknet!</h1>
         <p>Hey you haven't logged in yet. What are you waiting for?</p>
         <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('login_index')}}" role="button">Login</a><a class="btn btn-primary btn-lg" href="#" role="button">Register &raquo;</a></div>
+        {% else %}
+        <h1>Welcome back {{ current_user.name }}!</h1>
+        <p>Happy to see you again!</p>
+        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard')}}" role="button">Dashboard &raquo;</a></div>
+        {% endif %}
+
       </div>
     </div>
-    {% endif %}
 
       <!-- Example row of columns -->
       <div class="row">

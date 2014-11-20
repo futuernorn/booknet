@@ -24,21 +24,23 @@ with open('data/sample-data/books.json') as af:
     for line in af:
         book = json.loads(line.strip())
         book_key = book['key']
-        print 'found book', book_key
-        print book
+        # print 'found book', book_key
+        # print book
         # put the book in your database
         with easypg.cursor() as cur:
-            # first check to see if we have an existing "book_core" entry
+            # first clean up book title
             try:
-                book['title']
+                book['title'] = book['title'].encode('ascii', 'xmlcharrefreplace')
             except KeyError:
-                #print "No title for this book entry! Continuing..."
+                print "No title for this book entry! Continuing..."
                 continue
 
+
             if len(book['title']) > 250:
-                #print "This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title']
+                print "This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title']
                 continue
-            book['title'] = book['title'].decode('utf-8')
+
+            # now check to see if we have an existing "book_core" entry
             #print "Checking to see if a book core entry exists for %s..." % book['title']
             cur.execute('''
                 SELECT core_id
@@ -67,6 +69,7 @@ with open('data/sample-data/books.json') as af:
                 try:
                     book['isbn_10']
                 except KeyError:
+                    print "%s has no ISBN!" % book['title']
                     book_isbn = []
                 else:
                     book_isbn = book['isbn_10']
@@ -77,6 +80,7 @@ with open('data/sample-data/books.json') as af:
                 book['number_of_pages']
             except KeyError:
                 page_count = None
+                print "%s has no page count!" % book['title']
             else:
                 page_count = book['number_of_pages']
 
@@ -91,20 +95,21 @@ with open('data/sample-data/books.json') as af:
                 #print "Publish date is: %s." % book['publish_date']
                 original_date = book['publish_date']
             except KeyError:
+                print "%s has no publication date!" % book['title']
                 publication_date = None
                 original_date = None
             else:
                 if re.match('\w* \d{1,2}, \d{4}', book['publish_date']):
                     m = re.match('(\w* \d{1,2}, \d{4})', book['publish_date'])
-                    print m.groups()
+                    # print m.groups()
                     publication_date = m.groups()[0]
                 elif re.match('\w* \d{4}', book['publish_date']):
                     m = re.match('(\w*) (\d{4})', book['publish_date'])
-                    print m.groups()
+                    # print m.groups()
                     publication_date = "%s 01, %s" % (m.groups()[0], m.groups()[1])
                 elif re.match('\d{4}', book['publish_date']):
                     m = re.match('(\d{4})', book['publish_date'])
-                    print m.groups()
+                    # print m.groups()
                     publication_date = "January 01, %s" % m.groups()[0]
                 else :
                     publication_date = None
@@ -119,4 +124,4 @@ with open('data/sample-data/books.json') as af:
                     INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
                     VALUES(%s, %s, %s, %s, %s)
                 ''', (book_core_id, publication_date, isbn, book_type, page_count))
-            #print "-----------------------\n\n"
+            print "-----------------------\n\n"
