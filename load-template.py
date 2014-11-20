@@ -19,7 +19,7 @@ e.g.:
 "revision": 3}
 
 '''
-with open('authors.json') as af:
+with open('data/sample-data/authors.json') as af:
     for line in af:
         author = json.loads(line.strip())
         author_key = author['key']
@@ -28,7 +28,7 @@ with open('authors.json') as af:
         with easypg.cursor() as cur:
             # first clean up book title
             try:
-                author['name'] = author['name'].encode('ascii', 'xmlcharrefreplace')
+                author['name'] = author['name'].strip().encode('ascii', 'xmlcharrefreplace')
             except KeyError:
                 print "No name for this author entry! Continuing..."
                 continue
@@ -49,82 +49,15 @@ with open('authors.json') as af:
                 WHERE author_alias = %s
             ''', (author['key'],))
 
-            if (cur.rowcount >= 1):
-                #print "Already an entry for this author key..."
-                #too many, or no, matching book_core entries found -> make a new one
+            if (cur.rowcount == 0):
+                print "Inserting author name  %s along with key %s." % (author['name'], author['key'])                
                 cur.execute('''
-                  INSERT INTO book_core (book_title, book_description, edition)
-                  VALUES(%s, %s, %s)
-                  RETURNING core_id
-                ''', (book['title'], '', book['revision']))
-
-            # Retrieve book_core_id for book insertion
-            book_core_id = cur.fetchone()[0]
-            #print "Book core ID obtained: %s!" % book_core_id
-
-            # check to see what type of ISBN we have to work with, go with ISBN if possible
-            # explanation of this type of structure at: http://stackoverflow.com/a/1592578/1431509
-            try:
-                book['isbn_13']
-            except KeyError:
-                try:
-                    book['isbn_10']
-                except KeyError:
-                    print "%s has no ISBN!" % book['title']
-                    book_isbn = []
-                else:
-                    book_isbn = book['isbn_10']
+                  INSERT INTO author (author_name, author_alias)
+                  VALUES(%s, %s)
+                  RETURNING author_id
+                ''', (author['name'], author['key']))
             else:
-                book_isbn = book['isbn_13']
-
-            try:
-                book['number_of_pages']
-            except KeyError:
-                page_count = None
-                print "%s has no page count!" % book['title']
-            else:
-                page_count = book['number_of_pages']
-
-            try:
-                book['physical_format']
-            except KeyError:
-                book_type = None
-            else:
-                book_type = book['physical_format']
-
-            try:
-                #print "Publish date is: %s." % book['publish_date']
-                original_date = book['publish_date']
-            except KeyError:
-                print "%s has no publication date!" % book['title']
-                publication_date = None
-                original_date = None
-            else:
-                if re.match('\w* \d{1,2}, \d{4}', book['publish_date']):
-                    m = re.match('(\w* \d{1,2}, \d{4})', book['publish_date'])
-                    # print m.groups()
-                    publication_date = m.groups()[0]
-                elif re.match('\w* \d{4}', book['publish_date']):
-                    m = re.match('(\w*) (\d{4})', book['publish_date'])
-                    # print m.groups()
-                    publication_date = "%s 01, %s" % (m.groups()[0], m.groups()[1])
-                elif re.match('\d{4}', book['publish_date']):
-                    m = re.match('(\d{4})', book['publish_date'])
-                    # print m.groups()
-                    publication_date = "January 01, %s" % m.groups()[0]
-                else :
-                    publication_date = None
-            #print "Parsed publication_date is: %s (Original date: %s)." % (publication_date, original_date)
-            # was getting output in this formatting "[u'9780110827667']" slicing off the excess
-            # until I find whats going on
-            # book_isbn = book_isbn[2:-2]
-            for isbn in book_isbn:
-                isbn = ''.join(x for x in isbn if x.isdigit())
-                print "Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date)
-                cur.execute('''
-                    INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
-                    VALUES(%s, %s, %s, %s, %s)
-                ''', (book_core_id, publication_date, isbn, book_type, page_count))
+                print "Already an entry for this author key..."
             print "-----------------------\n\n"
 '''
 with open('works.json') as af:
@@ -135,9 +68,10 @@ with open('works.json') as af:
         # put the work in your database
 '''
 
-'''
+
 with open('data/sample-data/books.json') as af:
     for line in af:
+        break
         book = json.loads(line.strip())
         book_key = book['key']
         # print 'found book', book_key
@@ -241,4 +175,3 @@ with open('data/sample-data/books.json') as af:
                     VALUES(%s, %s, %s, %s, %s)
                 ''', (book_core_id, publication_date, isbn, book_type, page_count))
             print "-----------------------\n\n"
-                            '''
