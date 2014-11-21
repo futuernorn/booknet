@@ -31,7 +31,11 @@
     <tr>
         <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"</td>
         <td>{{ book.title.decode('utf-8') }}</td>
-        <td>{{ book.author }}</td>
+        <td>
+	  {% for author in books.authors %}
+	  {{ author.name }}
+	  {% endfor %}
+	</td>
         <td>{{ book.rating }}</td>
         <td>
             {% for tag in books.tags %}

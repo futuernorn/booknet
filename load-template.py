@@ -20,7 +20,11 @@ e.g.:
 
 '''
 with open('data/sample-data/authors.json') as af:
+    count = 1
     for line in af:
+#        if count > 100:
+#            break
+        count += 1
         author = json.loads(line.strip())
         author_key = author['key']
         # print 'found author', author_key
@@ -57,7 +61,7 @@ with open('data/sample-data/authors.json') as af:
                   RETURNING author_id
                 ''', (author['name'], author['key']))
             else:
-                print "Already an entry for this author key..."
+                print "Already an entry for this author key: %s..." % author['key']
             print "-----------------------\n\n"
 '''
 with open('works.json') as af:
@@ -70,8 +74,11 @@ with open('works.json') as af:
 
 
 with open('data/sample-data/books.json') as af:
+    count = 1
     for line in af:
-        break
+        if count > 1000:
+            break
+        count += 1
         book = json.loads(line.strip())
         book_key = book['key']
         # print 'found book', book_key
@@ -80,7 +87,7 @@ with open('data/sample-data/books.json') as af:
         with easypg.cursor() as cur:
             # first clean up book title
             try:
-                book['title'] = book['title'].encode('ascii', 'xmlcharrefreplace')
+                book['title'] = book['title'].strip().encode('ascii', 'xmlcharrefreplace')
             except KeyError:
                 print "No title for this book entry! Continuing..."
                 continue
@@ -174,4 +181,26 @@ with open('data/sample-data/books.json') as af:
                     INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
                     VALUES(%s, %s, %s, %s, %s)
                 ''', (book_core_id, publication_date, isbn, book_type, page_count))
+
+            # add author relationships if found
+            try:
+                for author in book['authors']:
+                    position = 1
+                    cur.execute('''
+                    SELECT author_id
+                    FROM author
+                    WHERE author_alias = %s
+                    ''', (author,))
+                    if cur.rowcount != 1:
+                        print "No valid matching author found for key: %s." % author
+                    else:
+                        author_id = cur.fetchone()[0]
+                        cur.execute('''
+                        INSERT INTO authorship (core_id, author_id, position)
+                        VALUES(%s, %s)
+                        RETURNING author_id
+                        ''', (book_core_id, author_id, position))                        
+            except KeyError:
+                print "No authors found!"
+
             print "-----------------------\n\n"

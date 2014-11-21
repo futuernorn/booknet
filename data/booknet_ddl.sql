@@ -157,7 +157,7 @@ CREATE TABLE authorship(
 authorship_id serial PRIMARY KEY NOT NULL,
 core_id bigint NOT NULL REFERENCES book_core,
 author_id INTEGER NOT NULL REFERENCES author,
-institution_id bigint NOT NULL REFERENCES institution,
+institution_id bigint REFERENCES institution,
 position smallint NOT NULL
 );
 
