@@ -6,7 +6,7 @@ from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
 
-from lib import books, users
+from lib import books, reviews, users
 
 
 app = flask.Flask('BookServer')
@@ -70,11 +70,36 @@ def books_index():
 
 @app.route("/reviews")
 def reviews_index():
-    #with easypg.cursor() as cur:
-    #    narts = articles.get_article_count(cur)
-    #    nproc, nser = proceedings.get_proceedings_stats(cur)
-    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
-    return flask.render_template('reviews.html')
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = reviews.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        review_info = reviews.get_all_reviews(cur, page)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('reviews.html',
+                                 reviews=review_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+
 
 
 @app.route("/user/<uid>")

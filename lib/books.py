@@ -28,7 +28,7 @@ def get_all_books(cur, page):
 def get_book_range(cur,start,amount):
     cur.execute('''
         SELECT core_id, book_id, picture, book_title, book_description, isbn, EXTRACT(YEAR from publication_date) as pub_year, ROUND(AVG(rating)) as avg_rating
-        FROM books JOIN book_core USING (core_id) JOIN ratings USING (book_id)
+        FROM books JOIN book_core USING (core_id) LEFT JOIN ratings USING (book_id)
         GROUP BY core_id, book_id, picture, book_title, book_description, isbn, pub_year
         LIMIT %s OFFSET %s
     ''', (amount, start))
@@ -40,12 +40,12 @@ def get_book_range(cur,start,amount):
         cur.execute('''
         SELECT author_name
         FROM author JOIN authorship USING (author_id)
-        WHERE book_core = %s
-        ''', (book['core_id']))
+        WHERE core_id = %s
+        ''', (book['core_id'],))
         author_info = []
         for author_name in cur:
-            author_info.append(author_name)
-        book_info['authors'] = author_info
+            book_info['authors'].append(author_name)
+
 
 
     return book_info
