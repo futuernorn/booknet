@@ -2,10 +2,12 @@ booknet
 =======
 # Getting Started
 Aside from the software listed on the course website / included in the provided vagrant configuration, the following python library is needed:
-https://github.com/maxcountryman/flask-login
+
+(https://github.com/maxcountryman/flask-login)
+```
 pip install flask-login
 from flask.ext.login import LoginManager
-
+```
 
 # Initalizing Database
 1. Execute data/booknet_ddl.sql on the database to drop / reinitalize all tables.
