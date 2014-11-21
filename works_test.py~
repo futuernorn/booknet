@@ -132,7 +132,7 @@ with open('works.json') as af:
     for line in af:
         work = json.loads(line.strip())
         work_key = work['key']
-        #print 'found work', work_key
+        print 'found work', work_key
         # put the work in your database
         for key in work:
             work_keys[key] += 1
@@ -193,7 +193,7 @@ with open('works.json') as af:
                 print "No authors found!"
 
             print "-----------------------\n\n"
-print work_keys
+        print work_keys
 
 
 with open('data/sample-data/books.json') as af:
