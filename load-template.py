@@ -19,18 +19,20 @@ e.g.:
 "revision": 3}
 
 '''
+
+author_ids = {}
 with open('data/sample-data/authors.json') as af:
     count = 1
     for line in af:
-#        if count > 100:
-#            break
+        if count > 100:
+            break
         count += 1
         author = json.loads(line.strip())
         author_key = author['key']
         # print 'found author', author_key
         # put the author in your database
         with easypg.cursor() as cur:
-            # first clean up book title
+            # first clean up book author info
             try:
                 author['name'] = author['name'].strip().encode('ascii', 'xmlcharrefreplace')
             except KeyError:
@@ -42,27 +44,48 @@ with open('data/sample-data/authors.json') as af:
                 print "This author's name (%s) is too long, not importing it for the moment! Continuing..." % author['name']
                 continue
 
-            if len(author['key']) > 255:
-                print "This author's key (%s) is too long, not importing it for the moment! Continuing..." % author['key']
+            author_alias = None
+            try:
+                if len(author['personal_name']) > 255:
+                    print "This author's  personal_name (%s) is too long, not importing it for the moment! Continuing..." % author['personal_name']
                 continue
-            # now check to see if we have an existing "author" entry
-            #print "Checking to see if a author entry exists for %s..." % author['key']
-            cur.execute('''
-                SELECT author_id
-                FROM author
-                WHERE author_alias = %s
-            ''', (author['key'],))
+                author_alias = author['personal_name'].strip().encode('ascii', 'xmlcharrefreplace')
+            except KeyError:
+                #print "KeyError when checking personal_name for %s..." % author['name']
+                pass
+            
+            try:
+                if len(author['alternate_names'][0]) > 255:
+                    print "This author's  alternate_names (%s) is too long, not importing it for the moment! Continuing..." % author['alternate_names'][0]
+                    continue
+                author_alias = author['alternate_names'][0].strip().encode('ascii', 'xmlcharrefreplace')
+            except KeyError:
+                #print "KeyError when checking alternate_names for %s..." % author['name']
+                pass
 
-            if (cur.rowcount == 0):
-                print "Inserting author name  %s along with key %s." % (author['name'], author['key'])                
-                cur.execute('''
-                  INSERT INTO author (author_name, author_alias)
-                  VALUES(%s, %s)
-                  RETURNING author_id
-                ''', (author['name'], author['key']))
+
+
+            # now check to see if we have an existing "author" entry -- don't need this
+            #print "Checking to see if a author entry exists for %s..." % author['key']
+            #cur.execute('''
+            #    SELECT author_id
+            #    FROM author
+            #    WHERE author_alias = %s
+            #''', (author['key'],))
+
+            #if (cur.rowcount == 0):
+
+            cur.execute('''
+            INSERT INTO author (author_name, author_alias)
+            VALUES(%s, %s)
+            RETURNING author_id
+            ''', (author['name'], author_alias))
+            if cur.rowcount == 1:
+                author_ids[author['key']] = cur.fetchone()[0]
+                #print "Inserted author name  %s along with alias %s, represented by author_id: %s." % (author['name'], author_alias, author_ids[author['key']])                
             else:
                 print "Already an entry for this author key: %s..." % author['key']
-            print "-----------------------\n\n"
+            #print "-----------------------\n\n" 
 '''
 with open('works.json') as af:
     for line in af:
@@ -76,7 +99,7 @@ with open('works.json') as af:
 with open('data/sample-data/books.json') as af:
     count = 1
     for line in af:
-        if count > 1000:
+        if count > 1001:
             break
         count += 1
         book = json.loads(line.strip())
@@ -176,7 +199,7 @@ with open('data/sample-data/books.json') as af:
             # book_isbn = book_isbn[2:-2]
             for isbn in book_isbn:
                 isbn = ''.join(x for x in isbn if x.isdigit())
-                print "Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date)
+                #print "Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date)
                 cur.execute('''
                     INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
                     VALUES(%s, %s, %s, %s, %s)
@@ -186,20 +209,16 @@ with open('data/sample-data/books.json') as af:
             try:
                 for author in book['authors']:
                     position = 1
-                    cur.execute('''
-                    SELECT author_id
-                    FROM author
-                    WHERE author_alias = %s
-                    ''', (author,))
-                    if cur.rowcount != 1:
-                        print "No valid matching author found for key: %s." % author
-                    else:
-                        author_id = cur.fetchone()[0]
+                    try:
+                        author_id = author_ids[author]
                         cur.execute('''
                         INSERT INTO authorship (core_id, author_id, position)
                         VALUES(%s, %s)
                         RETURNING author_id
                         ''', (book_core_id, author_id, position))                        
+                        position += 1
+                    except KeyError:
+                        print "Couldn't find an author_id entry for author key: %s..." % author
             except KeyError:
                 print "No authors found!"
 

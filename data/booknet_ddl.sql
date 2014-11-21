@@ -149,7 +149,7 @@ DROP TABLE IF EXISTS "author" CASCADE;
 CREATE TABLE author(
 author_id serial PRIMARY KEY NOT NULL,
 author_name varchar(255) NOT NULL,
-author_alias varchar(255) NOT NULL
+author_alias varchar(255) 
 );
 
 DROP TABLE IF EXISTS "authorship" CASCADE;
