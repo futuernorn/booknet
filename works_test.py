@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import json
-
+import operator
 import re
 
 
@@ -93,7 +93,7 @@ with open('data/sample-data/authors.json') as af:
    "revision":6
 }
 '''
-work_keys = {}
+work_keys = {'title_too_long':0}
 with open('data/sample-data/works.json') as af:
     for line in af:
         work = json.loads(line.strip())
@@ -114,7 +114,8 @@ with open('data/sample-data/works.json') as af:
             
 
         if len(work['title']) > 250:
-            print "This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title']
+            #print "This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title']
+            work_keys['title_too_long'] += 1
             continue
 
             # now check to see if we have an existing "book_core" entry
@@ -149,10 +150,14 @@ with open('data/sample-data/works.json') as af:
                     #WHERE author_alias = %s
                     #''', (author,))
         except KeyError:
-            print "No authors found!"
+            #print "No authors found!"
+            pass
 
-        print "-----------------------\n\n"
-        print work_keys
+    #    print "-----------------------\n\n"
+    sorted_work_keys = sorted(work_keys.items(), key=operator.itemgetter(1))
+    #print sorted_work_keys
+    for x in sorted_work_keys:
+        print x[0], x[1]
 
 
 with open('data/sample-data/books.json') as af:
