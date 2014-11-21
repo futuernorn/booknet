@@ -28,7 +28,7 @@
                 {{ render_paginator_range(endpoint,totalPages-6,totalPages) }}
             {% endif %}
         {% else %}
-            {{ render_paginator_range(endpoint,1,10) }}
+            {{ render_paginator_range(endpoint,1,totalPages) }}
         {% endif %}
         {% if nextPage %}
             <li>
