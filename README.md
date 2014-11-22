@@ -36,6 +36,7 @@ Works -> Book Core
 
 ***** Author Key Occurances
 | Key | # |
+| --- | - |
 | name_too_long | 0 |
 | marc | 1 |
 | subtitle | 1 |
@@ -93,6 +94,7 @@ Works -> Book Core
 
 ***** Work Key Occurances
 | Key | # |
+| --- | - |
 | title_too_long | 0 |
 | translated_titles | 1 |
 | original_languages | 1 |
@@ -125,6 +127,7 @@ Works -> Book Core
 
 ***** Book Key Occurances
 | Key | # |
+| --- | - |
 | title_too_long | 0 |
 | isbn | 1 |
 | collections | 1 |
