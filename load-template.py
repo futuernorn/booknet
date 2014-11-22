@@ -11,15 +11,20 @@ author_keys = {'name_too_long':0}
 work_keys = {'title_too_long':0}
 book_keys = {'title_too_long':0}
 
-LOOP_LIMIT = False
+LOOP_LIMIT = True
 
 log_file = open('load-template.log', 'w')
 
+
 author_ids = {}
+work_ids = {}
+
+# covers mapped to book_core.core_id for potential later use
+work_covers = {}
 with open('data/sample-data/authors.json') as af:
     count = 1
     for line in af:
-        if LOOP_LIMIT and (count > 10):
+        if LOOP_LIMIT and (count > 1):
             break
         count += 1
         author = json.loads(line.strip())
@@ -74,9 +79,10 @@ with open('data/sample-data/authors.json') as af:
 
 
 with open('data/sample-data/works.json') as af:
+    book_covers = open('cover_ids.json', 'w')
     count = 1
     for line in af:
-        if LOOP_LIMIT and (count > 10):
+        if LOOP_LIMIT and (count > 1):
             break
         count += 1
         work = json.loads(line.strip())
@@ -109,11 +115,14 @@ with open('data/sample-data/works.json') as af:
                 print >> log_file, "No title for this book entry! Continuing..."
                 continue
 
-
             if len(work['title']) > 250:
                 print >> log_file, "This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title']
                 continue
 
+            try:
+                work['description'] = work['description'].strip().encode('ascii', 'xmlcharrefreplace')
+            except KeyError:
+                work['description'] = ""
             # now check to see if we have an existing "book_core" entry
             #print "Checking to see if a book core entry exists for %s..." % works['title']
             cur.execute('''
@@ -125,16 +134,31 @@ with open('data/sample-data/works.json') as af:
             if (cur.rowcount != 1):
                 print >> log_file, "No book core entry found, adding one now..."
                 #too many, or no, matching book_core entries found -> make a new one
+                print >> log_file, "Inserting work / book core: %s." % (work['title'])
                 cur.execute('''
                   INSERT INTO book_core (book_title, book_description, edition)
                   VALUES(%s, %s, %s)
                   RETURNING core_id
-                ''', (work['title'], '', work['revision']))
+                ''', (work['title'], work['description'], 1))
 
             # Retrieve book_core_id for book insertion
             book_core_id = cur.fetchone()[0]
-            # book_core_id = 1
-            #print "Book core ID obtained: %s!" % book_core_id
+
+            # map to book_tag
+            # e.g., "subjects": ["Environmental aspects", "Environmental aspects of Forest fires", "Forest Hydrology",
+            # "Forest fires", "Hydrology, Forest", "Streamflow", "Forest hydrology"]
+            # work['subjects']
+
+            # locations related to work/book?
+            # e.g.,  "subject_places": ["Black Hills (S.D. and Wyo.)", "Custer State Park",
+            # "Custer State Park (S.D.)", "Custer State Park Region", "South Dakota"]
+            # work['subject_places']
+
+            try:
+                work_covers[book_core_id] = work['covers']
+            except KeyError:
+                # No covers here
+                pass
 
             # add author relationships if found
             try:
@@ -155,14 +179,16 @@ with open('data/sample-data/works.json') as af:
             except KeyError:
                 print >> log_file, "No authors found!"
 
-            print >> log_file, "-----------------------\n\n"
+            # print >> log_file, "-----------------------\n\n"
+    json.dump(work_covers, book_covers)
+    book_covers.close()
 
 
 
 with open('data/sample-data/books.json') as af:
     count = 1
     for line in af:
-        if LOOP_LIMIT and (count > 10):
+        if LOOP_LIMIT and (count > 2000):
             break
         count += 1
         book = json.loads(line.strip())
@@ -197,14 +223,19 @@ with open('data/sample-data/books.json') as af:
 
             # now check to see if we have an existing "book_core" entry
             print >> log_file, "Checking to see if a book core entry exists for %s..." % book['title']
-            cur.execute('''
-                SELECT core_id
-                FROM book_core
-                WHERE book_title = %s
-            ''', (book['title'],))
+            try:
+                book_core_id = work_ids[book['work']]
+                print >> log_file, "Book core ID obtained: %s!" % book_core_id
+            except KeyError:
 
-            if (cur.rowcount != 1):
-                print >> log_file, "No book core entry found, adding one now..."
+                # cur.execute('''
+                #     SELECT core_id
+                #     FROM book_core
+                #     WHERE book_title = %s
+                # ''', (book['title'],))
+
+                # if (cur.rowcount != 1):
+                print >> log_file, "No book core entry found (work_ids[%s]), adding one now..." % book['work']
                 #too many, or no, matching book_core entries found -> make a new one
                 cur.execute('''
                   INSERT INTO book_core (book_title, book_description, edition)
@@ -212,9 +243,10 @@ with open('data/sample-data/books.json') as af:
                   RETURNING core_id
                 ''', (book['title'], '', book['revision']))
 
-            # Retrieve book_core_id for book insertion
-            book_core_id = cur.fetchone()[0]
-            print >> log_file, "Book core ID obtained: %s!" % book_core_id
+                # Retrieve book_core_id for book insertion
+                book_core_id = cur.fetchone()[0]
+
+
 
             # check to see what type of ISBN we have to work with, go with ISBN if possible
             # explanation of this type of structure at: http://stackoverflow.com/a/1592578/1431509
@@ -281,9 +313,11 @@ with open('data/sample-data/books.json') as af:
                 ''', (book_core_id, publication_date, isbn, book_type, page_count))
 
             # add author relationships if found
+            position = 1
             try:
+
                 for author in book['authors']:
-                    position = 1
+                    position += 1
                     try:
                         author_id = author_ids[author]
                         cur.execute('''
@@ -293,7 +327,9 @@ with open('data/sample-data/books.json') as af:
                         ''', (book_core_id, author_id, position))
                         position += 1
                     except KeyError:
-                        print >> log_file, "Couldn't find an author_id entry for author key: %s..." % author
+                        print >> log_file, "KeyError: Couldn't find an author_id entry for author key: %s..." % author
+                    except TypeError:
+                        print >> log_file, "TypeError: Couldn't find an author_id entry for author key: %s..." % author
             except KeyError:
                 print >> log_file, "No authors found!"
 

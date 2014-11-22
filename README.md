@@ -17,9 +17,27 @@ from flask.ext.login import LoginManager
 
 Sample Data Structure Information
 ------
+From http://www.danneu.com/posts/authordb-datomic-tutorial/
+```
+There isn't much documentation to be found, but basically Open Library has a concept of:
+
+Authors
+Works
+Editions
+A Work is the abstract representation of a book. It at least has a title and a set of authors associated with it.
+
+An Author can belong to many books.
+
+An Edition is a concrete publication of a Work. It can contain things like publication dates and it can represent hardcover books, paperbacks, and ebooks. I didn't even crack open the edition data dump (ran out of hard-drive space) but I believe Editions can even have their own Authors.
+```
+
+So in our DDL we will most likely use the following mapping:
+Works -> Book Core
+
 #### Authors
 Total Valid Rows:
 | Key | Amount |
+
 
 
 #### Works
