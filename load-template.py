@@ -11,7 +11,7 @@ author_keys = {'name_too_long':0}
 work_keys = {'title_too_long':0}
 book_keys = {'title_too_long':0}
 
-LOOP_LIMIT = True
+LOOP_LIMIT = False
 
 log_file = open('load-template.log', 'w')
 
@@ -123,6 +123,10 @@ with open('data/sample-data/works.json') as af:
                 work['description'] = work['description'].strip().encode('ascii', 'xmlcharrefreplace')
             except KeyError:
                 work['description'] = ""
+            except AttributeError:
+                # print to error log later
+                pass
+
             # now check to see if we have an existing "book_core" entry
             #print "Checking to see if a book core entry exists for %s..." % works['title']
             cur.execute('''
@@ -213,12 +217,14 @@ with open('data/sample-data/books.json') as af:
             try:
                 book['title'] = book['title'].strip().encode('ascii', 'xmlcharrefreplace')
             except KeyError:
-                print "No title for this book entry! Continuing..."
+                # should be output to error log 
+                #print "No title for this book entry! Continuing..."
                 continue
 
 
             if len(book['title']) > 250:
-                print "This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title']
+                # log this latter
+                #print "This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title']
                 continue
 
             # now check to see if we have an existing "book_core" entry
@@ -285,6 +291,9 @@ with open('data/sample-data/books.json') as af:
                 print >> log_file, "%s has no publication date!" % book['title']
                 publication_date = None
                 original_date = None
+            except UnicodeEncodeError:
+                # log this later
+                pass
             else:
                 if re.match('\w* \d{1,2}, \d{4}', book['publish_date']):
                     m = re.match('(\w* \d{1,2}, \d{4})', book['publish_date'])
@@ -341,19 +350,24 @@ sorted_author_keys = sorted(author_keys.items(), key=operator.itemgetter(1))
 sorted_work_keys = sorted(work_keys.items(), key=operator.itemgetter(1))
 sorted_book_keys = sorted(book_keys.items(), key=operator.itemgetter(1))
 
-print "*** SORTED AUTHOR KEYS ***"
+print "***** Author Key Occurances"
+print "| Key | # |"
 for x in sorted_author_keys:
-    print x[0], x[1]
+    print "| %s | %s |" % (x[0], x[1])
 print "-----------------------\n\n"
 
-print "*** SORTED WORK KEYS ***"
+
+print "***** Work Key Occurances"
+print "| Key | # |"
 for x in sorted_work_keys:
-    print x[0], x[1]
+    print "| %s | %s |" % (x[0], x[1])
 print "-----------------------\n\n"
 
-print "*** SORTED BOOK KEYS ***"
+
+print "***** Book Key Occurances"
+print "| Key | # |"
 for x in sorted_book_keys:
-    print x[0], x[1]
+    print "| %s | %s |" % (x[0], x[1])
 print "-----------------------\n\n"
 
 log_file.close()
