@@ -34,7 +34,7 @@ From http://www.danneu.com/posts/authordb-datomic-tutorial/
 So in our DDL we will most likely use the following mapping:
 Works -> Book Core
 
-***** Author Key Occurances
+****Author Key Occurances
 
 | Key | # |
 | --- | --- |
@@ -93,7 +93,7 @@ Works -> Book Core
 
 
 
-***** Work Key Occurances
+****Work Key Occurances
 
 | Key | # |
 | --- | --- |
@@ -127,7 +127,8 @@ Works -> Book Core
 
 
 
-***** Book Key Occurances
+****Book Key Occurances
+
 | Key | # |
 | --- | --- |
 | title_too_long | 0 |
