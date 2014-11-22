@@ -13,3 +13,20 @@ from flask.ext.login import LoginManager
 1. Execute data/booknet_ddl.sql on the database to drop / reinitalize all tables.
 2. Use python to execute load-template.py. This will parse and import all sample_data (**provided books.json, authors.json, & works.json should be in data/sample-data**). *TODO: When load-template.py is finalize, replace this step with a (chunkified?) SQL file for import.*
 3. Execute data/starting_data.sql on the database to import generic starting manual and randomly generated data.
+
+
+Sample Data Structure Information
+------
+#### Authors
+Total Valid Rows:
+| Key | Amount |
+
+
+#### Works
+Total Valid Rows:
+| Key | Amount |
+
+
+#### Books
+Total Valid Rows:
+| Key | Amount |
