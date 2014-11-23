@@ -36,6 +36,16 @@ def home_index():
 def user_dashboard():
     return flask.render_template('dashboard.html')
 
+@app.route("/books/author")
+def books_by_author():
+    raise NotImplementedError
+@app.route("/books/publisher")
+def books_by_publisher():
+    raise NotImplementedError
+@app.route("/books/subject")
+def books_by_subject():
+    raise NotImplementedError
+
 @app.route("/books")
 def books_index():
     if 'page' in flask.request.args:
@@ -175,7 +185,7 @@ def logout():
     return flask.redirect(flask.url_for('home_index'))
 
 @app.route('/search')
-def get_search_results():
+def search_index():
     if 'q' in flask.request.args:
         query = flask.request.args['q']
     else:
@@ -194,6 +204,7 @@ def add_comment(aid):
     # redirect user back to article which will display comments
     # always redirect after a POST
     return flask.redirect('/articles/' + aid)
+
 
 
 

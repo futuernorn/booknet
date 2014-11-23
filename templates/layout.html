@@ -98,7 +98,21 @@
         <div id="navbar" class="navbar-collapse collapse">
 	    <ul class="nav navbar-nav">
             {{render_menuitem('home_index', 'Home', active=active_page)}}
-            {{render_menuitem('books_index', 'Books', active=active_page)}}
+
+            <li {% if active_page == 'books_index' %} class="dropdown active" {% else %} class="dropdown" {% endif %}>
+              <a href="{{url_for('books_index')}}" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Books<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                {{render_menuitem('books_index', 'Browse', active=active_page)}}
+                <li class="divider"></li>
+                {{render_menuitem('books_by_author', 'By Author', active=active_page)}}
+                {{render_menuitem('books_by_publisher', 'By Publisher', active=active_page)}}
+                {{render_menuitem('books_by_subject', 'By Subject', active=active_page)}}
+                <li class="divider"></li>
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+            </li>
+
             {{render_menuitem('reviews_index','Reviews', active=active_page)}}
             {% if not current_user.is_authenticated() %}
                 {{render_menuitem('login_index', 'Login', active=active_page)}}
@@ -107,9 +121,12 @@
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
             {% endif %}
 	    </ul>
-        <form class="navbar-form navbar-right" role="search">
+        <form action="{{ url_for('search_index') }}" method="GET" class="navbar-form navbar-right" role="search">
             <div class="form-group">
-            <input type="text" class="form-control" placeholder="Search">
+            <input type="text" class="form-control" name="q" id="searchField" placeholder="Search">
+
+                <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+
             </div>
         </form>
         <!-- <form class="navbar-form navbar-right" role="form">
