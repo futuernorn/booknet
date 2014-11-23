@@ -14,14 +14,15 @@ work_keys = {'title_too_long':0}
 book_keys = {'title_too_long':0}
 
 # Parse smaller chunks of data during some troubleshooting
+# IS_LOOP_LIMIT = True
 IS_LOOP_LIMIT = False
-LOOP_LIMIT = 50
+LOOP_LIMIT = 500
 loop_counter = 0
 
 LOGGING = False
 
 log_file = open('load-template.log', 'w')
-error_log = open('template_error_log', 'w')
+error_log = open('load-template-errors.log', 'w')
 
 author_ids = {}
 work_ids = {}
@@ -38,16 +39,16 @@ def print_key_occurrences(heading, output, sorted_keys):
     max_occurrences = sorted_author_keys[0][1]
     display_cutoff = max_occurrences / 2
     print >> output, "####%s Occurrences (>%s)" % (heading,display_cutoff)
-    print >> output, "| Key | # |"
-    print >> output, "| ---- | ---- |"
+    print >> output, "| Key | # | Mapping |"
+    print >> output, "| ---- | ---- | ---- |"
     for x in sorted_keys:
         if x[1] > display_cutoff:
             print >> output, "| %s | %s |" % (x[0], x[1])
     print >> output, "\n"
 
     print >> output, "####%s Occurrences (all)" % (heading)
-    print >> output, "| Key | # |"
-    print >> output, "| ---- | ---- |"
+    print >> output, "| Key | # | Mapping |"
+    print >> output, "| ---- | ---- | ---- |"
     for x in sorted_keys:
         print >> output, "| %s | %s |" % (x[0], x[1])
     print >> output, "\n"
@@ -134,17 +135,14 @@ with open('data/sample-data/works.json') as af:
             except KeyError:
                 work_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] = 1
 
-            # first clean up work title
+        with easypg.cursor() as cur:
             try:
-                work['title'] = work['title'].strip().encode('ascii', 'xmlcharrefreplace')
+                if len(work['title']) > 250:
+                    work_keys['title_too_long'] += 1
+                    print_log_entry(error_log,"This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title'])
+                    continue
             except KeyError:
                 print_log_entry(error_log,"No title for this work (%s)! Continuing..." % loop_counter)
-                continue
-        with easypg.cursor() as cur:
-
-            if len(work['title']) > 250:
-                work_keys['title_too_long'] += 1
-                print_log_entry(error_log,"This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title'])
                 continue
 
             try:
@@ -213,6 +211,8 @@ with open('data/sample-data/works.json') as af:
                         print_log_entry(error_log,"Couldn't find an author_id entry for author key: %s..." % author)
             except KeyError:
                 print_log_entry(error_log,"No authors found (%s)!" % loop_counter)
+
+
 
 json.dump(work_covers, book_covers)
 book_covers.close()
@@ -347,12 +347,43 @@ with open('data/sample-data/books.json') as af:
                 cur.execute('''
                     INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
                     VALUES(%s, %s, %s, %s, %s)
+                    RETURNING book_id
                 ''', (book_core_id, publication_date, isbn, book_type, page_count))
+                book_id = cur.fetchone()[0]
+                # add publisher relationships if found
+
+                try:
+                    position = 1
+                    for publisher in book['publishers']:
+                        print_log_entry(log_file,"Checking to see if a publisher entry exists for %s..." % publisher)
+                        cur.execute('''
+                            SELECT publicist_id
+                            FROM publicist
+                            WHERE publicist_name = %s
+                        ''', (publisher,))
+
+                        if cur.rowcount != 1:
+                            print_log_entry(log_file,"No publisher entry found, adding one now(%s)..." % loop_counter)
+                            print_log_entry(log_file,"Inserting publisher: %s :: %s." % (publisher, loop_counter))
+                            cur.execute('''
+                              INSERT INTO publicist (publicist_name)
+                              VALUES(%s)
+                              RETURNING publicist_id
+                            ''', (publisher,))
+
+                        publicist_id = cur.fetchone()[0]
+                        cur.execute('''
+                          INSERT INTO book_publication (book_id, publicist_id, position)
+                          VALUES(%s, %s,%s)
+                        ''', (book_id,publicist_id,position))
+                        position += 1
+                except KeyError:
+                    print_log_entry(error_log,"KeyError importing publisher(s) for (%s)!" % loop_counter)
 
             try:
                 for subject in book['subjects']:
                     subject = subject.strip().encode('ascii', 'xmlcharrefreplace')
-                                        #print "Checking to see if a subject entry exists for %s..." % tag
+                    #print "Checking to see if a subject entry exists for %s..." % tag
                     cur.execute('''
                         SELECT subject_id
                         FROM subject_genre
@@ -399,6 +430,8 @@ with open('data/sample-data/books.json') as af:
                         print_log_entry(error_log,"TypeError: Couldn't find an author_id entry for author key: %s..." % author)
             except KeyError:
                 print_log_entry(error_log,"No authors found!")
+
+
 
 sorted_author_keys = sorted(author_keys.items(), key=operator.itemgetter(1), reverse=True)
 sorted_work_keys = sorted(work_keys.items(), key=operator.itemgetter(1), reverse=True)
