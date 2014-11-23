@@ -48,6 +48,15 @@ def books_by_subject():
 
 @app.route("/books")
 def books_index():
+    if 'sorting' in flask.request.args:
+        sorting = flask.request.args['sorting']
+    else:
+        sorting = None
+    if 'sort_direction' in flask.request.args:
+        sort_direction = flask.request.args['sort_direction']
+    else:
+        sort_direction = None
+
     if 'page' in flask.request.args:
         page = int(flask.request.args['page'])
     else:
@@ -59,7 +68,7 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        book_info = books.get_all_books(cur, page)
+        book_info = books.get_all_books(cur, page, sorting, sort_direction)
 
     if page > 1:
         prevPage = page - 1
@@ -76,7 +85,9 @@ def books_index():
                                  page=page,
                                  totalPages=total_pages,
                                  nextPage=nextPage,
-                                 prevPage=prevPage)
+                                 prevPage=prevPage,
+                                 sorting=sorting,
+                                 sort_direction=sort_direction)
 
 @app.route("/reviews")
 def reviews_index():

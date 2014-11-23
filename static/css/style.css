@@ -64,6 +64,18 @@ html {
 .rating > input:checked ~ label:hover ~ label { color: #555555;  }
 
 
+/* http://stackoverflow.com/questions/18963881/bootstrap-3-panel-header-with-buttons-wrong-position
+---------------------------------------
+.panel-heading.contains-buttons {
+    .clearfix;
+    .panel-title {
+        .pull-left;
+        padding-top:5px;
+    }
+    .btn {
+        .pull-right;
+    }
+}*/
 
 /* Own additions
 -------------------------------------------------*/

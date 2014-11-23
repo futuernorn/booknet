@@ -17,21 +17,23 @@ def get_total_pages(cur):
 def get_spotlight_books(cur, amount):
     return get_book_range(cur,0,amount)
 
-def get_all_books(cur, page):
+def get_all_books(cur, page, sorting, sort_direction):
     """
     Get a list of all article IDs, titles, proceeding titles, authors, and year of publication.
     :param cur: the database cursor
     :return: a list of dictionaries of article IDs and titles
     """
-    return get_book_range(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE)
+    return get_book_range(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, sorting, sort_direction)
 
-def get_book_range(cur,start,amount):
+def get_book_range(cur,start,amount,sorting, sort_direction):
     cur.execute('''
         SELECT core_id, book_id, picture, book_title, book_description, isbn, EXTRACT(YEAR from publication_date) as pub_year, ROUND(AVG(rating)) as avg_rating
-        FROM books JOIN book_core USING (core_id) LEFT JOIN ratings USING (book_id)
+        FROM books
+        JOIN book_core USING (core_id)
+        LEFT JOIN ratings USING (book_id)
         GROUP BY core_id, book_id, picture, book_title, book_description, isbn, pub_year
         LIMIT %s OFFSET %s
-    ''', (amount, start))
+    ''', ( amount, start))
     book_info = []
     for core_id, id, picture, book_title, description, isbn, pub_year, rating in cur:
         book_info.append({'core_id':core_id, 'id': id, 'picture':'', 'title': str(book_title), 'isbn':isbn, 'pub_year': pub_year,
@@ -44,8 +46,9 @@ def get_book_range(cur,start,amount):
         ''', (book['core_id'],))
         author_info = []
         for author_name in cur:
-            book_info['authors'].append(author_name)
+            book['authors'].append(author_name)
+        print book['authors']
 
-
+    # print book_info['author']
 
     return book_info

@@ -1,5 +1,4 @@
 {% import 'navigation.html' as navigation with context %}
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -27,6 +26,7 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
   </head>
   <body>
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -64,7 +64,7 @@
                 {{navigation.menuitem('user_dashboard','Dashboard', active=active_page)}}
                 {{navigation.menuitem(url_for('logout'),'Logout', active=active_page)}}
             {% endif %}
-	    </ul><!--/.nav.navbar-nav-->
+	    </ul><!--/navbar-nav-->
         <!-- Search Form -->
         <form action="{{ url_for('search_index') }}" method="GET" class="navbar-form navbar-right" role="search">
             <div class="form-group">
@@ -124,5 +124,7 @@
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block footer_scripts %}{% endblock %}
   </body>
 </html>

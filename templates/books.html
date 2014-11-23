@@ -18,6 +18,22 @@
 </fieldset>
 {% endmacro %}
 
+{% macro sort_button(display, attribute, direction='') %}
+    <div class="btn-group">
+      <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        {{ display }} <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
+          </li>
+        <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
+        </li>
+      </ul>
+    </div>
+{% endmacro %}
+
 {# layout.html settings #}
 {% set page_title = 'Books' %}
 {% set active_page = 'books_index' %}
@@ -29,7 +45,24 @@
 <br>
 <div class="panel panel-default">
   <!-- Default panel contents -->
-  <div class="panel-heading">Books</div>
+  <div class="panel-heading">
+    <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
+      <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
+    </button>
+    <h4>Books</h4>
+  </div>
+        <div id="table_sorting_options" class="well">
+
+        {{ sort_button("Title","book_title") }}
+        {{ sort_button("Publication Date","publication_date") }}
+        {{ sort_button("Avg. Rating","avg_rating") }}
+        {{ sort_button("Number of Readers","num_readers") }}
+        {% if sorting %}
+            <div class="btn-group">
+              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning">Disable</a>
+            </div>
+        {% endif %}
+        </div>
     {{ navigation.paginator('books_index','pull-right') }}
   <!-- Table -->
   <table class="table">
@@ -44,7 +77,7 @@
         <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"</td>
         <td>Example Title</td>
         <td>Example Author</td>
-        <td>
+        <td style="width:250px;">
             <div style="vertical-align: middle;">{{ star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
             <hr class="listing-cell-divider" />
             <div class="users-rating">Your rating: 4</div>
@@ -97,4 +130,24 @@
 </div>
 
 
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+    $(window).load(function(){
+    //$(document).ready(function(){
+        {% if not sorting %}
+      $('#table_sorting_options').toggleClass('hidden');
+        {% else %}
+        $('#sorting_toggle_btn').toggleClass('active');
+        {% endif %}
+      $('#sorting_toggle_btn').click(function(){
+        $('#table_sorting_options').toggleClass('hidden');
+        $(this).toggleClass('active');
+
+      });
+    });
+
+</script>
 {% endblock %}
