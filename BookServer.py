@@ -89,6 +89,9 @@ def books_index():
                                  sorting=sorting,
                                  sort_direction=sort_direction)
 
+@app.route("/books/rating/add", methods=['POST'])
+def add_book_rating():
+    return flask.redirect(flask.url_for('books_index'))
 @app.route("/reviews")
 def reviews_index():
     if 'page' in flask.request.args:

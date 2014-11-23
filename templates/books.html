@@ -1,5 +1,6 @@
 {# Star rating macros #}
 {% macro star_ratings(book_id, rating='') %}
+<form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
 <fieldset class="rating">
     {% for num in range(10,0,-1) %}
         {% set num = num / 2 %}
@@ -12,10 +13,11 @@
         {% if num == rating %}
             {% set is_selected = True %}
         {% endif %}
-        <input type="radio" id="{{book_id}}_star{{num}}" name="rating" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
+        <input type="radio" id="{{book_id}}_star{{num}}" book_id="{{book_id}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
         <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
     {% endfor %}
 </fieldset>
+</form>
 {% endmacro %}
 
 {% macro sort_button(display, attribute, direction='') %}
@@ -53,13 +55,14 @@
   </div>
         <div id="table_sorting_options" class="well">
 
+
         {{ sort_button("Title","book_title") }}
         {{ sort_button("Publication Date","publication_date") }}
         {{ sort_button("Avg. Rating","avg_rating") }}
         {{ sort_button("Number of Readers","num_readers") }}
         {% if sorting %}
             <div class="btn-group">
-              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning">Disable</a>
+              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
             </div>
         {% endif %}
         </div>
@@ -146,7 +149,14 @@
         $('#table_sorting_options').toggleClass('hidden');
         $(this).toggleClass('active');
 
+
       });
+      $('.rating-star').click(function(){
+        var value = $(this).attr('value');
+        var book_id = $(this).attr('book_id');
+        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+        $(this).closest("form").submit();
+    });
     });
 
 </script>
