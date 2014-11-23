@@ -5,7 +5,7 @@ import sys
 from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
-
+import re
 from lib import books, reviews, users
 
 
@@ -111,30 +111,58 @@ def display_user(uid):
 def login_index():
     # Login page
 
-    error = None
+    errors = []
     if flask.request.method == 'POST':
         # login and validate the user...
         with easypg.cursor() as cur:
 
-            login_status = users.validate_login(cur, flask.request.form['username'], flask.request.form['password'])
+            login_status = users.validate_login(cur, flask.request.form)
             if login_status > 0:
                 user = User.get(login_status)
                 try:
                     if flask.request.form['remeberLogin'] == "remeber-me":
-                        remeber = True
+                        remember = True
                 except KeyError:
-                    remeber = False
-                print "Rember: %s" % remeber
+                    remember = False
                 print user.is_active
-                flask.ext.login.login_user(user, remeber)
+                flask.ext.login.login_user(user, remember)
                 flask.flash("Logged in successfully.")
                 return flask.redirect(flask.request.args.get("next") or flask.url_for("home_index"))
             else:
-                error = "Username or password not accepted."
+                errors.append("Username or password not accepted.")
 
-    return flask.render_template("login.html", error=error)
+    return flask.render_template("login.html", errors=errors)
+
+@app.route("/user/register", methods=['GET', 'POST'])
+def register_index():
+    errors = []
+    if flask.request.method == 'POST':
+        if flask.request.form['password'] != flask.request.form['password_confirm']:
+            errors.append("Passwords do not match!")
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", flask.request.form['email']):
+            # KISS here, just confirm one @ sign, period after @ sign; no confirmation address is active
+            # from: http://stackoverflow.com/a/8022584/1431509
+            errors.append("Email address not valid!")
+        else:
+            with easypg.cursor() as cur:
+
+                register_status, id, message = users.register_user(cur, flask.request.form)
+
+                if register_status:
+                    user = User.get(id)
+                    try:
+                        if flask.request.form['remeberLogin'] == "remeber-me":
+                            remember = True
+                    except KeyError:
+                        remember = False
+                    flask.ext.login.login_user(user, remember)
+                    flask.flash("Registered and Logged in successfully.")
+                    flask.flash("Good to meet you %s!" % flask.request.form['username'])
+                else:
+                    errors.append(message)
 
 
+    return flask.render_template("register.html", errors=errors)
 
 
 

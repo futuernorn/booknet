@@ -1,0 +1,52 @@
+{% set page_title = 'Login' %}
+{% set active_page = 'login_index' %}
+{% extends "layout.html" %}
+{% block head %}
+    <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+    {% for error in errors %}
+        <div class="alert alert-danger" role="alert">
+            <strong>Oh snap!</strong> {{ error }}
+        </div>
+    {% endfor %}
+
+
+        <form action="{{ url_for('register_index') }}" method="POST" class="form-signin" role="form">
+        <h2 class="form-signin-heading">Register</h2>
+            <label for="username" class="sr-only">Username</label>
+            <input type="text" id="username" name="username" placeholder="Username" class="form-control" required autofocus>
+            <p class="help-block">Username can contain any letters or numbers, without spaces</p>
+
+
+          <label class="sr-only" for="email">E-mail</label>
+          <input type="text" id="email" name="email" placeholder="Email" class="form-control" required>
+          <p class="help-block">Please provide your E-mail</p>
+
+
+
+              <label class="sr-only" for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Password" class="form-control" required>
+            <p class="help-block">Password should be at least 4 characters</p>
+
+              <label class="sr-only"  for="password_confirm">Password (Confirm)</label>
+                <input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm Password" class="form-control" required>
+                <p class="help-block">Please confirm password</p>
+
+            <div class="control-group">
+              <!-- Button -->
+              <div class="controls">
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+              </div>
+            </div>
+          </fieldset>
+                    <hr />
+        Already registered? <a href="{{ url_for('login_index') }}">Login here</a>
+        </form>
+
+    </div> <!-- /container -->
+{% endblock %}
