@@ -1,3 +1,4 @@
+@import url(//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css);
 /* Move down content because we have a fixed navbar that is 50px tall */
 body {
   padding-top: 50px;
@@ -20,4 +21,65 @@ html {
   /* Set the fixed height of the footer here */
   height: 60px;
   background-color: #f5f5f5;
+}
+
+/* Star Ratings ( http://codepen.io/jamesbarnett/pen/vlpkh )
+------------------------------------------------- */
+
+/****** Style Star Rating Widget *****/
+
+.rating {
+  border: none;
+  float: left;
+}
+
+.rating > input { display: none; }
+.rating > label:before {
+  margin: 5px;
+  font-size: 1.25em;
+  font-family: FontAwesome;
+  display: inline-block;
+  content: "\f005";
+}
+
+.rating > .half:before {
+  content: "\f089";
+  position: absolute;
+}
+
+.rating > label {
+  color: #ddd;
+ float: right;
+}
+
+/***** CSS Magic to Highlight Stars on Hover *****/
+
+.rating > input:checked ~ label, /* show gold star when clicked */
+.rating:not(:checked) > label:hover, /* hover current star */
+.rating:not(:checked) > label:hover ~ label { color: #000000;  } /* hover previous stars in list */
+
+.rating > input:checked + label:hover, /* hover current star when changing rating */
+.rating > input:checked ~ label:hover,
+.rating > label:hover ~ input:checked ~ label, /* lighten current selection */
+.rating > input:checked ~ label:hover ~ label { color: #555555;  }
+
+
+/* http://stackoverflow.com/questions/18963881/bootstrap-3-panel-header-with-buttons-wrong-position
+---------------------------------------
+.panel-heading.contains-buttons {
+    .clearfix;
+    .panel-title {
+        .pull-left;
+        padding-top:5px;
+    }
+    .btn {
+        .pull-right;
+    }
+}*/
+
+/* Own additions
+-------------------------------------------------*/
+hr.listing-cell-divider {
+    margin-bottom: 5px;
+    margin-top: 20px;
 }

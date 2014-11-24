@@ -1,3 +1,42 @@
+{# Star rating macros #}
+{% macro star_ratings(book_id, rating='') %}
+<form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
+<fieldset class="rating">
+    {% for num in range(10,0,-1) %}
+        {% set num = num / 2 %}
+        {% if num % 1 %}
+            {% set class = "half" %}
+        {% else %}
+            {% set class = "full" %}
+        {% endif %}
+        {% set is_selected = False %}
+        {% if num == rating %}
+            {% set is_selected = True %}
+        {% endif %}
+        <input type="radio" id="{{book_id}}_star{{num}}" book_id="{{book_id}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
+        <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
+    {% endfor %}
+</fieldset>
+</form>
+{% endmacro %}
+
+{% macro sort_button(display, attribute, direction='') %}
+    <div class="btn-group">
+      <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        {{ display }} <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
+          </li>
+        <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
+        </li>
+      </ul>
+    </div>
+{% endmacro %}
+
+{# layout.html settings #}
 {% set page_title = 'Books' %}
 {% set active_page = 'books_index' %}
 {% extends "layout.html" %}
@@ -8,24 +47,81 @@
 <br>
 <div class="panel panel-default">
   <!-- Default panel contents -->
-  <div class="panel-heading">Books</div>
-    {{ render_paginator('books_index','pull-right') }}
+  <div class="panel-heading">
+    <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
+      <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
+    </button>
+    <h4>Books</h4>
+  </div>
+        <div id="table_sorting_options" class="well">
+
+
+        {{ sort_button("Title","book_title") }}
+        {{ sort_button("Publication Date","publication_date") }}
+        {{ sort_button("Avg. Rating","avg_rating") }}
+        {{ sort_button("Number of Readers","num_readers") }}
+        {% if sorting %}
+            <div class="btn-group">
+              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
+            </div>
+        {% endif %}
+        </div>
+    {{ navigation.paginator('books_index','pull-right') }}
   <!-- Table -->
   <table class="table">
     <thead><tr>
         <th>Cover</th><th>Title</th><th>Author</th><th>Avg. Rating</th><th>Tags</th>
+        {% if current_user.is_authenticated() %}
+        <th>Actions</th>
+        {% endif %}
     </tr></thead>
     <tbody>
     <tr>
         <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"</td>
         <td>Example Title</td>
         <td>Example Author</td>
-        <td>5</td>
+        <td style="width:250px;">
+            <div style="vertical-align: middle;">{{ star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
+            <hr class="listing-cell-divider" />
+            <div class="users-rating">Your rating: 4</div>
+        </td>
         <td>
             <span class="label label-default">Tag 1</span>
             <span class="label label-default">Tag 2</span>
             <span class="label label-default">Tag 3</span>
         </td>
+        {% if current_user.is_authenticated() %}
+
+        <td>
+            <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Add<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="{{ url_for('add_review', bid=1) }}">Review</a></li>
+                  <li class="divider"></li>
+                    <li><a href="#">To Shelf</a></li>
+                    <li><a href="#">To List</a></li>
+                  </ul>
+                </div>
+        {% endif %}
+            <div class="btn-group">
+
+                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    View<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+
+
+                    <li><a href="{{ url_for('view_review',bid=0) }}">Reviews</a></li>
+                    <li><a href="#">Lists</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">View Lists Containing</a></li>
+                  </ul>
+                </div>
+        </td>
+
+
     </tr>
     {% for book in books %}
     <tr>
@@ -47,8 +143,35 @@
     </tbody>
   </table>
 
-    {{ render_paginator('books_index') }}
+    {{ navigation.paginator('books_index') }}
 </div>
 
 
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+    $(window).load(function(){
+    //$(document).ready(function(){
+        {% if not sorting %}
+      $('#table_sorting_options').toggleClass('hidden');
+        {% else %}
+        $('#sorting_toggle_btn').toggleClass('active');
+        {% endif %}
+      $('#sorting_toggle_btn').click(function(){
+        $('#table_sorting_options').toggleClass('hidden');
+        $(this).toggleClass('active');
+
+
+      });
+      $('.rating-star').click(function(){
+        var value = $(this).attr('value');
+        var book_id = $(this).attr('book_id');
+        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+        $(this).closest("form").submit();
+    });
+    });
+
+</script>
 {% endblock %}

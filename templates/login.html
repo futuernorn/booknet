@@ -8,12 +8,14 @@
 {% block body %}
 
     <div class="container">
-        {% if error %}
+
+    {% for error in errors %}
         <div class="alert alert-danger" role="alert">
             <strong>Oh snap!</strong> {{ error }}
         </div>
-        {% endif %}
-      <form action="{{ url_for('login_index') }}" method="post" class="form-signin" role="form">
+    {% endfor %}
+
+      <form action="{{ url_for('login_index') }}" method="POST" class="form-signin" role="form">
         <h2 class="form-signin-heading">Please sign in</h2>
         <label for="inputUsername" class="sr-only">Username</label>
         <input type="text" name="username" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
@@ -25,7 +27,10 @@
           </label>
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+           <hr />
+        Not registered yet? <a href="{{ url_for('register_index') }}">Create an account here</a>
       </form>
 
     </div> <!-- /container -->
+
 {% endblock %}

@@ -5,8 +5,8 @@ import sys
 from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
-
-from lib import books, users
+import re
+from lib import books, reviews, users
 
 
 app = flask.Flask('BookServer')
@@ -36,8 +36,27 @@ def home_index():
 def user_dashboard():
     return flask.render_template('dashboard.html')
 
+@app.route("/books/author")
+def books_by_author():
+    raise NotImplementedError
+@app.route("/books/publisher")
+def books_by_publisher():
+    raise NotImplementedError
+@app.route("/books/subject")
+def books_by_subject():
+    raise NotImplementedError
+
 @app.route("/books")
 def books_index():
+    if 'sorting' in flask.request.args:
+        sorting = flask.request.args['sorting']
+    else:
+        sorting = None
+    if 'sort_direction' in flask.request.args:
+        sort_direction = flask.request.args['sort_direction']
+    else:
+        sort_direction = None
+
     if 'page' in flask.request.args:
         page = int(flask.request.args['page'])
     else:
@@ -49,7 +68,7 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        book_info = books.get_all_books(cur, page)
+        book_info = books.get_all_books(cur, page, sorting, sort_direction)
 
     if page > 1:
         prevPage = page - 1
@@ -66,15 +85,63 @@ def books_index():
                                  page=page,
                                  totalPages=total_pages,
                                  nextPage=nextPage,
-                                 prevPage=prevPage)
+                                 prevPage=prevPage,
+                                 sorting=sorting,
+                                 sort_direction=sort_direction)
 
+@app.route("/books/rating/add", methods=['POST'])
+def add_book_rating():
+    return flask.redirect(flask.url_for('books_index'))
+
+@app.route("/reviews/<bid>")
+def view_review(bid):
+    review_info = None
+    return flask.redirect("review.html",
+                          review_info=review_info)
+
+@app.route("/reviews/add/<bid>", methods=['GET', 'POST'])
+@flask.ext.login.login_required
+def add_review(bid):
+    errors = []
+    if flask.request.method == 'POST':
+        raise NotImplementedError
+    with easypg.cursor() as cur:
+        book_info = books.get_book(cur,bid)
+
+    return flask.render_template("review_add_form.html",
+                                 book_info = book_info)
 @app.route("/reviews")
 def reviews_index():
-    #with easypg.cursor() as cur:
-    #    narts = articles.get_article_count(cur)
-    #    nproc, nser = proceedings.get_proceedings_stats(cur)
-    #    stats = {'narticles': narts, 'nproceedings': nproc, 'nseries': nser}
-    return flask.render_template('reviews.html')
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = reviews.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        review_info = reviews.get_all_reviews(cur, page)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('review_list.html',
+                                 reviews=review_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+
 
 
 @app.route("/user/<uid>")
@@ -86,30 +153,58 @@ def display_user(uid):
 def login_index():
     # Login page
 
-    error = None
+    errors = []
     if flask.request.method == 'POST':
         # login and validate the user...
         with easypg.cursor() as cur:
 
-            login_status = users.validate_login(cur, flask.request.form['username'], flask.request.form['password'])
+            login_status = users.validate_login(cur, flask.request.form)
             if login_status > 0:
                 user = User.get(login_status)
                 try:
                     if flask.request.form['remeberLogin'] == "remeber-me":
-                        remeber = True
+                        remember = True
                 except KeyError:
-                    remeber = False
-                print "Rember: %s" % remeber
+                    remember = False
                 print user.is_active
-                flask.ext.login.login_user(user, remeber)
+                flask.ext.login.login_user(user, remember)
                 flask.flash("Logged in successfully.")
                 return flask.redirect(flask.request.args.get("next") or flask.url_for("home_index"))
             else:
-                error = "Username or password not accepted."
+                errors.append("Username or password not accepted.")
 
-    return flask.render_template("login.html", error=error)
+    return flask.render_template("login.html", errors=errors)
+
+@app.route("/user/register", methods=['GET', 'POST'])
+def register_index():
+    errors = []
+    if flask.request.method == 'POST':
+        if flask.request.form['password'] != flask.request.form['password_confirm']:
+            errors.append("Passwords do not match!")
+        elif not re.match(r"[^@]+@[^@]+\.[^@]+", flask.request.form['email']):
+            # KISS here, just confirm one @ sign, period after @ sign; no confirmation address is active
+            # from: http://stackoverflow.com/a/8022584/1431509
+            errors.append("Email address not valid!")
+        else:
+            with easypg.cursor() as cur:
+
+                register_status, id, message = users.register_user(cur, flask.request.form)
+
+                if register_status:
+                    user = User.get(id)
+                    try:
+                        if flask.request.form['remeberLogin'] == "remeber-me":
+                            remember = True
+                    except KeyError:
+                        remember = False
+                    flask.ext.login.login_user(user, remember)
+                    flask.flash("Registered and Logged in successfully.")
+                    flask.flash("Good to meet you %s!" % flask.request.form['username'])
+                else:
+                    errors.append(message)
 
 
+    return flask.render_template("register.html", errors=errors)
 
 
 
@@ -122,7 +217,7 @@ def logout():
     return flask.redirect(flask.url_for('home_index'))
 
 @app.route('/search')
-def get_search_results():
+def search_index():
     if 'q' in flask.request.args:
         query = flask.request.args['q']
     else:
@@ -141,6 +236,7 @@ def add_comment(aid):
     # redirect user back to article which will display comments
     # always redirect after a POST
     return flask.redirect('/articles/' + aid)
+
 
 
 

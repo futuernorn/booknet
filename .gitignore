@@ -60,4 +60,7 @@ target/
 authors.json
 books.json
 works.json
-
+load-template.log
+load-template-errors.log
+load-template-results.md
+cover_ids.json
