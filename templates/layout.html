@@ -14,6 +14,7 @@
     <!-- Bootstrap theme -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet">
 
 
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
@@ -58,9 +59,22 @@
             <!-- End Books Dropdown -->
 
             {{navigation.menuitem('reviews_index','Reviews', active=active_page)}}
+            {{navigation.menuitem('lists_index','Lists', active=active_page)}}
+            {% call navigation.menudropdown('users_index', 'Users', active=active_page) %}
+                {{navigation.menuitem('users_index', 'Browse', active=active_page)}}
+                {% if not current_user.is_authenticated() %}
+                    <li class="divider"></li>
+                    <li {% if request.endpoint == 'user_profile' or active_page == endpoint %} class='active' {% endif %}>
+                    <a href="{{url_for('user_profile',uid=current_user.get_id())}}">Profile</a>
+                    </li>
+                {% endif %}
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+            {% endcall %}
             {% if not current_user.is_authenticated() %}
                 {{navigation.menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
+
                 {{navigation.menuitem('user_dashboard','Dashboard', active=active_page)}}
                 {{navigation.menuitem('logout','Logout', active=active_page)}}
             {% endif %}
@@ -112,7 +126,7 @@
 
     <footer class="footer">
       <div class="container">
-        <p class="text-muted">&copy; Booknet 2014</p>
+        <p class="text-muted"></p>
       </div>
     </footer>
 
@@ -121,7 +135,9 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
     <script src="{{ url_for('static', filename='js/jquery-2.1.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-datetimepicker.min.js') }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

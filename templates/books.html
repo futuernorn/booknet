@@ -98,10 +98,11 @@
                     Add<span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" role="menu">
-                    <li><a href="{{ url_for('add_review', bid=1) }}">Review</a></li>
+                    <li><a href="{{ url_for('add_review', bid=1)}}?next={{ request.path }}">Review</a></li>
+                      <li><a href="#" class="add_to_shelf" data-id="1" data-title="Example" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
                   <li class="divider"></li>
-                    <li><a href="#">To Shelf</a></li>
-                    <li><a href="#">To List</a></li>
+
+                    <li><a href="#" class="add_to_list" data-id="1" data-title="Example" data-toggle="modal" data-target="#bookModal">List</a></li>
                   </ul>
                 </div>
         {% endif %}
@@ -147,12 +148,81 @@
 </div>
 
 
+<!-- Shelf Modal -->
+<div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="bookModalBookTitle">Modal title</h4>
+      </div>
+
+      <div class="modal-body" id="bookModalBody">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="bookModalSubmit">Save changes</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- /Shelf Modal -->
+
+
+<div id="shelfForm" class="hidden">
+             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalForm">
+            <div class="form-group">
+                <div class='input-group date' id='starting_date'>
+                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class='input-group date' id='completed_date'>
+                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <p class="help-block">Please enter your log entry below!</p>
+            <label for="log_input" class="sr-only">Reading Log</label>
+            <textarea name="log_input" id="log_input" class="form-control" rows="5" required autofocus></textarea>
+         </form>
+         <hr />
+          <h4><a href="{{ url_for('user_dashboard') }}?section=logs#logs">Previous Logs</a></h4>
+          <table class="table">
+              <thead>
+              <tr>
+              <th>Date Completed</th><th>Date Started</th><th>Log</th>
+              </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+          </table>
+
+</div>
+
+<div id="listForm" class="hidden">
+
+<h4>Add to Existing List</h4>
+            <form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
+         </form>
+    <hr />
+<h4>Add to New List</h4>
+
+
+
+</div>
 {% endblock %}
 
 
 {% block footer_scripts %}
 <script type="text/javascript">
-    $(window).load(function(){
+$(window).load(function(){
     //$(document).ready(function(){
         {% if not sorting %}
       $('#table_sorting_options').toggleClass('hidden');
@@ -171,7 +241,40 @@
         console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
         $(this).closest("form").submit();
     });
+    $("#bookModalSubmit").click(function(){
+        $("#bookModalForm").submit();
     });
+
+            //http://eonasdan.github.io/bootstrap-datetimepicker
+    $("#starting_date").datetimepicker({
+					pickTime: false
+				});
+        $("#completed_date").datetimepicker({
+					pickTime: false
+				});
+    $(".add_to_shelf").click(function () {
+
+     var currentID = $(this).data('id');
+     var currentTitle = $(this).data('title');
+     $("#bookModalBookId").val( currentID );
+//        console.log($(this));
+     $("#bookModalBookTitle").html( currentTitle );
+     $("#bookModalBody").html($("#shelfForm").html())
+//        $.ajax() -- load logs?
+     // As pointed out in comments,
+     // it is superfluous to have to manually call the modal.
+     // $('#addBookDialog').modal('show');
+    });
+    $(".add_to_list").click(function() {
+             var currentID = $(this).data('id');
+     var currentTitle = $(this).data('title');
+     $("#bookModalBookId").val( currentID );
+//        console.log($(this));
+     $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
+     $("#bookModalBody").html($("#listForm").html())
+
+    });
+});
 
 </script>
 {% endblock %}

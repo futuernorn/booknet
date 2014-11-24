@@ -59,18 +59,20 @@
 
 
 
-        <form action="{{ url_for('add_review', bid=book_id) }}" method="POST" class="form-signin" role="form">
+        <form action="{{ url_for('add_review', bid=book_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
             <p class="help-block">Please enter your review below!</p>
             <label for="review_input" class="sr-only">Username</label>
             <textarea name="review_input" id="review_input" class="form-control" rows="10" required autofocus></textarea>
 
 
 
-
+<hr />
             <div class="control-group">
               <!-- Button -->
               <div class="controls">
+
                 <button class="btn btn-lg btn-primary btn-block" type="submit">Submit Review</button>
+                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block" type="submit">Back</a>
               </div>
             </div>
           </fieldset>
