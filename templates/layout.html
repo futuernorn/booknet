@@ -59,9 +59,13 @@
             <!-- End Books Dropdown -->
 
             {{navigation.menuitem('reviews_index','Reviews', active=active_page)}}
+            {{navigation.menuitem('lists_index','Lists', active=active_page)}}
             {% if not current_user.is_authenticated() %}
                 {{navigation.menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
+                <li {% if request.endpoint == 'user_profile' or active_page == endpoint %} class='active' {% endif %}>
+                    <a href="{{url_for('user_profile',uid=current_user.get_id())}}">Profile</a>
+                </li>
                 {{navigation.menuitem('user_dashboard','Dashboard', active=active_page)}}
                 {{navigation.menuitem('logout','Logout', active=active_page)}}
             {% endif %}

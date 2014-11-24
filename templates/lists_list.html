@@ -1,0 +1,55 @@
+{% set page_title = 'Lists' %}
+{% set active_page = 'lists_index' %}
+{% extends "layout.html" %}
+{% block head %}
+
+{% endblock %}
+{% block body %}
+<br>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">Lists</div>
+  <!-- Table -->
+  <table class="table">
+    <thead><tr>
+        <th>Name</th><th>Creator</th><th># of Books</th><th>Created On</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    <tr>
+        <td>List Name</td>
+        <td>Creator</td>
+        <td>2</td>
+        <td>January 1st, 1970</td>
+        <td>
+            <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Show<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">--</a></li>
+
+                  <li class="divider"></li>
+
+
+                  </ul>
+                </div>
+
+        </td>
+    </tr>
+    {% for review in reviews %}
+    <tr>
+        <td>{{ review.book_id }}</td>
+        <td>
+	  {{ review.reviewer }}
+	</td>
+        <td>{{ review.date_reviewed }}</td>
+        <td>{{ review.review_text }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+
+{% endblock %}

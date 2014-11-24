@@ -36,6 +36,16 @@ def home_index():
 def user_dashboard():
     return flask.render_template('dashboard.html')
 
+@app.route("/user/<uid>")
+def user_profile(uid):
+    selected_user = User.get(uid)
+    user_info = None
+    return flask.render_template('profile.html',
+                                 user_id=uid,
+                                 selected_user=selected_user,
+                                 user_info = user_info)
+
+
 @app.route("/books/author")
 def books_by_author():
     raise NotImplementedError
@@ -122,6 +132,9 @@ def add_review(bid):
     return flask.render_template("review_add_form.html",
                                  book_info = book_info,
                                  next=next)
+@app.route("/list")
+def lists_index():
+    return flask.render_template("lists_list.html")
 @app.route("/reviews")
 def reviews_index():
     if 'page' in flask.request.args:
