@@ -92,6 +92,24 @@ def books_index():
 @app.route("/books/rating/add", methods=['POST'])
 def add_book_rating():
     return flask.redirect(flask.url_for('books_index'))
+
+@app.route("/reviews/<bid>")
+def view_review(bid):
+    review_info = None
+    return flask.redirect("review.html",
+                          review_info=review_info)
+
+@app.route("/reviews/add/<bid>", methods=['GET', 'POST'])
+@flask.ext.login.login_required
+def add_review(bid):
+    errors = []
+    if flask.request.method == 'POST':
+        raise NotImplementedError
+    with easypg.cursor() as cur:
+        book_info = books.get_book(cur,bid)
+
+    return flask.render_template("review_add_form.html",
+                                 book_info = book_info)
 @app.route("/reviews")
 def reviews_index():
     if 'page' in flask.request.args:
@@ -117,7 +135,7 @@ def reviews_index():
     else:
         nextPage = page + 1
 
-    return flask.render_template('reviews.html',
+    return flask.render_template('review_list.html',
                                  reviews=review_info,
                                  page=page,
                                  totalPages=total_pages,

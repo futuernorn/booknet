@@ -62,7 +62,7 @@
                 {{navigation.menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
                 {{navigation.menuitem('user_dashboard','Dashboard', active=active_page)}}
-                {{navigation.menuitem(url_for('logout'),'Logout', active=active_page)}}
+                {{navigation.menuitem('logout','Logout', active=active_page)}}
             {% endif %}
 	    </ul><!--/navbar-nav-->
         <!-- Search Form -->

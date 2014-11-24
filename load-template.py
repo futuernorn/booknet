@@ -4,7 +4,7 @@ import json
 import easypg
 import operator
 import re
-import sys
+import sys, traceback
 easypg.config_name = 'bookserver'
 
 
@@ -33,8 +33,13 @@ work_covers = {}
 
 def print_log_entry(log_file, message):
   if LOGGING:
-    print >> log_file, message
-    
+    try:
+        print >> log_file, message
+    except:
+        e = sys.exc_info()[0]
+        traceback.print_exc(file=sys.stdout)
+        print >> log_file, "Big time error! %s" % e
+
 def print_key_occurrences(heading, output, sorted_keys):
     max_occurrences = sorted_author_keys[0][1]
     display_cutoff = max_occurrences / 2
@@ -57,8 +62,8 @@ try:
     with open('data/sample-data/authors.json') as af:
         loop_counter = 0
         for line in af:
-            if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
-                break
+            # if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
+            break
             loop_counter += 1
             author = json.loads(line.strip())
             author_key = author['key']
@@ -137,6 +142,7 @@ try:
 
             with easypg.cursor() as cur:
                 try:
+                    work['title'] = work['title'].strip().encode('ascii', 'xmlcharrefreplace')
                     if len(work['title']) > 250:
                         work_keys['title_too_long'] += 1
                         print_log_entry(error_log,"This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title'])
@@ -436,6 +442,7 @@ try:
                     print_log_entry(error_log,"No authors found!")
 except:
     e = sys.exc_info()[0]
+    traceback.print_exc(file=sys.stdout)
     print_log_entry(error_log,"Big time error! %s" % e)
 
 
