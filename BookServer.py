@@ -49,6 +49,9 @@ def user_profile(uid):
                                  selected_user=selected_user,
                                  user_info = user_info)
 
+@app.route("/list/add/book")
+def add_book_list():
+    raise NotImplementedError
 
 @app.route("/books/author")
 def books_by_author():
