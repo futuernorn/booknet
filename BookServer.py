@@ -36,6 +36,10 @@ def home_index():
 def user_dashboard():
     return flask.render_template('dashboard.html')
 
+@app.route("/users")
+def users_index():
+    raise NotImplementedError
+
 @app.route("/user/<uid>")
 def user_profile(uid):
     selected_user = User.get(uid)

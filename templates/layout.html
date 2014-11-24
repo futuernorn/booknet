@@ -60,12 +60,21 @@
 
             {{navigation.menuitem('reviews_index','Reviews', active=active_page)}}
             {{navigation.menuitem('lists_index','Lists', active=active_page)}}
+            {% call navigation.menudropdown('users_index', 'Users', active=active_page) %}
+                {{navigation.menuitem('users_index', 'Browse', active=active_page)}}
+                {% if not current_user.is_authenticated() %}
+                    <li class="divider"></li>
+                    <li {% if request.endpoint == 'user_profile' or active_page == endpoint %} class='active' {% endif %}>
+                    <a href="{{url_for('user_profile',uid=current_user.get_id())}}">Profile</a>
+                    </li>
+                {% endif %}
+                <li class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+            {% endcall %}
             {% if not current_user.is_authenticated() %}
                 {{navigation.menuitem('login_index', 'Login', active=active_page)}}
             {% else %}
-                <li {% if request.endpoint == 'user_profile' or active_page == endpoint %} class='active' {% endif %}>
-                    <a href="{{url_for('user_profile',uid=current_user.get_id())}}">Profile</a>
-                </li>
+
                 {{navigation.menuitem('user_dashboard','Dashboard', active=active_page)}}
                 {{navigation.menuitem('logout','Logout', active=active_page)}}
             {% endif %}
