@@ -34,7 +34,8 @@ From http://www.danneu.com/posts/authordb-datomic-tutorial/
 So in our DDL we will most likely use the following mapping:
 Works -> Book Core
 
-****Author Key Occurances
+Not all data rows have all keys. Here is a breakdown of the total occurences of a given key. Only the more common keys are shown, a full breakdown is [here](doc/data_keys.md).
+####Author Key Occurances
 
 | Key | # |
 | --- | --- |
@@ -93,7 +94,7 @@ Works -> Book Core
 
 
 
-****Work Key Occurances
+####Work Key Occurances
 
 | Key | # |
 | --- | --- |
@@ -127,7 +128,7 @@ Works -> Book Core
 
 
 
-****Book Key Occurances
+####Book Key Occurances
 
 | Key | # |
 | --- | --- |
