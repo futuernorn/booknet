@@ -1,0 +1,87 @@
+{% import 'book_helpers.html' as helpers with context %}
+
+{% set page_title = 'Book Info: ' + book_info.title %}
+{% set active_page = 'books_index' %}
+{% extends "layout.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+
+    <div class="container-fluid">
+
+          <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" class="pull-left"/><h1 class="page-header">{{ book_info.title }}</h1>
+
+            <ul class="list-group">
+              <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
+                <li class="list-group-item"><h4>Title: {{ book_info.title }}</h4></li>
+                <li class="list-group-item"><h4>Authors: {{ book_info.authors }}</h4></li>
+                <li class="list-group-item"><h4>Ratings:
+                    Average Rating: {{book_info.avg_rating}}{{ helpers.star_ratings(book_info.core_id,book_info.avg_rating) }}&nbsp;
+                </h4></li>
+                <li class="list-group-item"><h4>Tags:
+                    {% for subject in book_info.subjects %}
+                    <span class="label label-default">{{ subject }}</span>&nbsp;
+                    {% endfor %}
+                </h4></li>
+                <li class="list-group-item"><h4>Member of Lists:</h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Name</th><th>Created By</th><th>Created On</th><th># of Books</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+
+                      </tbody>
+                    </table>
+                  </div>
+
+
+              </li>
+              <li class="list-group-item"><h4>Associated Reading Logs:</h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>User</th><th>Date Completed</th><th>Date Started</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+
+                      </tbody>
+                    </table>
+                  </div>
+
+
+              </li>
+                <li class="list-group-item"><h4>Reviews</h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>User</th><th>Books Read</th><th>Pages Read</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+
+                      </tbody>
+                    </table>
+                  </div>
+
+                  </li>
+            </ul>
+
+<hr />
+            <div class="control-group">
+              <!-- Button -->
+              <div class="controls">
+                  <a href="{{ url_for('edit_book',bid=book_info.core_id) }}" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+              </div>
+            </div>
+</div>
+
+
+
+{% endblock %}

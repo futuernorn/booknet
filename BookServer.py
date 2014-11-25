@@ -63,6 +63,22 @@ def books_by_publisher():
 def books_by_subject():
     raise NotImplementedError
 
+@app.route("/books/<bid>")
+def display_book(bid):
+    with easypg.cursor() as cur:
+        book_info = books.get_book(cur,bid)
+    print book_info
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+    return flask.render_template("book.html",
+                                 book_info=book_info,
+                                 next=next)
+@app.route("/book/edit/<bid>")
+def edit_book(bid):
+    raise NotImplementedError
+
 @app.route("/books")
 def books_index():
     if 'sorting' in flask.request.args:
@@ -114,7 +130,14 @@ def add_reading_log():
 
 @app.route("/books/rating/add", methods=['POST'])
 def add_book_rating():
+    rating = flask.request.form['rating']
+    book_id = flask.request.form['book_id']
+    user_id = flask.request.form['user_id']
+    user = User.get(user_id)
+    with easypg.cursor() as cur:
+        message = books.add_rating(book_id, rating, user)
 
+    flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))
 
 @app.route("/reviews/<bid>")
@@ -139,9 +162,11 @@ def add_review(bid):
     return flask.render_template("review_add_form.html",
                                  book_info = book_info,
                                  next=next)
+
 @app.route("/list")
 def lists_index():
     return flask.render_template("lists_list.html")
+
 @app.route("/reviews")
 def reviews_index():
     if 'page' in flask.request.args:

@@ -16,8 +16,8 @@ work_keys = {'title_too_long':0}
 book_keys = {'title_too_long':0}
 
 # Parse smaller chunks of data during some troubleshooting
-IS_LOOP_LIMIT = True
-#IS_LOOP_LIMIT = False
+# IS_LOOP_LIMIT = True
+IS_LOOP_LIMIT = False
 LOOP_LIMIT = 500
 loop_counter = 0
 
@@ -36,7 +36,7 @@ work_covers = {}
 def print_log_entry(log_file, message):
   if LOGGING:
     try:
-        print >> log_file, message
+        print >> log_file, message.encode('ascii', 'xmlcharrefreplace')
     except:
         e = sys.exc_info()[0]
         traceback.print_exc(file=error_log)
@@ -64,7 +64,7 @@ def print_key_occurrences(heading, output, sorted_keys):
 # there are a lost of cover archives, check which one we need with out subset
 def retrieve_cover_dump_names():
     # try:
-    with open('cover_ids.json') as covers_file:
+    with open('data/sample-data/logs/cover_ids.json') as covers_file:
         download_list = open('data/sample-data/covers/archives/download_list.tmp', 'w')
         covers = json.load(covers_file)
         needed_files = []
@@ -102,22 +102,22 @@ def import_all():
                 author_key = author['key']
                 for key in author:
                     try:
-                        author_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] += 1
+                        author_keys[key.strip()] += 1
                         # if isinstance(val, dict):
                         #     for inner_key in val:
                         #         try:
-                        #             author_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] += 1
+                        #             author_keys[key.strip()+"_"+inner_key] += 1
                         #         except KeyError:
-                        #             author_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] = 1
+                        #             author_keys[key.strip()+"_"+inner_key] = 1
 
                     except KeyError:
-                        author_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] = 1
+                        author_keys[key.strip()] = 1
                 # print 'found author', author_key
                 # put the author in your database
                 with easypg.cursor() as cur:
                     # first clean up book title
                     try:
-                        author['name'] = author['name'].strip().encode('ascii', 'xmlcharrefreplace')
+                        author['name'] = author['name'].strip()
                     except KeyError:
                         print_log_entry(error_log,"No name for this author entry (%s) ! Continuing..." % loop_counter)
                         continue
@@ -128,7 +128,7 @@ def import_all():
                         author_keys['name_too_long'] += 1
                         continue
                     try:
-                        author['personal_name'] = author['personal_name'].strip().encode('ascii', 'xmlcharrefreplace')
+                        author['personal_name'] = author['personal_name'].strip()
                         if len(author['personal_name']) > 255:
                             print_log_entry(error_log,"This author's personal_name (%s) is too long, not importing it for the moment! Continuing..." % author['key'])
                             continue
@@ -148,7 +148,7 @@ def import_all():
                         print_log_entry(log_file,"Inserted author name  %s along with alias %s, represented by author_id: %s." % (author['name'], author['personal_name'], author_ids[author['key']]))
 
 
-        book_covers = open('cover_ids.json', 'w')
+        book_covers = open('data/sample-data/logs/cover_ids.json', 'w')
         with open('data/sample-data/works.json') as af:
 
             loop_counter = 0
@@ -162,36 +162,36 @@ def import_all():
                 # put the work in your database
                 for key in work:
                     try:
-                        work_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] += 1
+                        work_keys[key.strip()] += 1
                         # if isinstance(val, dict):
                         #     for inner_key in val:
                         #         try:
-                        #             work_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] += 1
+                        #             work_keys[key.strip()+"_"+inner_key] += 1
                         #         except KeyError:
-                        #             work_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] = 1
+                        #             work_keys[key.strip()+"_"+inner_key] = 1
 
                     except KeyError:
-                        work_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] = 1
+                        work_keys[key.strip()] = 1
 
                 with easypg.cursor() as cur:
                     try:
-                        work['title'] = work['title'].strip().encode('ascii', 'xmlcharrefreplace')
+                        work['title'] = work['title'].strip()
                         if len(work['title']) > 250:
                             work_keys['title_too_long'] += 1
-                            print_log_entry(error_log,"This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title'])
+                            print_log_entry(error_log,"Work import: This work's title (%s) is too long, not importing it for the moment! Continuing..." % work['title'])
                             continue
                     except KeyError:
-                        print_log_entry(error_log,"No title for this work (%s)! Continuing..." % loop_counter)
+                        print_log_entry(error_log,"Work import: No title for this work (%s)! Continuing..." % loop_counter)
                         continue
 
                     try:
-                        work['description'] = work['description'].strip().encode('ascii', 'xmlcharrefreplace')
+                        work['description'] = work['description'].strip()
                     except KeyError:
                         work['description'] = ""
                     except AttributeError:
                         # print to error log later.
                         work['description'] = ""
-                        print_log_entry(error_log,"Can't use description, AttributeError (%s)." % loop_counter)
+                        print_log_entry(error_log,"Work import: Can't use description, AttributeError (%s)." % loop_counter)
                         pass
 
                     # now check to see if we have an existing "book_core" entry
@@ -203,9 +203,9 @@ def import_all():
                     ''', (work['title'],))
 
                     if cur.rowcount != 1:
-                        print_log_entry(log_file,"No book core entry found, adding one now...")
+                        print_log_entry(log_file,"Work import: No book core entry found, adding one now...")
                         #too many, or no, matching book_core entries found -> make a new one
-                        print_log_entry(log_file,"Inserting work / book core: %s :: %s." % (work['title'], loop_counter))
+                        print_log_entry(log_file,"Work import: Inserting work / book core: %s :: %s." % (work['title'], loop_counter))
                         cur.execute('''
                           INSERT INTO book_core (book_title, book_description, edition)
                           VALUES(%s, %s, %s)
@@ -214,7 +214,7 @@ def import_all():
 
                     # Retrieve book_core_id for book insertion
                     book_core_id = cur.fetchone()[0]
-
+                    work_ids[work_key] = book_core_id
                     # map to book_tag
                     # e.g., "subjects": ["Environmental aspects", "Environmental aspects of Forest fires", "Forest Hydrology",
                     # "Forest fires", "Hydrology, Forest", "Streamflow", "Forest hydrology"]
@@ -227,7 +227,6 @@ def import_all():
                     # print "Work['covers']: %s" % work['covers']
                     try:
                       for cover in work['covers']:
-                        print cover
                         try:
                           work_covers[book_core_id].append(cover)
                         except:
@@ -235,7 +234,7 @@ def import_all():
                           work_covers[book_core_id].append(cover)
                     except KeyError:
                         # No covers here
-                        print_log_entry(error_log,"No covers found for %s" % loop_counter)
+                        print_log_entry(error_log,"Work import: No covers found for %s" % loop_counter)
                         pass
 
                     # add author relationships if found
@@ -253,9 +252,9 @@ def import_all():
                                 ''', (book_core_id, author_id, position))
                                 position += 1
                             except KeyError:
-                                print_log_entry(error_log,"Couldn't find an author_id entry for author key: %s..." % author)
+                                print_log_entry(error_log,"Work import: Couldn't find an author_id entry for author key: %s..." % author)
                     except KeyError:
-                        print_log_entry(error_log,"No authors found (%s)!" % loop_counter)
+                        print_log_entry(error_log,"Work import: No authors found (%s)!" % loop_counter)
 
 
 
@@ -274,40 +273,40 @@ def import_all():
                 book_key = book['key']
                 for key in book:
                     try:
-                        book_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] += 1
+                        book_keys[key.strip()] += 1
                         # if isinstance(val, dict):
                         #     for inner_key in val:
                         #         try:
-                        #             book_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] += 1
+                        #             book_keys[key.strip()+"_"+inner_key] += 1
                         #         except KeyError:
-                        #             book_keys[key.strip().encode('ascii', 'xmlcharrefreplace')+"_"+inner_key] = 1
+                        #             book_keys[key.strip()+"_"+inner_key] = 1
 
                     except KeyError:
-                        book_keys[key.strip().encode('ascii', 'xmlcharrefreplace')] = 1
+                        book_keys[key.strip()] = 1
                 # print 'found book', book_key
                 # print book
                 # put the book in your database
                 with easypg.cursor() as cur:
                     # first clean up book title
                     try:
-                        book['title'] = book['title'].strip().encode('ascii', 'xmlcharrefreplace')
+                        book['title'] = book['title'].strip()
                     except KeyError:
                         # should be output to error log
-                        print_log_entry(error_log,"No title for this book entry (%s) ! Continuing..." % loop_counter)
+                        print_log_entry(error_log,"Book import: No title for this book entry (%s) ! Continuing..." % loop_counter)
                         continue
 
 
                     if len(book['title']) > 250:
                         # log this latter
                         book_keys['title_too_long'] += 1
-                        print_log_entry(error_log,"This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title'])
+                        print_log_entry(error_log,"Book import: This book's title (%s) is too long, not importing it for the moment! Continuing..." % book['title'])
                         continue
 
                     # now check to see if we have an existing "book_core" entry
-                    print_log_entry(log_file,"Checking to see if a book core entry exists for %s..." % book['title'])
+                    print_log_entry(log_file,"Book import: Checking to see if a book core entry exists for %s..." % book['title'])
                     try:
                         book_core_id = work_ids[book['work']]
-                        print_log_entry(log_file,"Book core ID obtained: %s!" % book_core_id)
+                        print_log_entry(log_file,"Book import: Book core ID obtained: %s!" % book_core_id)
                     except KeyError:
 
                         # cur.execute('''
@@ -317,7 +316,7 @@ def import_all():
                         # ''', (book['title'],))
 
                         # if (cur.rowcount != 1):
-                        print_log_entry(error_log,"No book core entry found (work_ids[%s]), adding one now..." % book['work'])
+                        print_log_entry(error_log,"Book import: No book core entry found (work_ids[%s]), adding one now..." % book['work'])
                         #too many, or no, matching book_core entries found -> make a new one
                         cur.execute('''
                           INSERT INTO book_core (book_title, book_description, edition)
@@ -338,7 +337,7 @@ def import_all():
                         try:
                             book['isbn_10']
                         except KeyError:
-                            print_log_entry(error_log,"%s has no ISBN!" % book['title'])
+                            print_log_entry(error_log,"Book import: %s has no ISBN!" % book['title'])
                             book_isbn = []
                         else:
                             book_isbn = book['isbn_10']
@@ -349,7 +348,7 @@ def import_all():
                         book['number_of_pages']
                     except KeyError:
                         page_count = None
-                        print_log_entry(error_log,"%s has no page count!" % book['title'])
+                        print_log_entry(error_log,"Book import: %s has no page count!" % book['title'])
                     else:
                         page_count = book['number_of_pages']
 
@@ -361,14 +360,14 @@ def import_all():
                         book_type = book['physical_format']
 
                     try:
-                        print_log_entry(log_file,"Publish date is: %s." % book['publish_date'])
+                        print_log_entry(log_file,"Book import: Publish date is: %s." % book['publish_date'])
                         original_date = book['publish_date']
                     except KeyError:
-                        print_log_entry(error_log,"%s has no publication date!" % book['title'])
+                        print_log_entry(error_log,"Book import: %s has no publication date!" % book['title'])
                         publication_date = None
                         original_date = None
                     except UnicodeEncodeError:
-                        print_log_entry(error_log,"UnicodeEncodeError for publish_date (%s)?" % loop_counter)
+                        print_log_entry(error_log,"Book import: UnicodeEncodeError for publish_date (%s)?" % loop_counter)
                         pass
                     else:
                         if re.match('\w* \d{1,2}, \d{4}', book['publish_date']):
@@ -382,13 +381,13 @@ def import_all():
                             publication_date = "January 01, %s" % m.groups()[0]
                         else :
                             publication_date = None
-                    print_log_entry(log_file,"Parsed publication_date is: %s (Original date: %s)." % (publication_date, original_date))
+                    print_log_entry(log_file,"Book import: Parsed publication_date is: %s (Original date: %s)." % (publication_date, original_date))
                     # was getting output in this formatting "[u'9780110827667']" slicing off the excess
                     # until I find whats going on
                     # book_isbn = book_isbn[2:-2]
                     for isbn in book_isbn:
                         isbn = ''.join(x for x in isbn if x.isdigit())
-                        print_log_entry(log_file,"Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
+                        print_log_entry(log_file,"Book import: Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
                         cur.execute('''
                             INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
                             VALUES(%s, %s, %s, %s, %s)
@@ -402,9 +401,9 @@ def import_all():
                             for publisher in book['publishers']:
                                 if len(publisher) > 250:
                                     # log this latter
-                                    print_log_entry(error_log,"This book's publisher (%s) is too long, not importing it for the moment! Continuing..." % publisher)
+                                    print_log_entry(error_log,"Book import: This book's publisher (%s) is too long, not importing it for the moment! Continuing..." % publisher)
                                     continue
-                                print_log_entry(log_file,"Checking to see if a publisher entry exists for %s..." % publisher)
+                                print_log_entry(log_file,"Book import: Checking to see if a publisher entry exists for %s..." % publisher)
                                 cur.execute('''
                                     SELECT publicist_id
                                     FROM publicist
@@ -412,8 +411,8 @@ def import_all():
                                 ''', (publisher,))
 
                                 if cur.rowcount != 1:
-                                    print_log_entry(log_file,"No publisher entry found, adding one now(%s)..." % loop_counter)
-                                    print_log_entry(log_file,"Inserting publisher: %s :: %s." % (publisher, loop_counter))
+                                    print_log_entry(log_file,"Book import: No publisher entry found, adding one now(%s)..." % loop_counter)
+                                    print_log_entry(log_file,"Book import: Inserting publisher: %s :: %s." % (publisher, loop_counter))
                                     cur.execute('''
                                       INSERT INTO publicist (publicist_name)
                                       VALUES(%s)
@@ -427,11 +426,11 @@ def import_all():
                                 ''', (book_id,publicist_id,position))
                                 position += 1
                         except KeyError:
-                            print_log_entry(error_log,"KeyError importing publisher(s) for (%s)!" % loop_counter)
+                            print_log_entry(error_log,"Book import: KeyError importing publisher(s) for (%s)!" % loop_counter)
 
                     try:
                         for subject in book['subjects']:
-                            subject = subject.strip().encode('ascii', 'xmlcharrefreplace')
+                            subject = subject.strip()
                             #print "Checking to see if a subject entry exists for %s..." % tag
                             cur.execute('''
                                 SELECT subject_id
@@ -440,9 +439,9 @@ def import_all():
                             ''', (subject,))
 
                             if cur.rowcount != 1:
-                                print_log_entry(log_file,"No subject entry found, adding one now(%s)..." % loop_counter)
+                                print_log_entry(log_file,"Book import: No subject entry found, adding one now(%s)..." % loop_counter)
                                 #too many, or no, matching book_core entries found -> make a new one
-                                print_log_entry(log_file,"Inserting subject: %s :: %s." % (subject, loop_counter))
+                                print_log_entry(log_file,"Book import: Inserting subject: %s :: %s." % (subject, loop_counter))
                                 cur.execute('''
                                   INSERT INTO subject_genre (subject_name)
                                   VALUES(%s)
@@ -457,7 +456,7 @@ def import_all():
                               VALUES(%s, %s)
                             ''', (book_core_id,subject_id))
                     except KeyError:
-                        print_log_entry(error_log,"Unable to access book['subjects'] for tag creation (%s)..." % loop_counter)
+                        print_log_entry(error_log,"Book import: Unable to access book['subjects'] for tag creation (%s)..." % loop_counter)
 
 
                     # add author relationships if found
@@ -474,11 +473,11 @@ def import_all():
                                 ''', (book_core_id, author_id, position))
                                 position += 1
                             except KeyError:
-                                print_log_entry(error_log,"KeyError: Couldn't find an author_id entry for author key: %s..." % author)
+                                print_log_entry(error_log,"Book import: KeyError: Couldn't find an author_id entry for author key: %s..." % author)
                             except TypeError:
-                                print_log_entry(error_log,"TypeError: Couldn't find an author_id entry for author key: %s..." % author)
+                                print_log_entry(error_log,"Book import: TypeError: Couldn't find an author_id entry for author key: %s..." % author)
                     except KeyError:
-                        print_log_entry(error_log,"No authors found!")
+                        print_log_entry(error_log,"Book import: No authors found!")
     except:
         e = sys.exc_info()[0]
         traceback.print_exc(file=sys.stdout)
@@ -498,6 +497,7 @@ def import_all():
 
 # retrieve_cover_dump_names()
 import_all()
+retrieve_cover_dump_names()
 
 
 log_file.close()
