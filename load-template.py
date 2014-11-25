@@ -209,7 +209,7 @@ try:
                             author_id = author_ids[author]
                             cur.execute('''
                             INSERT INTO authorship (core_id, author_id, position)
-                            VALUES(%s, %s)
+                            VALUES(%s, %s, %s)
                             RETURNING author_id
                             ''', (book_core_id, author_id, position))
                             position += 1
@@ -430,7 +430,7 @@ try:
                             author_id = author_ids[author]
                             cur.execute('''
                             INSERT INTO authorship (core_id, author_id, position)
-                            VALUES(%s, %s)
+                            VALUES(%s, %s, %s)
                             RETURNING author_id
                             ''', (book_core_id, author_id, position))
                             position += 1

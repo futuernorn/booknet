@@ -81,6 +81,7 @@ def get_book(cur,book_id):
         ''', (book['core_id'],))
         author_info = []
         for author_name in cur:
+            print author_name
             book['authors'].append(author_name)
         print book['authors']
 
