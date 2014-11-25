@@ -8,7 +8,7 @@ BOOKS_PER_PAGE = 15;
 def get_total_pages(cur):
     cur.execute('''
         SELECT COUNT(*)
-        FROM books;
+        FROM book_core;
     ''')
     total_books = cur.fetchone()[0];
     total_pages = (total_books / BOOKS_PER_PAGE) + 1;
@@ -30,22 +30,36 @@ def get_book_range(cur,start,amount,sorting=None, sort_direction=None):
         order_by = "ORDER BY %s %s " % (sorting,sort_direction) # this is stupid
     else:
         order_by = ""
-
     cur.execute(
-        "SELECT DISTINCT core_id, book_title, book_description, ROUND(AVG(rating)) as avg_rating "+
-        "FROM books "+
-        "JOIN book_core USING (core_id) "+
-        "JOIN book_categorization USING (core_id) "+
-        "JOIN subject_genre USING (subject_id) "+
-        "LEFT JOIN ratings USING (book_id) "+
-        "GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date "+
-        order_by+
+        "SELECT core_id, book_title, book_description "+
+        "FROM book_core "+
+        "JOIN books USING (core_id) "
+    )
+    print "Total rows retrieved: %s..." % cur.rowcount
+    cur.execute(
+        "SELECT core_id, book_title, book_description "+
+        "FROM book_core "+
+        "JOIN books USING (core_id) "+
+        # "JOIN book_categorization USING (core_id) "+
+        # "JOIN subject_genre USING (subject_id) "+
+        # "LEFT JOIN ratings USING (book_id) "+
+        # "GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date "+
+        # order_by+
         "LIMIT %s OFFSET %s"
+        # "SELECT DISTINCT core_id, book_title, book_description,  ROUND(AVG(rating)) as avg_rating "+
+        # "FROM books "+
+        # "JOIN book_core USING (core_id) "+
+        # "JOIN book_categorization USING (core_id) "+
+        # "JOIN subject_genre USING (subject_id) "+
+        # "LEFT JOIN ratings USING (book_id) "+
+        # "GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date "+
+        # order_by+
+        # "LIMIT %s OFFSET %s"
     , ( amount, start))
     book_info = []
     print "Retrieved %s book rows..." % cur.rowcount
-    for core_id, book_title, description, rating in cur:
-        book_info.append({'core_id':core_id, 'title': str(book_title), 'authors':[], 'rating':rating})
+    for core_id, book_title, description in cur:
+        book_info.append({'core_id':core_id, 'title': str(book_title), 'authors':[]})
     # for book in book_info:
     #     cur.execute('''
     #     SELECT author_name

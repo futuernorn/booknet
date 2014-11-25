@@ -7,7 +7,7 @@ import re
 import sys, traceback
 from functools import cmp_to_key
 import locale
-easypg.config_name = 'bookserver'
+easypg.config_name = 'bookserver_import'
 
 
 # Count the occurrences of any given key for a dataset
@@ -23,8 +23,8 @@ loop_counter = 0
 
 LOGGING = True
 
-log_file = open('load-template.log', 'w')
-error_log = open('load-template-errors.log', 'w')
+log_file = open('data/sample-data/logs/load-template.log', 'w')
+error_log = open('data/sample-data/logs/load-template-errors.log', 'w')
 
 author_ids = {}
 work_ids = {}
@@ -489,14 +489,16 @@ def import_all():
     sorted_work_keys = sorted(work_keys.items(), key=operator.itemgetter(1), reverse=True)
     sorted_book_keys = sorted(book_keys.items(), key=operator.itemgetter(1), reverse=True)
 
-    markdown_file = open('load-template-results.md', 'w')
+    markdown_file = open('data/sample-data/logs/load-template-results.md', 'w')
     print_key_occurrences("Author Keys", markdown_file, sorted_author_keys)
     print_key_occurrences("Work Keys", markdown_file, sorted_work_keys)
     print_key_occurrences("Book Keys", markdown_file, sorted_book_keys)
     markdown_file.close()
 
 
-retrieve_cover_dump_names()
+# retrieve_cover_dump_names()
+import_all()
+
 
 log_file.close()
 error_log.close()
