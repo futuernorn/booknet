@@ -1,0 +1,40 @@
+{# Star rating macros #}
+{% macro star_ratings(book_id, rating='') %}
+<form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
+<fieldset class="rating">
+
+    {% for num in range(10,0,-1) %}
+        {% set num = num / 2 %}
+        {% if num % 1 %}
+            {% set class = "half" %}
+        {% else %}
+            {% set class = "full" %}
+        {% endif %}
+        {% set is_selected = False %}
+        {% if num == rating %}
+            {% set is_selected = True %}
+        {% endif %}
+        <input type="radio" id="{{book_id}}_star{{num}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
+        <input type="hidden" name="book_id" value="{{book_id}}"/>
+        <input type="hidden" name="user_id" value="{{current_user.get_id()}}"/>
+        <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
+    {% endfor %}
+</fieldset>
+</form>
+{% endmacro %}
+
+{% macro sort_button(display, attribute, direction='') %}
+    <div class="btn-group">
+      <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        {{ display }} <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
+          </li>
+        <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
+          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
+        </li>
+      </ul>
+    </div>
+{% endmacro %}

@@ -57,10 +57,6 @@ target/
 .idea
 
 # Ignore large sample data
-authors.json
-books.json
-works.json
-load-template.log
-load-template-errors.log
-load-template-results.md
-cover_ids.json
+data/sample-data/covers
+data/sample-data/*json
+data/sample-data/logs

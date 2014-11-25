@@ -1,40 +1,4 @@
-{# Star rating macros #}
-{% macro star_ratings(book_id, rating='') %}
-<form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
-<fieldset class="rating">
-    {% for num in range(10,0,-1) %}
-        {% set num = num / 2 %}
-        {% if num % 1 %}
-            {% set class = "half" %}
-        {% else %}
-            {% set class = "full" %}
-        {% endif %}
-        {% set is_selected = False %}
-        {% if num == rating %}
-            {% set is_selected = True %}
-        {% endif %}
-        <input type="radio" id="{{book_id}}_star{{num}}" book_id="{{book_id}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
-        <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
-    {% endfor %}
-</fieldset>
-</form>
-{% endmacro %}
-
-{% macro sort_button(display, attribute, direction='') %}
-    <div class="btn-group">
-      <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        {{ display }} <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
-          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
-          </li>
-        <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
-          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
-        </li>
-      </ul>
-    </div>
-{% endmacro %}
+{% import 'book_helpers.html' as helpers with context %}
 
 {# layout.html settings #}
 {% set page_title = 'Books' %}
@@ -56,10 +20,10 @@
         <div id="table_sorting_options" class="well">
 
 
-        {{ sort_button("Title","book_title") }}
-        {{ sort_button("Publication Date","publication_date") }}
-        {{ sort_button("Avg. Rating","avg_rating") }}
-        {{ sort_button("Number of Readers","num_readers") }}
+        {{ helpers.sort_button("Title","book_title") }}
+        {{ helpers.sort_button("Publication Date","publication_date") }}
+        {{ helpers.sort_button("Avg. Rating","avg_rating") }}
+        {{ helpers.sort_button("Number of Readers","num_readers") }}
         {% if sorting %}
             <div class="btn-group">
               <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
@@ -70,9 +34,9 @@
   <!-- Table -->
   <table class="table">
     <thead><tr>
-        <th>Cover</th><th>Title</th><th>Author</th><th>Avg. Rating</th><th>Tags</th>
+        <th>Cover</th><th>Title</th><th>Author</th><th>Avg. Rating</th><th>Tags</th><th>Actions</th>
         {% if current_user.is_authenticated() %}
-        <th>Actions</th>
+
         {% endif %}
     </tr></thead>
     <tbody>
@@ -81,18 +45,19 @@
         <td>Example Title</td>
         <td>Example Author</td>
         <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
+            <div style="vertical-align: middle;">{{ helpers.star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
             <hr class="listing-cell-divider" />
-            <div class="users-rating">Your rating: 4</div>
+            <p class="text-muted"><div class="users-rating">Your rating: 4</div></p>
         </td>
         <td>
             <span class="label label-default">Tag 1</span>
             <span class="label label-default">Tag 2</span>
             <span class="label label-default">Tag 3</span>
         </td>
+        <td>
         {% if current_user.is_authenticated() %}
 
-        <td>
+
             <div class="btn-group">
                   <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                     Add<span class="caret"></span>
@@ -126,18 +91,54 @@
     </tr>
     {% for book in books %}
     <tr>
-        <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"</td>
-        <td>{{ book.title.decode('utf-8') }}</td>
+        <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"/></td>
+        <td><a href="{{ url_for('display_book', bid=book.core_id)}}?next={{ request.path }}?page={{ page }}">{{ book.title }}</a></td>
         <td>
-	  {% for author in books.authors %}
+	  {% for author in book.authors %}
 	  {{ author.name }}
 	  {% endfor %}
 	</td>
-        <td>{{ book.rating }}</td>
+        <td style="width:250px;">
+            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,book.discrete_rating) }} <span style="padding-top:15px;">(avg. {{ book.avg_rating }})</span></div>
+            <hr class="listing-cell-divider" />
+            {% if book.user_rating %}<div class="users-rating">Your rating: {{ book.user_rating }}</div> {% endif %}
+        </td>
         <td>
-            {% for tag in books.tags %}
-            <span class="label label-default">{{ tag }}</span>&nbsp;
+            {% for subject in book.subjects %}
+            <span class="label label-default">{{ subject }}</span>&nbsp;
             {% endfor %}
+        </td>
+        <td>
+        {% if current_user.is_authenticated() %}
+
+
+            <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Add<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="{{ url_for('add_review', bid=book.core_id)}}?next={{ request.path }}">Review</a></li>
+                      <li><a href="#" class="add_to_shelf" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
+                  <li class="divider"></li>
+
+                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">List</a></li>
+                  </ul>
+                </div>
+        {% endif %}
+            <div class="btn-group">
+
+                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    View<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+
+
+                    <li><a href="{{ url_for('view_review',bid=book.core_id) }}">Reviews</a></li>
+                    <li><a href="#">Lists</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">View Lists Containing</a></li>
+                  </ul>
+                </div>
         </td>
     </tr>
     {% endfor %}
@@ -147,6 +148,20 @@
     {{ navigation.paginator('books_index') }}
 </div>
 
+            <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
+                  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 id="pleaseWaitDialogHeading">Processing...</h1>
+        </div>
+        <div class="modal-body">
+            <div class="progress progress-striped active">
+                <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+                        </div>
+</div>
 
 <!-- Shelf Modal -->
 <div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -239,7 +254,9 @@ $(window).load(function(){
         var value = $(this).attr('value');
         var book_id = $(this).attr('book_id');
         console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+          $("#pleaseWaitDialog").modal('show')
         $(this).closest("form").submit();
+
     });
     $("#bookModalSubmit").click(function(){
         $("#bookModalForm").submit();
