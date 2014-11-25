@@ -30,6 +30,8 @@ From http://www.danneu.com/posts/authordb-datomic-tutorial/
 >
 > An Edition is a concrete publication of a Work. It can contain things like publication dates and it can represent hardcover books, paperbacks, and ebooks. I didn't even crack open the edition data dump (ran out of hard-drive space) but I believe Editions can even have their own Authors.
 
+#####Covers
+[Openlibrary.org information](https://openlibrary.org/dev/docs/api/covers)
 
 So in our DDL we will most likely use the following mapping:
 Works -> Book Core

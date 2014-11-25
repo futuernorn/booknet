@@ -64,3 +64,4 @@ load-template.log
 load-template-errors.log
 load-template-results.md
 cover_ids.json
+data/sample-data/

@@ -52,7 +52,7 @@ book_type varchar(255),
 page_count INTEGER,
 language varchar(255),
 variation varchar(255),
-picture bytea
+cover_name varchar(255)
 );
 
 DROP TABLE IF EXISTS "review" CASCADE;

@@ -3,7 +3,7 @@ Functions for working with the books database.
 """
 __author__ = 'Jeffrey Hogan'
 
-BOOKS_PER_PAGE = 50;
+BOOKS_PER_PAGE = 15;
 
 def get_total_pages(cur):
     cur.execute('''
@@ -32,28 +32,30 @@ def get_book_range(cur,start,amount,sorting=None, sort_direction=None):
         order_by = ""
 
     cur.execute(
-        "SELECT core_id, book_id, picture, book_title, book_description, isbn, EXTRACT(YEAR from publication_date) as pub_year, ROUND(AVG(rating)) as avg_rating "+
+        "SELECT DISTINCT core_id, book_title, book_description, ROUND(AVG(rating)) as avg_rating "+
         "FROM books "+
         "JOIN book_core USING (core_id) "+
+        "JOIN book_categorization USING (core_id) "+
+        "JOIN subject_genre USING (subject_id) "+
         "LEFT JOIN ratings USING (book_id) "+
         "GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date "+
         order_by+
         "LIMIT %s OFFSET %s"
     , ( amount, start))
     book_info = []
-    for core_id, id, picture, book_title, description, isbn, pub_year, rating in cur:
-        book_info.append({'core_id':core_id, 'id': id, 'picture':'', 'title': str(book_title), 'isbn':isbn, 'pub_year': pub_year,
-                          'authors':[], 'rating':rating})
-    for book in book_info:
-        cur.execute('''
-        SELECT author_name
-        FROM author JOIN authorship USING (author_id)
-        WHERE core_id = %s
-        ''', (book['core_id'],))
-        author_info = []
-        for author_name in cur:
-            book['authors'].append(author_name)
-        print book['authors']
+    print "Retrieved %s book rows..." % cur.rowcount
+    for core_id, book_title, description, rating in cur:
+        book_info.append({'core_id':core_id, 'title': str(book_title), 'authors':[], 'rating':rating})
+    # for book in book_info:
+    #     cur.execute('''
+    #     SELECT author_name
+    #     FROM author JOIN authorship USING (author_id)
+    #     WHERE core_id = %s
+    #     ''', (book['core_id'],))
+    #     author_info = []
+    #     for author_name in cur:
+    #         book['authors'].append(author_name)
+    #     print book['authors']
 
     # print book_info['author']
 
@@ -62,12 +64,12 @@ def get_book_range(cur,start,amount,sorting=None, sort_direction=None):
 
 def get_book(cur,book_id):
     cur.execute('''
-        SELECT core_id, book_id, picture, book_title, book_description, isbn, EXTRACT(YEAR from publication_date) as pub_year, ROUND(AVG(rating)) as avg_rating
+        SELECT DISTINCT core_id, picture, book_title, EXTRACT(YEAR from publication_date) as pub_year, ROUND(AVG(rating)) as avg_rating
         FROM books
         JOIN book_core USING (core_id)
         LEFT JOIN ratings USING (book_id)
         WHERE book_id = %s
-        GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date
+        GROUP BY core_id, picture, book_title, book_description, isbn, publication_date
     ''', (book_id,))
     book_info = []
     for core_id, id, picture, book_title, description, isbn, pub_year, rating in cur:
