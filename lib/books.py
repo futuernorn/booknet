@@ -27,7 +27,7 @@ def get_all_books(cur, page, user_id, sorting, sort_direction):
     """
     return get_book_range(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id,  sorting, sort_direction)
 
-def get_book_range(cur,start,amount, user_id, sorting=None, sort_direction=None):
+def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=None):
     if sorting and sort_direction:
         order_by = "ORDER BY %s %s " % (sorting,sort_direction) # this is stupid
     else:
@@ -171,6 +171,28 @@ def add_rating(cur, book_id, rating, user_id):
             message = "Rating of %s saved for %s!" % (rating, book_info['title'])
         else:
             message = "Unknown error!"
+
+    # else:
+    #     message = "User not currently authenticated!"
+
+    return message
+
+def remove_rating(cur, book_id, user_id):
+    print "Book id for removing rating: %s" % book_id
+    book_info = get_book(cur, book_id)
+    # try:
+    cur.execute('''
+        DELETE FROM ratings
+        WHERE book_id = %s AND rater = %s
+    ''', (book_id, user_id))
+    # first two queries should be able to be combined
+    if cur.rowcount == 1:
+        message = "Rating removed for %s!" % (book_info['title'])
+    else:
+        message = "Unknown error!"
+    # except Exception, e:
+    #     message = errorcodes.lookup(e.pgcode[:2])
+
 
     # else:
     #     message = "User not currently authenticated!"

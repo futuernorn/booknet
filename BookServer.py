@@ -59,8 +59,13 @@ def books_by_author():
 @app.route("/books/publisher")
 def books_by_publisher():
     raise NotImplementedError
+
 @app.route("/books/subject")
-def books_by_subject():
+def books_by_subjects():
+    raise NotImplementedError
+
+@app.route("/books/subject/<subject>")
+def books_by_subject(subject):
     raise NotImplementedError
 
 @app.route("/books/<bid>")
@@ -139,6 +144,18 @@ def add_book_rating():
     user = User.get(user_id)
     with easypg.cursor() as cur:
         message = books.add_rating(cur, book_id, rating, user_id)
+
+    flask.flash(message)
+    return flask.redirect(flask.url_for('books_index'))
+
+@app.route("/books/rating/remove/<bid>")
+def remove_book_rating(bid):
+    # raise NotImplementedError
+    book_id = bid
+    user_id = flask.session['user_id']
+    user = User.get(user_id)
+    with easypg.cursor() as cur:
+        message = books.remove_rating(cur, book_id, user_id)
 
     flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))

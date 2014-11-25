@@ -47,7 +47,7 @@
         <td style="width:250px;">
             <div style="vertical-align: middle;">{{ helpers.star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
             <hr class="listing-cell-divider" />
-            <p class="text-muted"><div class="users-rating">Your rating: 4</div></p>
+            <p class="text-muted"><span class="glyphicon glyphicon-remove" aria-hidden="true" data-toggle="modal"></span>Your rating: 4</p>
         </td>
         <td>
             <span class="label label-default">Tag 1</span>
@@ -101,11 +101,11 @@
         <td style="width:250px;">
             <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,book.discrete_rating) }} <span style="padding-top:15px;">(avg. {{ book.avg_rating }})</span></div>
             <hr class="listing-cell-divider" />
-            {% if book.user_rating %}<div class="users-rating">Your rating: {{ book.user_rating }}</div> {% endif %}
+            {% if book.user_rating %}<p class="text-muted"><a href="{{url_for('remove_book_rating', bid=book.core_id)}}" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>Your rating: {{ book.user_rating }}</p> {% endif %}
         </td>
         <td>
             {% for subject in book.subjects %}
-            <span class="label label-default">{{ subject }}</span>&nbsp;
+            <a href="{{url_for('books_by_subject',subject=subject)}}"><span class="label label-default">{{ subject }}</span></a>&nbsp;
             {% endfor %}
         </td>
         <td>
@@ -118,10 +118,11 @@
                   </button>
                   <ul class="dropdown-menu" role="menu">
                     <li><a href="{{ url_for('add_review', bid=book.core_id)}}?next={{ request.path }}">Review</a></li>
-                      <li><a href="#" class="add_to_shelf" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
-                  <li class="divider"></li>
-
-                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">List</a></li>
+                    <li><a href="#" class="add_to_shelf" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">To List</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Book Details</a></li>
                   </ul>
                 </div>
         {% endif %}
