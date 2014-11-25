@@ -47,7 +47,7 @@
         <td style="width:250px;">
             <div style="vertical-align: middle;">{{ helpers.star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
             <hr class="listing-cell-divider" />
-            <div class="users-rating">Your rating: 4</div>
+            <p class="text-muted"><div class="users-rating">Your rating: 4</div></p>
         </td>
         <td>
             <span class="label label-default">Tag 1</span>
@@ -99,9 +99,9 @@
 	  {% endfor %}
 	</td>
         <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ helpers.star_ratings(0,book.avg_rating) }} <span style="padding-top:15px;">(avg. {{ book.avg_rating }})</span></div>
+            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,book.discrete_rating) }} <span style="padding-top:15px;">(avg. {{ book.avg_rating }})</span></div>
             <hr class="listing-cell-divider" />
-            <!--<div class="users-rating">Your rating: 4</div>-->
+            {% if book.user_rating %}<div class="users-rating">Your rating: {{ book.user_rating }}</div> {% endif %}
         </td>
         <td>
             {% for subject in book.subjects %}
@@ -148,6 +148,20 @@
     {{ navigation.paginator('books_index') }}
 </div>
 
+            <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
+                  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 id="pleaseWaitDialogHeading">Processing...</h1>
+        </div>
+        <div class="modal-body">
+            <div class="progress progress-striped active">
+                <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+                        </div>
+</div>
 
 <!-- Shelf Modal -->
 <div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -240,7 +254,9 @@ $(window).load(function(){
         var value = $(this).attr('value');
         var book_id = $(this).attr('book_id');
         console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+          $("#pleaseWaitDialog").modal('show')
         $(this).closest("form").submit();
+
     });
     $("#bookModalSubmit").click(function(){
         $("#bookModalForm").submit();

@@ -2,6 +2,7 @@
 {% macro star_ratings(book_id, rating='') %}
 <form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
 <fieldset class="rating">
+
     {% for num in range(10,0,-1) %}
         {% set num = num / 2 %}
         {% if num % 1 %}

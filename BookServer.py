@@ -81,6 +81,8 @@ def edit_book(bid):
 
 @app.route("/books")
 def books_index():
+
+
     if 'sorting' in flask.request.args:
         sorting = flask.request.args['sorting']
     else:
@@ -101,7 +103,7 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        book_info = books.get_all_books(cur, page, sorting, sort_direction)
+        book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
 
     if page > 1:
         prevPage = page - 1
@@ -132,10 +134,11 @@ def add_reading_log():
 def add_book_rating():
     rating = flask.request.form['rating']
     book_id = flask.request.form['book_id']
+    # print flask.request.form
     user_id = flask.request.form['user_id']
     user = User.get(user_id)
     with easypg.cursor() as cur:
-        message = books.add_rating(book_id, rating, user)
+        message = books.add_rating(cur, book_id, rating, user_id)
 
     flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))
