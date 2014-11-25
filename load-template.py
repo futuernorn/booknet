@@ -14,8 +14,8 @@ work_keys = {'title_too_long':0}
 book_keys = {'title_too_long':0}
 
 # Parse smaller chunks of data during some troubleshooting
-# IS_LOOP_LIMIT = True
-IS_LOOP_LIMIT = False
+IS_LOOP_LIMIT = True
+#IS_LOOP_LIMIT = False
 LOOP_LIMIT = 500
 loop_counter = 0
 
@@ -37,7 +37,7 @@ def print_log_entry(log_file, message):
         print >> log_file, message
     except:
         e = sys.exc_info()[0]
-        traceback.print_exc(file=sys.stdout)
+        traceback.print_exc(file=error_log)
         print >> log_file, "Big time error! %s" % e
 
 def print_key_occurrences(heading, output, sorted_keys):
@@ -62,8 +62,8 @@ try:
     with open('data/sample-data/authors.json') as af:
         loop_counter = 0
         for line in af:
-            # if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
-            break
+            if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
+              break
             loop_counter += 1
             author = json.loads(line.strip())
             author_key = author['key']
@@ -191,9 +191,15 @@ try:
                 # e.g.,  "subject_places": ["Black Hills (S.D. and Wyo.)", "Custer State Park",
                 # "Custer State Park (S.D.)", "Custer State Park Region", "South Dakota"]
                 # work['subject_places']
-
+                # print "Work['covers']: %s" % work['covers']
                 try:
-                    work_covers[book_core_id] = work['covers']
+                  for cover in work['covers']:
+                    print cover
+                    try:
+                      work_covers[book_core_id].append(cover)
+                    except:
+                      work_covers[book_core_id] = []
+                      work_covers[book_core_id].append(cover)
                 except KeyError:
                     # No covers here
                     print_log_entry(error_log,"No covers found for %s" % loop_counter)
