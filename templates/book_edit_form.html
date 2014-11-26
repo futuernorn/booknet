@@ -1,0 +1,48 @@
+{% import 'book_helpers.html' as helpers with context %}
+
+{% set page_title = 'Book Info: ' + book_info.title %}
+{% set active_page = 'books_index' %}
+{% extends "layout.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+
+    <div class="container-fluid">
+    <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" class="pull-left"/><h1 class="page-header">{{ book_info.title }}</h1>
+    <form action="{{ url_for('edit_book', bid=book_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
+    <ul class="list-group">
+        <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
+        <li class="list-group-item"><h4>Title: </h4>
+        <label for="inputBookTitle" class="sr-only">Book Title</label>
+        <input type="text" name="inputBookTitle" id="inputBookTitle" class="form-control" placeholder="Book Title" value="{{ book_info.title }}" required autofocus>
+        </li>
+        <li class="list-group-item"><h4>Authors:</h4>
+            {% for author in book_info.authors %}
+            <label for="inputBookAuthor{{ loop.index }}" class="sr-only">Book Title</label>
+            <input type="text" name="inputBookAuthor{{ loop.index }}" id="inputBookAuthor{{ loop.index }}" class="form-control" placeholder="Author" value="{{ author }}" required autofocus>
+            {% set author_count = loop.index %}
+            {% endfor %}
+        </li>
+        <li class="list-group-item"><h4>Ratings:
+            Average Rating: {{book_info.avg_rating}}{{ helpers.star_ratings(book_info.core_id,book_info.avg_rating) }}&nbsp;
+        </h4></li>
+        <li class="list-group-item"><h4>Tags:
+            {% for subject in book_info.subjects %}
+            <span class="label label-default">{{ subject }}</span>&nbsp;
+            {% endfor %}
+        </h4></li>
+    </ul>
+    <hr />
+    <div class="control-group">
+      <!-- Button -->
+      <div class="controls">
+          <a href="{{ url_for('edit_book',bid=book_info.core_id) }}" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+          <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+      </div>
+    </div>
+    </form>
+    </div>
+
+
+
+{% endblock %}

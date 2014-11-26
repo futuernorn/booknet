@@ -72,7 +72,7 @@ def books_by_subject(subject):
 def display_book(bid):
     with easypg.cursor() as cur:
         book_info = books.get_book(cur,bid)
-    print book_info
+    # print book_info
     if 'next' in flask.request.args:
         next = flask.request.args['next']
     else:
@@ -82,7 +82,15 @@ def display_book(bid):
                                  next=next)
 @app.route("/book/edit/<bid>")
 def edit_book(bid):
-    raise NotImplementedError
+    with easypg.cursor() as cur:
+        book_info = books.get_book(cur,bid)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("display_book", bid=bid)
+    return flask.render_template("book_edit_form.html",
+                                 book_info=book_info,
+                                 next=next)
 
 @app.route("/books")
 def books_index():
@@ -146,6 +154,9 @@ def add_book_rating():
         message = books.add_rating(cur, book_id, rating, user_id)
 
     flask.flash(message)
+    if flask.request.form['next']:
+        return flask.redirect(flask.request.form['next'])
+
     return flask.redirect(flask.url_for('books_index'))
 
 @app.route("/books/rating/remove/<bid>")

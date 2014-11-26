@@ -386,14 +386,19 @@ def import_all():
                     # until I find whats going on
                     # book_isbn = book_isbn[2:-2]
                     for isbn in book_isbn:
-                        isbn = ''.join(x for x in isbn if x.isdigit())
-                        print_log_entry(log_file,"Book import: Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
-                        cur.execute('''
-                            INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
-                            VALUES(%s, %s, %s, %s, %s)
-                            RETURNING book_id
-                        ''', (book_core_id, publication_date, isbn, book_type, page_count))
-                        book_id = cur.fetchone()[0]
+                        try:
+                            isbn = ''.join(x for x in isbn if x.isdigit())
+                            print_log_entry(log_file,"Book import: Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
+                            cur.execute('''
+                                INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
+                                VALUES(%s, %s, %s, %s, %s)
+                                RETURNING book_id
+                            ''', (book_core_id, publication_date, isbn, book_type, page_count))
+                            book_id = cur.fetchone()[0]
+                        except:
+                            e = sys.exc_info()[0]
+                            traceback.print_exc(file=error_log)
+                            print_log_entry(error_log,"Big time error! %s" % e)
                         # add publisher relationships if found
 
                         try:
