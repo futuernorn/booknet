@@ -95,7 +95,7 @@
         <td><a href="{{ url_for('display_book', bid=book.core_id)}}?next={{ request.path }}?page={{ page }}">{{ book.title }}</a></td>
         <td>
 	  {% for author in book.authors %}
-	  {{ author.name }}
+	  {{ author }}
 	  {% endfor %}
 	</td>
         <td style="width:250px;">

@@ -64,7 +64,7 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
             discrete_rating = round(avg_rating*2) / 2
         else:
             discrete_rating = 0
-        book_info.append({'core_id':core_id, 'title': str(book_title), 'authors': [], 'subjects': [],
+        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'), 'authors': [], 'subjects': [],
                           'avg_rating': avg_rating, 'discrete_rating': discrete_rating, 'user_rating': None})
     for book in book_info:
         cur.execute('''
@@ -74,8 +74,10 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
         ''', (book['core_id'],))
         author_info = []
         for author_name in cur:
-            book['authors'].append(author_name)
-        # print book['authors']
+            author_info.append(str(author_name).decode('utf8', 'xmlcharrefreplace'))
+
+        book['authors'] = author_info
+        print book['authors']
         cur.execute('''
         SELECT subject_name
         FROM subject_genre JOIN book_categorization USING (subject_id)
@@ -109,20 +111,20 @@ def get_book(cur,book_id):
     book_info = {'core_id': book_id, 'title': 'Error loading data...'}
     # print cur.fetchone()
     for core_id, book_title in cur:
-        book_info = {'core_id':core_id, 'title': str(book_title), 'authors': [], 'subjects': [], 'avg_rating': 0}
+        book_info = {'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'), 'authors': [], 'subjects': [], 'avg_rating': 0}
         print book_info
 
-    # cur.execute('''
-    # SELECT author_name
-    # FROM author JOIN authorship USING (author_id)
-    # WHERE core_id = %s
-    # ''', (book['core_id'],))
-    # author_info = []
-    # for author_name in cur:
-    #     print author_name
-    #     book['authors'].append(author_name)
-    # print book['authors']
-
+    cur.execute('''
+    SELECT author_name
+    FROM author JOIN authorship USING (author_id)
+    WHERE core_id = %s
+    ''', (book_info['core_id'],))
+    author_info = []
+    for author_name in cur:
+        print author_name
+        book_info['authors'].append(author_name)
+    print book_info['authors']
+    book_info['author_count'] = cur.rowcount
     # print book_info['author']
 
     cur.execute('''
@@ -130,10 +132,12 @@ def get_book(cur,book_id):
     FROM subject_genre JOIN book_categorization USING (subject_id)
     WHERE core_id = %s
     ''', (book_info['core_id'],))
+    book_info['subjects_count'] = cur.rowcount
     subject_info = []
     for subject_name in cur:
         subject_info.append(subject_name)
     book_info['subjects'] = subject_info
+
     print book_info['subjects']
 
     return book_info

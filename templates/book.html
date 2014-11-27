@@ -14,7 +14,12 @@
             <ul class="list-group">
               <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
                 <li class="list-group-item"><h4>Title: {{ book_info.title }}</h4></li>
-                <li class="list-group-item"><h4>Authors: {{ book_info.authors }}</h4></li>
+                <li class="list-group-item"><h4>Authors:</h4>
+
+                {% for author in book_info.authors %}
+                  {{ author }}{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}
+                {% endfor %}
+                </li>
                 <li class="list-group-item"><h4>Ratings:
                     Average Rating: {{book_info.avg_rating}}{{ helpers.star_ratings(book_info.core_id,book_info.avg_rating) }}&nbsp;
                 </h4></li>

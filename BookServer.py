@@ -88,6 +88,11 @@ def edit_book(bid):
         next = flask.request.args['next']
     else:
         next = flask.url_for("display_book", bid=bid)
+    # book_info['authors'].append("Test 1")
+    # book_info['authors'].append("Test 2")
+    # book_info['authors'].append("Test 3")
+    # book_info['authors'].append("Test 4")
+    # book_info['author_count'] = 4
     return flask.render_template("book_edit_form.html",
                                  book_info=book_info,
                                  next=next)

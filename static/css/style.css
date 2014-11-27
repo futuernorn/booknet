@@ -83,3 +83,14 @@ hr.listing-cell-divider {
     margin-bottom: 5px;
     margin-top: 20px;
 }
+
+
+.add-remove-field {
+    .border-radius(0) !important;
+    margin-bottom:20px;
+}
+
+.add-remove-input {
+    width: 75%;
+    display: inline-block;
+}
