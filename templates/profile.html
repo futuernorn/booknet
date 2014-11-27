@@ -63,7 +63,19 @@
                   </li>
             </ul>
 
+<hr />
+            <div class="control-group">
+              <!-- Button -->
+              <div class="controls">
+                  {% if selected_user.is_followed %}
+                    <a href="#" class="btn btn-lg btn-default btn-block" type="submit">Unfollow</a>
+                    {% else %}
+                    <a href="#" class="btn btn-lg btn-default btn-block" type="submit">Follow</a>
+                    {% endif %}
 
+                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+              </div>
+            </div>
 </div>
 
 

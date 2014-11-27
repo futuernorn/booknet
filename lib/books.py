@@ -121,8 +121,9 @@ def get_book(cur,book_id):
     ''', (book_info['core_id'],))
     author_info = []
     for author_name in cur:
-        print author_name
-        book_info['authors'].append(author_name)
+        # print author_name
+        author_info.append(author_name)
+    book_info['authors'] = author_info
     print book_info['authors']
     book_info['author_count'] = cur.rowcount
     # print book_info['author']

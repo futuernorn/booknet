@@ -38,16 +38,58 @@ def user_dashboard():
 
 @app.route("/users")
 def users_index():
-    raise NotImplementedError
+    if 'sorting' in flask.request.args:
+        sorting = flask.request.args['sorting']
+    else:
+        sorting = None
+    if 'sort_direction' in flask.request.args:
+        sort_direction = flask.request.args['sort_direction']
+    else:
+        sort_direction = None
+
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = users.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        user_info = users.get_all_users(cur, page, flask.session['user_id'])
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('users.html',
+                                 users=user_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
 
 @app.route("/user/<uid>")
 def user_profile(uid):
     selected_user = User.get(uid)
     user_info = None
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
     return flask.render_template('profile.html',
                                  user_id=uid,
                                  selected_user=selected_user,
-                                 user_info = user_info)
+                                 user_info = user_info,
+                                 next=next)
 
 @app.route("/list/add/book")
 def add_book_list():
