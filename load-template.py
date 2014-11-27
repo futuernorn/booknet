@@ -6,6 +6,7 @@ import operator
 import re
 import sys, traceback
 from functools import cmp_to_key
+from shutil import copyfile
 import locale
 easypg.config_name = 'bookserver_import'
 
@@ -67,8 +68,10 @@ def retrieve_cover_dump_names():
     with open('data/sample-data/logs/cover_ids.json') as covers_file:
         download_list = open('data/sample-data/covers/archives/download_list.tmp', 'w')
         covers = json.load(covers_file)
+
         needed_files = []
-        for cover in covers:
+        for book_id, cover in covers.iteritems():
+            cover = str(cover[0])
             if len(cover) > 6:
                 first_subset = "000%s" % cover[:1]
             else:
@@ -88,6 +91,39 @@ def retrieve_cover_dump_names():
     #     e = sys.exc_info()[0]
     #     traceback.print_exc(file=error_log)
     #     print  "Big time error! %s" % e
+
+def import_cover_dump():
+    with open('data/sample-data/logs/cover_ids.json') as covers_file:
+        covers = json.load(covers_file)
+
+        for book_id, cover in covers.iteritems():
+            cover = str(cover[0])
+            filename = cover.zfill(10)+"-S.jpg"
+            print cover
+            if len(cover) > 6:
+                first_subset = "000%s" % cover[:1]
+            else:
+                first_subset = "0000"
+            if len(cover) > 4:
+                second_subset = "%s" % cover[1:3]
+            else:
+                second_subset = "00"
+            directory = "s_covers_%s_%s" % (first_subset,second_subset)
+            # directory = "cover:%s -- first:%s -- second:%s" % (cover, first_subset, second_subset)
+            with easypg.cursor() as cur:
+                cur.execute('''
+                  UPDATE books SET cover_name = %s
+                  WHERE core_id = %s
+                ''', (directory+"/"+filename, book_id))
+                print "Inserting cover %s into book with core_id %s..." % (cover, book_id)
+                print "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                try:
+                    copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                except:
+                    e = sys.exc_info()[0]
+                    traceback.print_exc(file=sys.stdout)
+                    print >> log_file, "Big time error! %s" % e
+        # if cur.rowcount == 1:
 
 
 def import_all():
@@ -386,14 +422,19 @@ def import_all():
                     # until I find whats going on
                     # book_isbn = book_isbn[2:-2]
                     for isbn in book_isbn:
-                        isbn = ''.join(x for x in isbn if x.isdigit())
-                        print_log_entry(log_file,"Book import: Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
-                        cur.execute('''
-                            INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
-                            VALUES(%s, %s, %s, %s, %s)
-                            RETURNING book_id
-                        ''', (book_core_id, publication_date, isbn, book_type, page_count))
-                        book_id = cur.fetchone()[0]
+                        try:
+                            isbn = ''.join(x for x in isbn if x.isdigit())
+                            print_log_entry(log_file,"Book import: Inserting book title %s along with core_id %s (ISBN: %s - Date: %s)." % (book['title'], book_core_id, isbn, publication_date))
+                            cur.execute('''
+                                INSERT INTO books (core_id, publication_date, isbn, book_type, page_count)
+                                VALUES(%s, %s, %s, %s, %s)
+                                RETURNING book_id
+                            ''', (book_core_id, publication_date, isbn, book_type, page_count))
+                            book_id = cur.fetchone()[0]
+                        except:
+                            e = sys.exc_info()[0]
+                            traceback.print_exc(file=error_log)
+                            print_log_entry(error_log,"Big time error! %s" % e)
                         # add publisher relationships if found
 
                         try:
@@ -496,9 +537,9 @@ def import_all():
 
 
 # retrieve_cover_dump_names()
-import_all()
+# import_all()
 retrieve_cover_dump_names()
-
+# import_cover_dump()
 
 log_file.close()
 error_log.close()

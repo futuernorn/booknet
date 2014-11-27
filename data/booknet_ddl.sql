@@ -47,7 +47,7 @@ CREATE TABLE books(
 book_id serial PRIMARY KEY NOT NULL,
 core_id INTEGER NOT NULL REFERENCES book_core,
 publication_date TIMESTAMP,
-ISBN varchar(20),
+ISBN varchar(255),
 book_type varchar(255),
 page_count INTEGER,
 language varchar(255),
@@ -212,7 +212,7 @@ CREATE TABLE ratings (
 ratings serial PRIMARY KEY NOT NULL,
 book_id bigint NOT NULL REFERENCES books,
 rater bigint NOT NULL REFERENCES "user",
-rating smallint NOT NULL,
+rating FLOAT NOT NULL,
 date_rated timestamp NOT NULL
 );
 
