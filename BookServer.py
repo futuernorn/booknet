@@ -29,8 +29,10 @@ def load_user(userid):
 def home_index():
     with easypg.cursor() as cur:
         book_info = books.get_spotlight_books(cur,4)
+        review_info = reviews.get_spotlight_reviews(cur,4)
     return flask.render_template('home.html',
-                                 books=book_info)
+                                 books=book_info,
+                                 reviews=review_info)
 
 @app.route("/dashboard")
 def user_dashboard():
@@ -38,16 +40,60 @@ def user_dashboard():
 
 @app.route("/users")
 def users_index():
-    raise NotImplementedError
+    if 'sorting' in flask.request.args:
+        sorting = flask.request.args['sorting']
+    else:
+        sorting = None
+    if 'sort_direction' in flask.request.args:
+        sort_direction = flask.request.args['sort_direction']
+    else:
+        sort_direction = None
 
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = users.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        user_info = users.get_all_users(cur, page, flask.session['user_id'])
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('users.html',
+                                 users=user_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+@app.route("/profile")
+def current_user_profile():
+    return NotImplementedError
 @app.route("/user/<uid>")
 def user_profile(uid):
     selected_user = User.get(uid)
     user_info = None
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
     return flask.render_template('profile.html',
                                  user_id=uid,
                                  selected_user=selected_user,
-                                 user_info = user_info)
+                                 user_info = user_info,
+                                 next=next)
 
 @app.route("/list/add/book")
 def add_book_list():
@@ -176,8 +222,11 @@ def remove_book_rating(bid):
     flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))
 
-@app.route("/reviews/<bid>")
-def view_review(bid):
+@app.route("/reviews/book/<bid>")
+def display_reviews_for_book(bid):
+    raise NotImplementedError
+@app.route("/reviews/<rid>")
+def display_review(rid):
     review_info = None
 
     return flask.redirect("review.html",

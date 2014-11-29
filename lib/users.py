@@ -1,5 +1,17 @@
 import bcrypt
 from psycopg2 import errorcodes
+
+USERS_PER_PAGE = 15;
+
+def get_total_pages(cur):
+    cur.execute('''
+        SELECT COUNT(*)
+        FROM "user" ;
+    ''')
+    total_users = cur.fetchone()[0];
+    total_pages = ((total_users-1) / USERS_PER_PAGE) + 1;
+    return total_pages
+
 def logout_user():
     raise NotImplementedError
 
@@ -51,4 +63,19 @@ def register_user(cur, form):
     except Exception, e:
         return False, None, errorcodes.lookup(e.pgcode[:2])
 
+def get_all_users(cur,page,user_id):
+    return get_user_range(cur,((page - 1) * USERS_PER_PAGE), USERS_PER_PAGE, user_id)
 
+def get_user_range(cur,start,amount, user_id=None):
+    cur.execute('''
+        SELECT user_id, login_name, level_name
+        FROM "user"
+        JOIN user_level USING (level_id)
+        LIMIT %s OFFSET %s
+    ''', ( amount, start))
+    user_info = []
+    # print "Retrieved %s book rows..." % cur.rowcount
+    for user_id, login_name, level_name in cur:
+        user_info.append({'id':user_id, 'name': login_name, 'access_level': level_name})
+
+    return user_info

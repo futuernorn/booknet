@@ -8,6 +8,7 @@ import sys, traceback
 from functools import cmp_to_key
 from shutil import copyfile
 import locale
+import os
 easypg.config_name = 'bookserver_import'
 
 
@@ -19,7 +20,7 @@ book_keys = {'title_too_long':0}
 # Parse smaller chunks of data during some troubleshooting
 # IS_LOOP_LIMIT = True
 IS_LOOP_LIMIT = False
-LOOP_LIMIT = 500
+LOOP_LIMIT = 50
 loop_counter = 0
 
 LOGGING = True
@@ -84,7 +85,7 @@ def retrieve_cover_dump_names():
             needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
         needed_files_sorted = sorted(needed_files, key=cmp_to_key(locale.strcoll))
         for unique_file in set(needed_files_sorted):
-            print unique_file
+            # print unique_file
             print >> download_list, "https://archive.org/download/s%s/s%s.tar" % (unique_file[:-3], unique_file)
         download_list.close()
     # except:
@@ -92,15 +93,24 @@ def retrieve_cover_dump_names():
     #     traceback.print_exc(file=error_log)
     #     print  "Big time error! %s" % e
 
-def import_cover_dump():
+def import_cover_dump(cover_size='s'):
     with open('data/sample-data/logs/cover_ids.json') as covers_file:
         covers = json.load(covers_file)
-
+        loop_counter = 0
+        download_list = open('data/sample-data/covers/import_download_list.tmp', 'w')
+        missing_files = open('data/sample-data/covers/import_missing_file_list.tmp', 'w')
+        log_file = open('data/sample-data/covers/import_cover_dump.log', 'w')
+        needed_files = []
         for book_id, cover in covers.iteritems():
+
+            if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
+              break
+            loop_counter += 1
+
             cover = str(cover[0])
-            filename = cover.zfill(10)+"-S.jpg"
-            print cover
-            if len(cover) > 6:
+            filename = cover.zfill(10)+"-"+cover_size.upper()+".jpg"
+            # print cover
+            if len(cover) > 5:
                 first_subset = "000%s" % cover[:1]
             else:
                 first_subset = "0000"
@@ -108,21 +118,34 @@ def import_cover_dump():
                 second_subset = "%s" % cover[1:3]
             else:
                 second_subset = "00"
-            directory = "s_covers_%s_%s" % (first_subset,second_subset)
+            directory = cover_size+"_covers_%s_%s" % (first_subset,second_subset)
             # directory = "cover:%s -- first:%s -- second:%s" % (cover, first_subset, second_subset)
             with easypg.cursor() as cur:
                 cur.execute('''
                   UPDATE books SET cover_name = %s
                   WHERE core_id = %s
                 ''', (directory+"/"+filename, book_id))
-                print "Inserting cover %s into book with core_id %s..." % (cover, book_id)
-                print "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                print >> log_file, "Inserting cover %s into book with core_id %s..." % (cover, book_id)
+                print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
                 try:
-                    copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                    if not os.path.exists("static/images/covers/"+directory):
+                        os.makedirs("static/images/covers/"+directory)
+                    if not os.path.isfile("static/images/covers/"+directory+"/"+filename):
+                        copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
+                except IOError:
+                    print >> missing_files, "Unable to find: %s..." % cover
+                    needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
                 except:
                     e = sys.exc_info()[0]
                     traceback.print_exc(file=sys.stdout)
                     print >> log_file, "Big time error! %s" % e
+        needed_files_sorted = sorted(needed_files, key=cmp_to_key(locale.strcoll))
+        for unique_file in set(needed_files_sorted):
+            # print unique_file
+            print >> download_list, "https://archive.org/download/%s%s/%s%s.tar" % (cover_size, unique_file[:-3], cover_size, unique_file)
+        download_list.close()
+        missing_files.close()
+        log_file.close()
         # if cur.rowcount == 1:
 
 
@@ -131,6 +154,7 @@ def import_all():
         with open('data/sample-data/authors.json') as af:
             loop_counter = 0
             for line in af:
+                # break
                 if IS_LOOP_LIMIT and (loop_counter > LOOP_LIMIT):
                   break
                 loop_counter += 1
@@ -275,9 +299,12 @@ def import_all():
 
                     # add author relationships if found
                     try:
+                        position = 1
                         for author in work['authors']:
                             author = author[key]
-                            position = 1
+                            # if re.match("\('(.*)'[,]*\)", author):
+                            #     m = re.match("\('(.*)'[,]*\)", author)
+                            #     author = m.groups()[0]
                             try:
                                 print_log_entry(log_file,author)
                                 author_id = author_ids[author]
@@ -472,6 +499,12 @@ def import_all():
                     try:
                         for subject in book['subjects']:
                             subject = subject.strip()
+                            # if re.match("\('(.*)'[,]*\)", subject):
+                            #     m = re.match("\('(.*)'[,]*\)", subject)
+                            #     subject = m.groups()[0]
+
+
+
                             #print "Checking to see if a subject entry exists for %s..." % tag
                             cur.execute('''
                                 SELECT subject_id
@@ -504,7 +537,10 @@ def import_all():
                     position = 1
                     try:
                         for author in book['authors']:
-                            position += 1
+                            # if re.match("\('(.*)'[,]*\)", author):
+                            #     m = re.match("\('(.*)'[,]*\)", author)
+                            #     author = m.groups()[0]
+
                             try:
                                 author_id = author_ids[author]
                                 cur.execute('''
@@ -521,8 +557,8 @@ def import_all():
                         print_log_entry(error_log,"Book import: No authors found!")
     except:
         e = sys.exc_info()[0]
-        traceback.print_exc(file=sys.stdout)
         print_log_entry(error_log,"Big time error! %s" % e)
+        traceback.print_exc(file=error_log)
 
 
     sorted_author_keys = sorted(author_keys.items(), key=operator.itemgetter(1), reverse=True)
@@ -537,8 +573,8 @@ def import_all():
 
 
 # retrieve_cover_dump_names()
-# import_all()
-retrieve_cover_dump_names()
+import_all()
+# retrieve_cover_dump_names()
 # import_cover_dump()
 
 log_file.close()

@@ -79,7 +79,7 @@
                   <ul class="dropdown-menu" role="menu">
 
 
-                    <li><a href="{{ url_for('view_review',bid=0) }}">Reviews</a></li>
+                    <li><a href="{{ url_for('display_reviews_for_book',bid=0) }}">Reviews</a></li>
                     <li><a href="#">Lists</a></li>
                     <li class="divider"></li>
                     <li><a href="#">View Lists Containing</a></li>
@@ -91,7 +91,7 @@
     </tr>
     {% for book in books %}
     <tr>
-        <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"/></td>
+        <td><img src="{{ url_for('static', filename='images/covers/'+book.cover_name) }}"/></td>
         <td><a href="{{ url_for('display_book', bid=book.core_id)}}?next={{ request.path }}?page={{ page }}">{{ book.title }}</a></td>
         <td>
 	  {% for author in book.authors %}
@@ -134,7 +134,7 @@
                   <ul class="dropdown-menu" role="menu">
 
 
-                    <li><a href="{{ url_for('view_review',bid=book.core_id) }}">Reviews</a></li>
+                    <li><a href="{{ url_for('display_reviews_for_book',bid=book.core_id) }}">Reviews</a></li>
                     <li><a href="#">Lists</a></li>
                     <li class="divider"></li>
                     <li><a href="#">View Lists Containing</a></li>
@@ -223,13 +223,34 @@
 </div>
 
 <div id="listForm" class="hidden">
-
+<form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
 <h4>Add to Existing List</h4>
-            <form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
-         </form>
+    <div class="input-group">
+          <span class="input-group-addon">
+            <input type="radio" name="listRadioGroup" >
+          </span>
+          <label for="inputListName" class="sr-only">List Name</label>
+          <select class="form-control" name="inputListName" id="inputListName">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+            </select>
+        </div>
+
     <hr />
 <h4>Add to New List</h4>
+    <div class="input-group">
+          <span class="input-group-addon">
+            <input type="radio" name="listRadioGroup" checked>
+          </span>
+          <label for="newInputListName" class="sr-only">List Name</label>
+          <input type="text" name="newInputListName" id="newInputListName" class="form-control" placeholder="List name" value="" required autofocus>
+        </div>
 
+
+</form>
 
 
 </div>
@@ -292,6 +313,7 @@ $(window).load(function(){
      $("#bookModalBody").html($("#listForm").html())
 
     });
+
 });
 
 </script>

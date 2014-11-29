@@ -64,8 +64,8 @@
                 {{navigation.menuitem('users_index', 'Browse', active=active_page)}}
                 {% if not current_user.is_authenticated() %}
                     <li class="divider"></li>
-                    <li {% if request.endpoint == 'user_profile' or active_page == endpoint %} class='active' {% endif %}>
-                    <a href="{{url_for('user_profile',uid=current_user.get_id())}}">Profile</a>
+                    <li {% if request.endpoint == 'current_user_profile' or active_page == endpoint %} class='active' {% endif %}>
+                    <a href="{{url_for('current_user_profile')}}">Profile</a>
                     </li>
                 {% endif %}
                 <li class="divider"></li>

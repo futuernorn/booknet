@@ -39,7 +39,7 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
     # )
     # print "Total rows retrieved: %s..." % cur.rowcount
     cur.execute(
-        "SELECT core_id, book_title, book_description, AVG(rating) as avg_rating "+
+        "SELECT core_id, book_title, book_description, COALESCE(cover_name,'placeholder-S.jpg') as cover_name, AVG(rating) as avg_rating "+
         "FROM book_core "+
         "JOIN books USING (core_id) "+
         # "JOIN book_categorization USING (core_id) "+
@@ -53,18 +53,18 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
         # "JOIN book_categorization USING (core_id) "+
         # "JOIN subject_genre USING (subject_id) "+
         # "LEFT JOIN ratings USING (book_id) "+
-        "GROUP BY core_id, book_title, book_description " +
+        "GROUP BY core_id, book_title, book_description, cover_name " +
         # order_by+
         "LIMIT %s OFFSET %s"
     , ( amount, start))
     book_info = []
     # print "Retrieved %s book rows..." % cur.rowcount
-    for core_id, book_title, description, avg_rating in cur:
+    for core_id, book_title, description, cover_name, avg_rating in cur:
         if avg_rating:
             discrete_rating = round(avg_rating*2) / 2
         else:
             discrete_rating = 0
-        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'), 'authors': [], 'subjects': [],
+        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'), 'cover_name': cover_name, 'authors': [], 'subjects': [],
                           'avg_rating': avg_rating, 'discrete_rating': discrete_rating, 'user_rating': None})
     for book in book_info:
         cur.execute('''
@@ -74,19 +74,20 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
         ''', (book['core_id'],))
         author_info = []
         for author_name in cur:
-            author_info.append(str(author_name).decode('utf8', 'xmlcharrefreplace'))
+            author_info.append(str(author_name[0]).decode('utf8', 'xmlcharrefreplace'))
 
         book['authors'] = author_info
-        print book['authors']
+        # print book['authors']
         cur.execute('''
         SELECT subject_name
         FROM subject_genre JOIN book_categorization USING (subject_id)
         WHERE core_id = %s
         ''', (book['core_id'],))
-        subject_info = []
+        # subject_info = []
+        # print cur.fetchone()
         for subject_name in cur:
-            subject_info.append(subject_name)
-        book['subjects'] = subject_info
+            book['subjects'].append(subject_name[0].decode('utf8', 'xmlcharrefreplace'))
+        # book['subjects'] = subject_info
         if (user_id):
             cur.execute('''
             SELECT rating
@@ -121,8 +122,9 @@ def get_book(cur,book_id):
     ''', (book_info['core_id'],))
     author_info = []
     for author_name in cur:
-        print author_name
-        book_info['authors'].append(author_name)
+        # print author_name
+        author_info.append(author_name)
+    book_info['authors'] = author_info
     print book_info['authors']
     book_info['author_count'] = cur.rowcount
     # print book_info['author']
