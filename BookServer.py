@@ -29,8 +29,10 @@ def load_user(userid):
 def home_index():
     with easypg.cursor() as cur:
         book_info = books.get_spotlight_books(cur,4)
+        review_info = reviews.get_spotlight_reviews(cur,4)
     return flask.render_template('home.html',
-                                 books=book_info)
+                                 books=book_info,
+                                 reviews=review_info)
 
 @app.route("/dashboard")
 def user_dashboard():
@@ -76,7 +78,9 @@ def users_index():
                                  totalPages=total_pages,
                                  nextPage=nextPage,
                                  prevPage=prevPage)
-
+@app.route("/profile")
+def current_user_profile():
+    return NotImplementedError
 @app.route("/user/<uid>")
 def user_profile(uid):
     selected_user = User.get(uid)
@@ -218,8 +222,11 @@ def remove_book_rating(bid):
     flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))
 
-@app.route("/reviews/<bid>")
-def view_review(bid):
+@app.route("/reviews/book/<bid>")
+def display_reviews_for_book(bid):
+    raise NotImplementedError
+@app.route("/reviews/<rid>")
+def display_review(rid):
     review_info = None
 
     return flask.redirect("review.html",

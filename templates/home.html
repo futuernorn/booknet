@@ -31,11 +31,11 @@
           <h2>Book Spotlight</h2>
             {% for book in books %}
             <div class="media">
-              <a class="media-left" href="/books/{{ book.id }}">
+              <a class="media-left" href="{{url_for('display_book',bid=books.core_id)}}">
                 <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
               </a>
               <div class="media-body">
-                <h4 class="media-heading">{{ book.title }}</h4>
+                <h4 class="media-heading"><a href="{{url_for('display_book',bid=books.core_id)}}">{{ book.title }}</a></h4>
                 {{ book.description }}
               </div>
             </div>
@@ -44,10 +44,23 @@
         </div>
         <div class="col-md-4">
           <h2>Reviews</h2>
-          <p>Nothing yet!</p>
+          {% for review in reviews%}
+            <div class="media">
+              <a class="media-left" href="#">
+                <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
+              </a>
+              <div class="media-body">
+                <h4 class="media-heading"><a href="{{url_for('display_review',rid=review.review_id)}}">{{ review.book_title }}</a></h4>
+                {{ review.review_text }}<br/>
+                  <p class="text-muted">by: <a href="{{url_for('display_user',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
+              </div>
+            </div>
+          {% endfor %}
+          <p><a class="btn btn-default" href="{{url_for('reviews_index')}}" role="button">View more &raquo;</a></p>
+
        </div>
         <div class="col-md-4">
-          <h2>Users</h2>
+          <h2>Lists</h2>
           <p>Nothing yet!</p>
         </div>
       </div>
