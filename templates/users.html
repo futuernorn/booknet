@@ -22,26 +22,6 @@
         {% endif %}
     </tr></thead>
     <tbody>
-    <tr>
-        <td><a href="{{ url_for('display_user', uid=1)}}?next={{ request.path }}?page={{ page }}">Username</a></td>
-        <td>User</td>
-        <td>2</td>
-        <td>
-            3
-        </td>
-        <td>
-            4
-        </td>
-        {% if current_user.is_authenticated() %}
-        <td>
-            <div class="btn-group" role="group" aria-label="User Actions">
-                    <button type="button" class="btn btn-default">Follow</button>
-                </div>
-        </td>
-        {% endif %}
-
-
-    </tr>
     {% for user in users %}
     <tr>
         <td><a href="{{ url_for('display_user', uid=user.id)}}?next={{ request.path }}?page={{ page }}">{{user.name}}</a></td>
@@ -52,11 +32,13 @@
         {% if current_user.is_authenticated() %}
         <td>
             <div class="btn-group" role="group" aria-label="User Actions">
+                {% if user.id != current_user.id %}
                     {% if user.is_followed %}
-                    <button type="button" class="btn btn-default">Unfollow</button>
+                    <a href="{{url_for('unfollow_user',uid=user.id)}}" class="btn btn-default">Unfollow</a>
                     {% else %}
-                    <button type="button" class="btn btn-default">Follow</button>
+                    <a href="{{url_for('follow_user',uid=user.id)}}"  class="btn btn-default">Follow</a>
                     {% endif %}
+                {% endif %}
                 </div>
         </td>
         {% endif %}

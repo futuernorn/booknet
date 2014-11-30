@@ -63,19 +63,24 @@ def register_user(cur, form):
     except Exception, e:
         return False, None, errorcodes.lookup(e.pgcode[:2])
 
-def get_all_users(cur,page,user_id):
+def get_all_users(cur,page,user_id=None):
     return get_user_range(cur,((page - 1) * USERS_PER_PAGE), USERS_PER_PAGE, user_id)
 
 def get_user_range(cur,start,amount, user_id=None):
     cur.execute('''
-        SELECT user_id, login_name, level_name
+        SELECT user_id, login_name, level_name, COUNT(DISTINCT review_id) as num_reviews, COUNT(DISTINCT list_id) as num_lists
         FROM "user"
+        JOIN review ON user_id = reviewer
+        JOIN list USING (user_id)
         JOIN user_level USING (level_id)
+        GROUP BY user_id, login_name, level_name
         LIMIT %s OFFSET %s
-    ''', ( amount, start))
+    ''', (amount, start))
     user_info = []
+# LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
     # print "Retrieved %s book rows..." % cur.rowcount
-    for user_id, login_name, level_name in cur:
-        user_info.append({'id':user_id, 'name': login_name, 'access_level': level_name})
+    for user_id, login_name, level_name, num_reviews, num_lists in cur:
+        is_followed = False
+        user_info.append({'id':user_id, 'name': login_name, 'access_level': level_name, 'num_reviews': num_reviews, 'num_lists': num_lists, 'is_followed': is_followed})
 
     return user_info

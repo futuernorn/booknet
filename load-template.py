@@ -123,17 +123,20 @@ def import_cover_dump(cover_size='s'):
             with easypg.cursor() as cur:
 
                 try:
-                    if os.path.isfile("data/sample-data/covers/archives/"+directory+"/"+filename):
+                    # print "data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename
+                    # print os.path.isfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename)
+                    # print "-------------"
+                    if os.path.isfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename):
                         cur.execute('''
                           UPDATE books SET cover_name = %s
                           WHERE core_id = %s
                         ''', ("_covers_%s_%s/%s" % (first_subset,second_subset,cover.zfill(10)), book_id))
                         print >> log_file, "Inserting cover %s into book with core_id %s..." % (cover, book_id)
-                        print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                        print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename, "static/images/covers/"+filename)
                         if not os.path.exists("static/images/covers/"+directory):
                             os.makedirs("static/images/covers/"+directory)
                         if not os.path.isfile("static/images/covers/"+directory+"/"+filename):
-                            copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
+                            copyfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
                     else:
                         print >> missing_files, "Unable to find: %s..." % cover
                         needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
