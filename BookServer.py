@@ -167,7 +167,10 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        if current_user.is_authenticated():
+            book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
 
     if page > 1:
         prevPage = page - 1
@@ -214,8 +217,14 @@ def add_book_rating():
 def remove_book_rating(bid):
     # raise NotImplementedError
     book_id = bid
-    user_id = flask.session['user_id']
-    user = User.get(user_id)
+    if current_user.is_authenticated():
+        user_id = flask.session['user_id']
+    else:
+        user_id = None
+    
+
+    
+    
     with easypg.cursor() as cur:
         message = books.remove_rating(cur, book_id, user_id)
 
