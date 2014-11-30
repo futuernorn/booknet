@@ -60,3 +60,6 @@ target/
 data/sample-data/covers
 data/sample-data/*json
 data/sample-data/logs
+
+# Ignore covers (subdirectories)
+static/images/covers/*/

@@ -34,66 +34,7 @@ def home_index():
                                  books=book_info,
                                  reviews=review_info)
 
-@app.route("/dashboard")
-def user_dashboard():
-    return flask.render_template('dashboard.html')
 
-@app.route("/users")
-def users_index():
-    if 'sorting' in flask.request.args:
-        sorting = flask.request.args['sorting']
-    else:
-        sorting = None
-    if 'sort_direction' in flask.request.args:
-        sort_direction = flask.request.args['sort_direction']
-    else:
-        sort_direction = None
-
-    if 'page' in flask.request.args:
-        page = int(flask.request.args['page'])
-    else:
-        page = 1
-    if page <= 0:
-        flask.abort(404)
-
-    with easypg.cursor() as cur:
-        total_pages = users.get_total_pages(cur)
-
-    with easypg.cursor() as cur:
-        user_info = users.get_all_users(cur, page, flask.session['user_id'])
-
-    if page > 1:
-        prevPage = page - 1
-    else:
-        prevPage = None
-
-    if page == total_pages:
-        nextPage = None
-    else:
-        nextPage = page + 1
-
-    return flask.render_template('users.html',
-                                 users=user_info,
-                                 page=page,
-                                 totalPages=total_pages,
-                                 nextPage=nextPage,
-                                 prevPage=prevPage)
-@app.route("/profile")
-def current_user_profile():
-    return NotImplementedError
-@app.route("/user/<uid>")
-def user_profile(uid):
-    selected_user = User.get(uid)
-    user_info = None
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-    else:
-        next = flask.url_for("home_index")
-    return flask.render_template('profile.html',
-                                 user_id=uid,
-                                 selected_user=selected_user,
-                                 user_info = user_info,
-                                 next=next)
 
 @app.route("/list/add/book")
 def add_book_list():
@@ -167,7 +108,10 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        if flask.ext.login.current_user.is_authenticated():
+            book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
 
     if page > 1:
         prevPage = page - 1
@@ -194,10 +138,17 @@ def add_reading_log():
     return redirect(request.args.get("next") or url_for("books_index"))
 
 
-@app.route("/books/rating/add", methods=['POST'])
-def add_book_rating():
+
+
+
+
+################## Ratings #########################
+
+@app.route("/books/rating/add/<bid>", methods=['POST'])
+@flask.ext.login.login_required
+def add_book_rating(bid):
     rating = flask.request.form['rating']
-    book_id = flask.request.form['book_id']
+    book_id = bid
     # print flask.request.form
     user_id = flask.request.form['user_id']
     user = User.get(user_id)
@@ -214,8 +165,14 @@ def add_book_rating():
 def remove_book_rating(bid):
     # raise NotImplementedError
     book_id = bid
-    user_id = flask.session['user_id']
-    user = User.get(user_id)
+    if current_user.is_authenticated():
+        user_id = flask.session['user_id']
+    else:
+        user_id = None
+    
+
+    
+    
     with easypg.cursor() as cur:
         message = books.remove_rating(cur, book_id, user_id)
 
@@ -291,6 +248,79 @@ def display_user(uid):
     # Other user's profile page
     raise NotImplementedError
 
+@app.route("/dashboard")
+def user_dashboard():
+    return flask.render_template('dashboard.html')
+
+@app.route("/users")
+def users_index():
+    if 'sorting' in flask.request.args:
+        sorting = flask.request.args['sorting']
+    else:
+        sorting = None
+    if 'sort_direction' in flask.request.args:
+        sort_direction = flask.request.args['sort_direction']
+    else:
+        sort_direction = None
+
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = users.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            user_info = users.get_all_users(cur, page, flask.session['user_id'])
+        else:
+            user_info = users.get_all_users(cur, page)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('users.html',
+                                 users=user_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+@app.route("/profile")
+def current_user_profile():
+    return NotImplementedError
+@app.route("/user/<uid>")
+def user_profile(uid):
+    selected_user = User.get(uid)
+    user_info = None
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+    return flask.render_template('profile.html',
+                                 user_id=uid,
+                                 selected_user=selected_user,
+                                 user_info = user_info,
+                                 next=next)
+
+##################### Login / User Management ##########################
+@app.route("/user/follow/<uid>")
+def follow_user(uid):
+    raise NotImplementedError
+
+@app.route("/user/unfollow/<uid>")
+def unfollow_user(uid):
+    raise NotImplementedError
+
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
@@ -315,7 +345,11 @@ def login_index():
             else:
                 errors.append("Username or password not accepted.")
 
-    return flask.render_template("login.html", errors=errors)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = None
+    return flask.render_template("login.html", errors=errors, next=next)
 
 @app.route("/user/register", methods=['GET', 'POST'])
 def register_index():
@@ -345,8 +379,11 @@ def register_index():
                 else:
                     errors.append(message)
 
-
-    return flask.render_template("register.html", errors=errors)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = None
+    return flask.render_template("register.html", errors=errors, next=next)
 
 
 

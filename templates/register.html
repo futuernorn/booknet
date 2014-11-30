@@ -45,7 +45,7 @@
             </div>
           </fieldset>
                     <hr />
-        Already registered? <a href="{{ url_for('login_index') }}">Login here</a>
+        Already registered? <a href="{{ url_for('login_index') }}{% if next %}?next={{next}}{% endif %}">Login here</a>
         </form>
 
     </div> <!-- /container -->

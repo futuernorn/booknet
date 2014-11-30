@@ -1,0 +1,199 @@
+{# layout.html settings #}
+{% set page_title = 'Users' %}
+{% set active_page = 'users_index' %}
+{% extends "layout.html" %}
+{% block head %}
+
+{% endblock %}
+{% block body %}
+<br>
+<div class="panel panel-default">
+  <!-- Default panel contents -->
+  <div class="panel-heading">
+    <h4>Users</h4>
+  </div>
+    {{ navigation.paginator('users_index','pull-right') }}
+  <!-- Table -->
+  <table class="table">
+    <thead><tr>
+        <th>Username</th><th>Access Level</th><th># of Reviews</th><th># of Lists</th><th># of Books Read</th>
+        {% if current_user.is_authenticated() %}
+        <th>Actions</th>
+        {% endif %}
+    </tr></thead>
+    <tbody>
+    {% for user in users %}
+    <tr>
+        <td><a href="{{ url_for('display_user', uid=user.id)}}?next={{ request.path }}?page={{ page }}">{{user.name}}</a></td>
+        <td>{{user.access_level}}</a></td>
+        <td>{{user.num_reviews}}</td>
+        <td>{{user.num_lists}}</td>
+        <td>{{user.num_books_read}}</td>
+        {% if current_user.is_authenticated() %}
+        <td>
+            <div class="btn-group" role="group" aria-label="User Actions">
+                {% if user.id != current_user.id %}
+                    {% if user.is_followed %}
+                    <a href="{{url_for('unfollow_user',uid=user.id)}}" class="btn btn-default">Unfollow</a>
+                    {% else %}
+                    <a href="{{url_for('follow_user',uid=user.id)}}"  class="btn btn-default">Follow</a>
+                    {% endif %}
+                {% endif %}
+                </div>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+    {{ navigation.paginator('users_index') }}
+</div>
+
+            <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
+                  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h1 id="pleaseWaitDialogHeading">Processing...</h1>
+        </div>
+        <div class="modal-body">
+            <div class="progress progress-striped active">
+                <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+                        </div>
+</div>
+
+<!-- Shelf Modal -->
+<div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="bookModalBookTitle">Modal title</h4>
+      </div>
+
+      <div class="modal-body" id="bookModalBody">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="bookModalSubmit">Save changes</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- /Shelf Modal -->
+
+
+<div id="shelfForm" class="hidden">
+             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalForm">
+            <div class="form-group">
+                <div class='input-group date' id='starting_date'>
+                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class='input-group date' id='completed_date'>
+                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+            <p class="help-block">Please enter your log entry below!</p>
+            <label for="log_input" class="sr-only">Reading Log</label>
+            <textarea name="log_input" id="log_input" class="form-control" rows="5" required autofocus></textarea>
+         </form>
+         <hr />
+          <h4><a href="{{ url_for('user_dashboard') }}?section=logs#logs">Previous Logs</a></h4>
+          <table class="table">
+              <thead>
+              <tr>
+              <th>Date Completed</th><th>Date Started</th><th>Log</th>
+              </tr>
+              </thead>
+              <tbody>
+
+              </tbody>
+          </table>
+
+</div>
+
+<div id="listForm" class="hidden">
+
+<h4>Add to Existing List</h4>
+            <form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
+         </form>
+    <hr />
+<h4>Add to New List</h4>
+
+
+
+</div>
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+$(window).load(function(){
+    //$(document).ready(function(){
+        {% if not sorting %}
+      $('#table_sorting_options').toggleClass('hidden');
+        {% else %}
+        $('#sorting_toggle_btn').toggleClass('active');
+        {% endif %}
+      $('#sorting_toggle_btn').click(function(){
+        $('#table_sorting_options').toggleClass('hidden');
+        $(this).toggleClass('active');
+
+
+      });
+      $('.rating-star').click(function(){
+        var value = $(this).attr('value');
+        var book_id = $(this).attr('book_id');
+        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+          $("#pleaseWaitDialog").modal('show')
+        $(this).closest("form").submit();
+
+    });
+    $("#bookModalSubmit").click(function(){
+        $("#bookModalForm").submit();
+    });
+
+            //http://eonasdan.github.io/bootstrap-datetimepicker
+    $("#starting_date").datetimepicker({
+					pickTime: false
+				});
+        $("#completed_date").datetimepicker({
+					pickTime: false
+				});
+    $(".add_to_shelf").click(function () {
+
+     var currentID = $(this).data('id');
+     var currentTitle = $(this).data('title');
+     $("#bookModalBookId").val( currentID );
+//        console.log($(this));
+     $("#bookModalBookTitle").html( currentTitle );
+     $("#bookModalBody").html($("#shelfForm").html())
+//        $.ajax() -- load logs?
+     // As pointed out in comments,
+     // it is superfluous to have to manually call the modal.
+     // $('#addBookDialog').modal('show');
+    });
+    $(".add_to_list").click(function() {
+             var currentID = $(this).data('id');
+     var currentTitle = $(this).data('title');
+     $("#bookModalBookId").val( currentID );
+//        console.log($(this));
+     $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
+     $("#bookModalBody").html($("#listForm").html())
+
+    });
+});
+
+</script>
+{% endblock %}

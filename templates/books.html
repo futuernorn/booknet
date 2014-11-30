@@ -40,55 +40,6 @@
         {% endif %}
     </tr></thead>
     <tbody>
-    <tr>
-        <td><img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}"</td>
-        <td>Example Title</td>
-        <td>Example Author</td>
-        <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ helpers.star_ratings(0,0) }} <span style="padding-top:15px;">(avg. 2.5)</span></div>
-            <hr class="listing-cell-divider" />
-            <p class="text-muted"><span class="glyphicon glyphicon-remove" aria-hidden="true" data-toggle="modal"></span>Your rating: 4</p>
-        </td>
-        <td>
-            <span class="label label-default">Tag 1</span>
-            <span class="label label-default">Tag 2</span>
-            <span class="label label-default">Tag 3</span>
-        </td>
-        <td>
-        {% if current_user.is_authenticated() %}
-
-
-            <div class="btn-group">
-                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Add<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="{{ url_for('add_review', bid=1)}}?next={{ request.path }}">Review</a></li>
-                      <li><a href="#" class="add_to_shelf" data-id="1" data-title="Example" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
-                  <li class="divider"></li>
-
-                    <li><a href="#" class="add_to_list" data-id="1" data-title="Example" data-toggle="modal" data-target="#bookModal">List</a></li>
-                  </ul>
-                </div>
-        {% endif %}
-            <div class="btn-group">
-
-                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    View<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-
-
-                    <li><a href="{{ url_for('display_reviews_for_book',bid=0) }}">Reviews</a></li>
-                    <li><a href="#">Lists</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">View Lists Containing</a></li>
-                  </ul>
-                </div>
-        </td>
-
-
-    </tr>
     {% for book in books %}
     <tr>
         <td><img src="{{ url_for('static', filename='images/covers/'+book.cover_name) }}"/></td>
