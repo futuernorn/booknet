@@ -121,19 +121,24 @@ def import_cover_dump(cover_size='s'):
             directory = cover_size+"_covers_%s_%s" % (first_subset,second_subset)
             # directory = "cover:%s -- first:%s -- second:%s" % (cover, first_subset, second_subset)
             with easypg.cursor() as cur:
-                cur.execute('''
-                  UPDATE books SET cover_name = %s
-                  WHERE core_id = %s
-                ''', (directory+"/"+filename, book_id))
-                print >> log_file, "Inserting cover %s into book with core_id %s..." % (cover, book_id)
-                print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+
                 try:
-                    if not os.path.exists("static/images/covers/"+directory):
-                        os.makedirs("static/images/covers/"+directory)
-                    if not os.path.isfile("static/images/covers/"+directory+"/"+filename):
-                        copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
+                    if os.path.isfile("data/sample-data/covers/archives/"+directory+"/"+filename):
+                        cur.execute('''
+                          UPDATE books SET cover_name = %s
+                          WHERE core_id = %s
+                        ''', ("_covers_%s_%s/%s" % (first_subset,second_subset,cover.zfill(10)), book_id))
+                        print >> log_file, "Inserting cover %s into book with core_id %s..." % (cover, book_id)
+                        print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+filename)
+                        if not os.path.exists("static/images/covers/"+directory):
+                            os.makedirs("static/images/covers/"+directory)
+                        if not os.path.isfile("static/images/covers/"+directory+"/"+filename):
+                            copyfile("data/sample-data/covers/archives/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
+                    else:
+                        print >> missing_files, "Unable to find: %s..." % cover
+                        needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
                 except IOError:
-                    print >> missing_files, "Unable to find: %s..." % cover
+                    print >> missing_files, "IOError: Unable to find: %s..." % cover
                     needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
                 except:
                     e = sys.exc_info()[0]
@@ -573,9 +578,9 @@ def import_all():
 
 
 # retrieve_cover_dump_names()
-import_all()
+# import_all()
 # retrieve_cover_dump_names()
-# import_cover_dump()
+import_cover_dump()
 
 log_file.close()
 error_log.close()

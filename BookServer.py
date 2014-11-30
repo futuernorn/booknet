@@ -167,7 +167,7 @@ def books_index():
         total_pages = books.get_total_pages(cur)
 
     with easypg.cursor() as cur:
-        if current_user.is_authenticated():
+        if flask.ext.login.current_user.is_authenticated():
             book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
         else:
             book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
@@ -197,10 +197,17 @@ def add_reading_log():
     return redirect(request.args.get("next") or url_for("books_index"))
 
 
-@app.route("/books/rating/add", methods=['POST'])
-def add_book_rating():
+
+
+
+
+################## Ratings #########################
+
+@app.route("/books/rating/add/<bid>", methods=['POST'])
+@flask.ext.login.login_required
+def add_book_rating(bid):
     rating = flask.request.form['rating']
-    book_id = flask.request.form['book_id']
+    book_id = bid
     # print flask.request.form
     user_id = flask.request.form['user_id']
     user = User.get(user_id)
@@ -300,6 +307,8 @@ def display_user(uid):
     # Other user's profile page
     raise NotImplementedError
 
+
+##################### Login / User Management ##########################
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
@@ -324,7 +333,11 @@ def login_index():
             else:
                 errors.append("Username or password not accepted.")
 
-    return flask.render_template("login.html", errors=errors)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = None
+    return flask.render_template("login.html", errors=errors, next=next)
 
 @app.route("/user/register", methods=['GET', 'POST'])
 def register_index():
@@ -354,8 +367,11 @@ def register_index():
                 else:
                     errors.append(message)
 
-
-    return flask.render_template("register.html", errors=errors)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = None
+    return flask.render_template("register.html", errors=errors, next=next)
 
 
 

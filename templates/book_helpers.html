@@ -1,6 +1,6 @@
 {# Star rating macros #}
 {% macro star_ratings(book_id, rating='') %}
-<form action="{{ url_for('add_book_rating') }}" method="POST" role="form">
+<form action="{{ url_for('add_book_rating',bid=book_id) }}" method="POST" role="form">
 <fieldset class="rating">
 
     {% for num in range(10,0,-1) %}
@@ -15,7 +15,7 @@
             {% set is_selected = True %}
         {% endif %}
         <input type="radio" id="{{book_id}}_star{{num}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
-        <input type="hidden" name="book_id" value="{{book_id}}"/>
+        <!--<input type="hidden" name="book_id" value="{{book_id}}"/>-->
         <input type="hidden" name="user_id" value="{{current_user.get_id()}}"/>
         <input type="hidden" name="next" value="{{url_for('books_index')}}?page={{page}}"/>
         <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>

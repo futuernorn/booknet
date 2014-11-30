@@ -28,7 +28,8 @@
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
            <hr />
-        Not registered yet? <a href="{{ url_for('register_index') }}">Create an account here</a>
+
+        Not registered yet? <a href="{{ url_for('register_index') }}{% if next %}?next={{next}}{% endif %}">Create an account here</a>
       </form>
 
     </div> <!-- /container -->
