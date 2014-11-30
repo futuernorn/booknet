@@ -1,0 +1,109 @@
+{% set page_title = 'Profile' %}
+{% set active_page = 'users_index' %}
+{% extends "layout.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+
+    <div class="container-fluid">
+
+          <h1 class="page-header">{{ selected_user.name }}'s Profile</h1>
+            <a href="#lists">Lists</a> - <a href="#logs">Reading Logs</a> - <a href="#logs_by_year">Reading Logs By Year</a>
+            <ul class="list-group">
+              <li class="list-group-item"><h4>Name: {{ selected_user.name }}</h4> </li>
+                <li class="list-group-item"><h4>Unique Books Placed In Lists:</h4>{{ selected_user.num_unique_list_books }}</li>
+                <li class="list-group-item"><h4>Books Read (unique):</h4>{{ selected_user.num_unique_books_read }}</li>
+                <li class="list-group-item"><h4>Books Read (total):</h4>{{ selected_user.num_total_books_read }}</li>
+                <li class="list-group-item"><h4><a name="lists">Lists</a></h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Name</th><th>Created On</th><th># of Books</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for list in selected_user.lists %}
+                        <tr>
+                            <td><a href="{{url_for('display_list',lid=list.id)}}">{{list.list_name}}</a></td>
+                            <td>{{list.date_created}}</td>
+                            <td>{{list.num_books}}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+
+              </li>
+              <li class="list-group-item"><h4><a name="logs">Reading Logs</a></h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Book</th><th style="width: 125px;">Date Completed</th><th style="width: 125px;">Date Started</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for log in selected_user.reading_logs %}
+                        <tr>
+                            <td><a href="{{url_for('display_book',bid=log.core_id)}}">{{log.book_title}}</a></td>
+                            <td>{{log.date_completed}}</td>
+                            <td>{{log.date_started}}</td>
+                            <td><a href="{{url_for('display_log',lid=log.log_id)}}" class="btn btn-primary">View</a></td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+
+              </li>
+                <li class="list-group-item"><h4><a name="logs_by_year">Reading By Year</a></h4>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Year</th><th>Books Read</th><th>Pages Read</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for log_year in selected_user.reading_logs_by_year %}
+                        <tr>
+                            <td><a href="{{url_for('display_logs_by_year',year=log_year.year)}}">{{log_year.year}}</a></td>
+                            <td>{{log_year.num_books}}</td>
+                            <td>{{log_year.pages_read}}</td>
+                            <td>{{log_year.num_logs}}</td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  </li>
+            </ul>
+
+<hr />
+            <div class="control-group">
+              <!-- Button -->
+              <div class="controls">
+
+                {% if selected_user.id != current_user.id %}
+                    {% if selected_user.is_followed %}
+                    <a href="{{url_for('unfollow_user',uid=selected_user.id)}}?next={{url_for('users_index')}}?page={{page}}" class="btn btn-lg btn-block btn-warning">Unfollow</a>
+                    {% else %}
+                    <a href="{{url_for('follow_user',uid=selected_user.id)}}?next={{url_for('users_index')}}?page={{page}}"  class="btn btn-lg btn-block btn-default">Follow</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{url_for('user_dashboard')}}"  class="btn btn-lg btn-block btn-primary">Dashboard</a>
+                {% endif %}
+
+                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+              </div>
+            </div>
+</div>
+
+
+
+{% endblock %}

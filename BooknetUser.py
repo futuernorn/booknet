@@ -1,5 +1,5 @@
 __author__ = 'Jeffrey Hogan'
-
+from flask.ext.login import UserMixin
 import easypg
 easypg.config_name = 'bookserver'
 
@@ -8,7 +8,7 @@ class UserNotFoundError(Exception):
 
 # Simple user class base on UserMixin
 # http://flask-login.readthedocs.org/en/latest/_modules/flask/ext/login.html#UserMixin
-class User():
+class BooknetUser(UserMixin):
     '''
     This provides default implementations for the methods that Flask-Login
     expects user objects to have.
@@ -33,7 +33,7 @@ class User():
         with easypg.cursor() as cur:
             cur.execute('''
                 SELECT user_id, login_name, password
-                FROM "user"
+                FROM booknet_user
                 WHERE user_id = %s
             ''', (id,))
 

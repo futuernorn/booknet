@@ -33,7 +33,7 @@ def get_review_range(cur,start,amount):
         FROM review
         JOIN books USING (book_id)
         JOIN book_core USING (core_id)
-        JOIN "user" ON reviewer = user_id
+        JOIN booknet_user ON reviewer = user_id
         LIMIT %s OFFSET %s
     ''', (amount, start))
     review_info = []

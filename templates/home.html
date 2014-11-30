@@ -52,7 +52,7 @@
               <div class="media-body">
                 <h4 class="media-heading"><a href="{{url_for('display_review',rid=review.review_id)}}">{{ review.book_title }}</a></h4>
                 {{ review.review_text }}<br/>
-                  <p class="text-muted">by: <a href="{{url_for('display_user',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
+                  <p class="text-muted">by: <a href="{{url_for('display_user_profile',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
               </div>
             </div>
           {% endfor %}

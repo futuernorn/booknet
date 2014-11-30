@@ -31,7 +31,7 @@
     {% for review in reviews %}
     <tr>
         <td><a href="{{ url_for('display_book', bid=review.core_id)}}?next={{ request.path }}?page={{ page }}">{{ review.book_title }}</a></td>
-        <td><a href="{{ url_for('display_user', uid=review.reviewer)}}?next={{ request.path }}?page={{ page }}">{{ review.reviewer_name }}</a></td>
+        <td><a href="{{ url_for('display_user_profile', uid=review.reviewer)}}?next={{ request.path }}?page={{ page }}">{{ review.reviewer_name }}</a></td>
 
         <td class="truncate">{{ review.review_text }}</td>
         <td>{{ review.date_reviewed }}</td>

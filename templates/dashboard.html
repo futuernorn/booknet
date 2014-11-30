@@ -1,5 +1,6 @@
+
 {% set page_title = 'Dashboard' %}
-{% set active_page = 'dashboard_index' %}
+
 {% extends "layout.html" %}
 {% block head %}
     <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
@@ -10,9 +11,9 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
-            <li><a href="#">Followers</a></li>
-            <li><a href="#">Following</a></li>
+            {{navigation.menuitem('user_dashboard','Overview')}}
+            {{navigation.menuitem('user_dashboard_following','Following')}}
+            {{navigation.menuitem('user_dashboard_followers','Followers')}}
           </ul>
           <ul class="nav nav-sidebar">
             <li><a href="#logs">Reading Logs</a></li>
@@ -21,34 +22,10 @@
           </ul>
         </div>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <h1 class="page-header">Dashboard</h1>
-
-            <ul class="list-group">
-              <li class="list-group-item">Name: </li>
-              <li class="list-group-item">Lists: </li>
-              <li class="list-group-item">Reading Log: </li>
-                <li class="list-group-item">Books In Lists: </li>
-                <li class="list-group-item">Books Read: Unique - Total </li>
-                <li class="list-group-item">The number of books, and the number of pages, that they have read each year, with the ability to view each year’s reading log. </li>
-            </ul>
-
-
-
-          <h2 class="sub-header"><a name="logs">Reading Logs</a></h2>
-          <div class="table-responsive">
-            <table class="table table-striped">
-                 <thead>
-              <tr>
-              <th>Date Completed</th><th>Date Started</th><th>Log</th>
-              </tr>
-              </thead>
-              <tbody>
-
-              </tbody>
-            </table>
+  {% block dashboard_body %}{% endblock %}
           </div>
         </div>
       </div>
-    </div>
+
 
 {% endblock %}

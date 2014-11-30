@@ -8,7 +8,7 @@ CREATE TABLE user_level(
   level_description TEXT NOT NULL
 );
 
-DROP TABLE IF EXISTS "user" CASCADE;
+DROP TABLE IF EXISTS booknet_user CASCADE;
 CREATE TABLE "user"(
 user_id serial Primary Key	NOT NULL,
 login_name varchar(255) NOT NULL,
@@ -59,7 +59,7 @@ DROP TABLE IF EXISTS "review" CASCADE;
 CREATE TABLE review(
 review_id serial Primary Key	NOT NULL,
 book_id bigint NOT NULL REFERENCES books,
-reviewer bigint NOT NULL REFERENCES "user",
+reviewer bigint NOT NULL REFERENCES booknet_user,
 date_reviewed timestamp NOT NULL,
 review_text text NOT NULL
 );
@@ -133,8 +133,8 @@ series bigint REFERENCES series
 DROP TABLE IF EXISTS "follow" CASCADE;
 CREATE TABLE follow(
 follow_id serial PRIMARY KEY NOT NULL,
-follower bigint NOT NULL REFERENCES "user",
-user_followed bigint NOT NULL REFERENCES "user",
+follower bigint NOT NULL REFERENCES booknet_user,
+user_followed bigint NOT NULL REFERENCES booknet_user,
 date_followed timestamp NOT NULL,
 is_actively_followed BOOLEAN NOT NULL
 );
@@ -167,7 +167,7 @@ DROP TABLE IF EXISTS "list" CASCADE;
 CREATE TABLE list(
 list_id serial PRIMARY KEY NOT NULL,
 list_name varchar(255) NOT NULL,
-user_id bigint NOT NULL REFERENCES "user",
+user_id bigint NOT NULL REFERENCES booknet_user,
 date_created timestamp NOT NULL,
 list_description text NOT NULL
 );
@@ -183,7 +183,7 @@ DROP TABLE IF EXISTS "bookmark" CASCADE;
 CREATE TABLE bookmark(
 bookmark_id SERIAL PRIMARY KEY NOT NULL,
 book_id bigint NOT NULL REFERENCES books,
-reader bigint NOT NULL REFERENCES "user",
+reader bigint NOT NULL REFERENCES booknet_user,
 page_number varchar(7) NOT NULL,
 date_marked TIMESTAMP NOT NULL,
 is_retired BOOLEAN NOT NULL
@@ -211,7 +211,7 @@ DROP TABLE IF EXISTS "ratings" CASCADE;
 CREATE TABLE ratings (
 ratings serial PRIMARY KEY NOT NULL,
 book_id bigint NOT NULL REFERENCES books,
-rater bigint NOT NULL REFERENCES "user",
+rater bigint NOT NULL REFERENCES booknet_user,
 rating FLOAT NOT NULL,
 date_rated timestamp NOT NULL
 );
@@ -226,7 +226,7 @@ prop_description bigint NOT NULL
 DROP TABLE IF EXISTS "profile_map" CASCADE;
 CREATE TABLE profile_map(
 profile_map_id SERIAL PRIMARY KEY,
-user_id bigint NOT NULL REFERENCES "user",
+user_id bigint NOT NULL REFERENCES booknet_user,
 property_id bigint NOT NULL REFERENCES profile_property,
 property_value VARCHAR(255) NOT NULL,
 is_private BOOLEAN NOT NULL
@@ -235,7 +235,7 @@ is_private BOOLEAN NOT NULL
 DROP TABLE IF EXISTS "user_lock" CASCADE;
 CREATE TABLE user_lock(
 lock_id serial PRIMARY KEY NOT NULL,
-user_id bigint NOT NULL REFERENCES "user",
+user_id bigint NOT NULL REFERENCES booknet_user,
 lock_date timestamp NOT NULL,
 indefinite_ban boolean NOT NULL,
 unlock_date timestamp NOT NULL,
@@ -245,7 +245,7 @@ moderator bigint NOT NULL
 DROP TABLE IF EXISTS "request" CASCADE;
 CREATE TABLE request(
 request_id SERIAL PRIMARY KEY NOT NULL,
-user_id bigint NOT NULL REFERENCES "user",
+user_id bigint NOT NULL REFERENCES booknet_user,
 type VARCHAR(255) NOT NULL,
 date_requested timestamp NOT NULL,
 priority smallint NOT NULL,
@@ -300,7 +300,7 @@ CREATE TABLE moderator_log(
 DROP TABLE IF EXISTS "log" CASCADE;
 CREATE TABLE "log"(
   log_id SERIAL PRIMARY KEY NOT NULL,
-  user_id bigint NOT NULL REFERENCES "user",
+  user_id bigint NOT NULL REFERENCES booknet_user,
   book_id bigint NOT NULL REFERENCES books,
   log_status varchar(255) NOT NULL,
   date_logged TIMESTAMP NOT NULL,
