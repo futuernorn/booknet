@@ -84,3 +84,53 @@ def get_user_range(cur,start,amount, user_id=None):
         user_info.append({'id':user_id, 'name': login_name, 'access_level': level_name, 'num_reviews': num_reviews, 'num_lists': num_lists, 'is_followed': is_followed})
 
     return user_info
+
+def add_follower(cur, followee, follower):
+
+    user_info = get_user(cur, followee)
+    # try:
+    cur.execute('''
+        SELECT follow_id
+        FROM follow
+        WHERE user_followed = %s AND follower = %s
+    ''', (followee,follower))
+    if cur.rowcount == 1:
+        message = "%s already being followed!" % user_info['login_name']
+
+    else:
+        cur.execute('''
+          INSERT INTO follow (follower, user_followed, date_followed, is_followed)
+          VALUES(%s, %s, current_timestamp, True)
+          RETURNING follow_id
+        ''', (follower, followee))
+        if cur.rowcount == 1:
+            message = "Now following %s!" % user_info['login_name']
+        else:
+            message = "Unknown error!"
+
+    # else:
+    #     message = "User not currently authenticated!"
+
+    return message
+
+def remove_follower(cur, followee, follower):
+
+    user_info = get_user(cur, followee)
+    # try:
+    cur.execute('''
+        DELETE FROM follow
+        WHERE user_followed = %s AND follower = %s
+    ''', (followee,follower))
+    # first two queries should be able to be combined
+    if cur.rowcount == 1:
+        message = "No longer following %s!" % user_info['login_name']
+    else:
+        message = "Unknown error!"
+    # except Exception, e:
+    #     message = errorcodes.lookup(e.pgcode[:2])
+
+
+    # else:
+    #     message = "User not currently authenticated!"
+
+    return message

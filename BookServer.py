@@ -6,25 +6,28 @@ from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
 import re
+import User
 from lib import books, reviews, users
 
 
+# during developement
+app.debug = True
+
+########################## Login Manager / Session Control
 app = flask.Flask('BookServer')
 app.secret_key = 'ItLWMzHsirkwfiiI9kIa'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_index'
 
-# app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
-
-# during developement
-app.debug = True
 
 @login_manager.user_loader
 def load_user(userid):
     return User.get(userid)
 
 
+
+######################### Main Index / Home #################################
 @app.route("/")
 def home_index():
     with easypg.cursor() as cur:
@@ -36,9 +39,9 @@ def home_index():
 
 
 
-@app.route("/list/add/book")
-def add_book_list():
-    raise NotImplementedError
+
+######################## Books ################################
+
 
 @app.route("/books/author")
 def books_by_author():
@@ -132,15 +135,25 @@ def books_index():
                                  sorting=sorting,
                                  sort_direction=sort_direction)
 
+#################### Reading Logs #############################
+
 @app.route("/books/log/add", methods=['POST'])
 def add_reading_log():
     raise NotImplementedError
     return redirect(request.args.get("next") or url_for("books_index"))
 
 
+####################### Lists #####################
 
 
+@app.route("/list/add/book")
+def add_book_list():
+    raise NotImplementedError
 
+
+@app.route("/list")
+def lists_index():
+    return flask.render_template("lists_list.html")
 
 ################## Ratings #########################
 
@@ -165,7 +178,7 @@ def add_book_rating(bid):
 def remove_book_rating(bid):
     # raise NotImplementedError
     book_id = bid
-    if current_user.is_authenticated():
+    if flask.ext.login.current_user.is_authenticated():
         user_id = flask.session['user_id']
     else:
         user_id = None
@@ -178,6 +191,9 @@ def remove_book_rating(bid):
 
     flask.flash(message)
     return flask.redirect(flask.url_for('books_index'))
+
+
+###################### Reviews ###########################
 
 @app.route("/reviews/book/<bid>")
 def display_reviews_for_book(bid):
@@ -205,9 +221,7 @@ def add_review(bid):
                                  book_info = book_info,
                                  next=next)
 
-@app.route("/list")
-def lists_index():
-    return flask.render_template("lists_list.html")
+
 
 @app.route("/reviews")
 def reviews_index():
@@ -243,14 +257,67 @@ def reviews_index():
 
 
 
-@app.route("/user/<uid>")
-def display_user(uid):
-    # Other user's profile page
-    raise NotImplementedError
 
+################### Moderation / Current User Actions ############################
 @app.route("/dashboard")
 def user_dashboard():
     return flask.render_template('dashboard.html')
+
+@app.route("/profile")
+def current_user_profile():
+    return NotImplementedError
+
+
+
+
+#####################  User Management ##########################
+
+@app.route("/user/<uid>")
+def user_profile(uid):
+    selected_user = User.get(uid)
+    user_info = None
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+    return flask.render_template('profile.html',
+                                 user_id=uid,
+                                 selected_user=selected_user,
+                                 user_info = user_info,
+                                 next=next)
+
+@app.route("/user/follow/<uid>")
+@flask.ext.login.login_required
+def follow_user(uid):
+    followee = User.get(uid)
+    if flask.ext.login.current_user.is_authenticated():
+        follower = flask.session['user_id']
+    else:
+        follower = None
+    with easypg.cursor() as cur:
+        message = users.add_follower(cur, followee, follower)
+
+    flask.flash(message)
+    if flask.request.form['next']:
+        return flask.redirect(flask.request.form['next'])
+
+    return flask.redirect(flask.url_for('users_index'))
+
+@app.route("/user/unfollow/<uid>")
+def unfollow_user(uid):
+    followee = User.get(uid)
+    if flask.ext.login.current_user.is_authenticated():
+        follower = flask.session['user_id']
+    else:
+        follower = None
+    with easypg.cursor() as cur:
+        message = users.remove_follower(cur, followee, follower)
+
+    flask.flash(message)
+    if flask.request.form['next']:
+        return flask.redirect(flask.request.form['next'])
+
+    return flask.redirect(flask.url_for('users_index'))
 
 @app.route("/users")
 def users_index():
@@ -295,32 +362,9 @@ def users_index():
                                  totalPages=total_pages,
                                  nextPage=nextPage,
                                  prevPage=prevPage)
-@app.route("/profile")
-def current_user_profile():
-    return NotImplementedError
-@app.route("/user/<uid>")
-def user_profile(uid):
-    selected_user = User.get(uid)
-    user_info = None
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-    else:
-        next = flask.url_for("home_index")
-    return flask.render_template('profile.html',
-                                 user_id=uid,
-                                 selected_user=selected_user,
-                                 user_info = user_info,
-                                 next=next)
 
-##################### Login / User Management ##########################
-@app.route("/user/follow/<uid>")
-def follow_user(uid):
-    raise NotImplementedError
 
-@app.route("/user/unfollow/<uid>")
-def unfollow_user(uid):
-    raise NotImplementedError
-
+#################### Login Registration #################################
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
@@ -385,9 +429,6 @@ def register_index():
         next = None
     return flask.render_template("register.html", errors=errors, next=next)
 
-
-
-
 @app.route("/user/logout")
 @flask.ext.login.login_required
 def logout():
@@ -395,6 +436,8 @@ def logout():
     flask.flash("You have been logged out!")
     return flask.redirect(flask.url_for('home_index'))
 
+
+###################################### Search #################################
 @app.route('/search')
 def search_index():
     if 'q' in flask.request.args:
@@ -419,58 +462,10 @@ def add_comment(aid):
 
 
 
-class UserNotFoundError(Exception):
-    pass
 
 
 
-# Simple user class base on UserMixin
-# http://flask-login.readthedocs.org/en/latest/_modules/flask/ext/login.html#UserMixin
-class User():
-    '''
-    This provides default implementations for the methods that Flask-Login
-    expects user objects to have.
-    '''
 
-    def is_active(self):
-        return True
-
-    def is_authenticated(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        try:
-            return unicode(self.id)
-        except AttributeError:
-            raise NotImplementedError('No `id` attribute - override `get_id`')
-
-    def __init__(self, id):
-        with easypg.cursor() as cur:
-            cur.execute('''
-                SELECT user_id, login_name, password
-                FROM "user"
-                WHERE user_id = %s
-            ''', (id,))
-
-
-            for id, login_name, password in cur:
-                self.id = id
-                self.name = login_name
-                self.password = password
-
-    @classmethod
-    def get(self_class, id):
-        '''Return user instance of id, return None if not exist'''
-        try:
-            return self_class(id)
-        except UserNotFoundError:
-            return None
-
-    def __repr__(self):
-        return '<User %r>' % (self.name)
 
 
 

@@ -34,9 +34,9 @@
             <div class="btn-group" role="group" aria-label="User Actions">
                 {% if user.id != current_user.id %}
                     {% if user.is_followed %}
-                    <a href="{{url_for('unfollow_user',uid=user.id)}}" class="btn btn-default">Unfollow</a>
+                    <a href="{{url_for('unfollow_user',uid=user.id)}}?next={{url_for(users_index)}}&page={{page}}" class="btn btn-default">Unfollow</a>
                     {% else %}
-                    <a href="{{url_for('follow_user',uid=user.id)}}"  class="btn btn-default">Follow</a>
+                    <a href="{{url_for('follow_user',uid=user.id)}}?next={{url_for(users_index)}}&page={{page}}"  class="btn btn-warning">Follow</a>
                     {% endif %}
                 {% endif %}
                 </div>
