@@ -273,16 +273,25 @@ def reviews_index():
 ################### Moderation / Current User Actions ############################
 
 @app.route("/dashboard/")
+@flask.ext.login.login_required
 def user_dashboard():
-    return flask.render_template('dashboard_overview.html')
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur,flask.ext.login.current_user.get_id())
+    return flask.render_template('dashboard_overview.html',
+                                 user_info = user_info)
 
 @app.route("/dashboard/followers")
 def user_dashboard_followers():
     return flask.render_template('dashboard_followers.html')
 
 @app.route("/dashboard/following")
+@flask.ext.login.login_required
 def user_dashboard_following():
-    return flask.render_template('dashboard_following.html')
+    with easypg.cursor() as cur:
+        user_info = users.get_user_feed(cur,flask.ext.login.current_user.get_id())
+    # user_info['name'] = flask.ext.login.current_user.name
+    return flask.render_template('dashboard_following.html',
+                                 user_info=user_info)
 
 @app.route("/profile")
 def current_user_profile():

@@ -1,20 +1,24 @@
 --------- Specifically Generated Data -------------
--- pass: R13dVs2ugr92
--- print bcrypt.hashpw('R13dVs2ugr92', bcrypt.gensalt())
--- $2a$12$zSGiaiyHbCja0hsc4fBO9OCqENjF.zb0CdarlkuY1tDGUDfp56QE2
+
 
 INSERT INTO user_level (level_name, level_description)
     VALUES('User', 'User');
 INSERT INTO user_level (level_name, level_description)
     VALUES('Administrator', 'Administrator');
 
+    
+-- pass: R13dVs2ugr92
+-- print bcrypt.hashpw('R13dVs2ugr92', bcrypt.gensalt())
+-- $2a$12$zSGiaiyHbCja0hsc4fBO9OCqENjF.zb0CdarlkuY1tDGUDfp56QE2
 INSERT INTO booknet_user (user_id, login_name, email, password, level_id, date_created, is_active)
-VALUES(31, 'norn', 'js1921@txstate.edu', '$2a$12$zSGiaiyHbCja0hsc4fBO9OCqENjF.zb0CdarlkuY1tDGUDfp56QE2', 1, current_timestamp, true);
+VALUES(31, 'js1921', 'js1921@txstate.edu', '$2a$12$zSGiaiyHbCja0hsc4fBO9OCqENjF.zb0CdarlkuY1tDGUDfp56QE2', 2, current_timestamp, true);
 
 
-axv28Z3kUPHx
+-- Password: axv28Z3kUPHx
+-- In [3]: bcrypt.hashpw('axv28Z3kUPHx', bcrypt.gensalt())
+-- Out[3]: '$2a$12$x3WEyn0XfBbb66cUA31VpeFdDpfbSuuLy8IFK2RT5kd70T.69ZqRG'
 INSERT INTO booknet_user (user_id, login_name, email, password, level_id, date_created, is_active)
-VALUES(31, 'norn', 'js1921@txstate.edu', '$2a$12$zSGiaiyHbCja0hsc4fBO9OCqENjF.zb0CdarlkuY1tDGUDfp56QE2', 1, current_timestamp, true);
+VALUES(31, 'wh1135', 'wh1135@txstate.edu', '$2a$12$x3WEyn0XfBbb66cUA31VpeFdDpfbSuuLy8IFK2RT5kd70T.69ZqRG', 2, current_timestamp, true);
 
 ---------- Random Data ------------------
 
@@ -49,7 +53,7 @@ INSERT INTO booknet_user (user_id,login_name,email,date_created,is_active,level_
 INSERT INTO booknet_user (user_id,login_name,email,date_created,is_active,level_id,password) VALUES (28,'Kasper','hendrerit.Donec.porttitor@dapibus.edu','2014-07-20 10:45:15','TRUE','1','ut');
 INSERT INTO booknet_user (user_id,login_name,email,date_created,is_active,level_id,password) VALUES (29,'Hanna','id.libero.Donec@eu.co.uk','2015-05-21 07:30:46','TRUE','1','Curabitur');
 INSERT INTO booknet_user (user_id,login_name,email,date_created,is_active,level_id,password) VALUES (30,'Marvin','lobortis.Class.aptent@Suspendissealiquet.com','2014-06-21 15:23:03','TRUE','1','Quisque');
-ALTER SEQUENCE user_user_id_seq RESTART WITH 31;
+ALTER SEQUENCE user_user_id_seq RESTART WITH 33;
 
 ----- Reviews [IDs: 1-100]
 INSERT INTO "review" (review_id,book_id,reviewer,date_reviewed,review_text) VALUES (1,578,22,'2014-08-09 14:23:17','ultrices a, auctor non, feugiat nec, diam. Duis mi enim, condimentum'),(2,941,23,'2014-09-05 16:03:02','Donec fringilla. Donec feugiat metus sit amet ante. Vivamus non lorem vitae odio sagittis semper. Nam tempor diam'),(3,592,18,'2015-02-28 00:45:49','Quisque'),(4,603,20,'2014-05-10 02:51:58','metus. In'),(5,774,19,'2015-10-10 18:08:15','pede. Nunc sed orci lobortis augue'),(6,960,10,'2015-02-06 21:08:28','leo. Cras vehicula aliquet'),(7,807,30,'2014-09-09 14:27:02','lectus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec dignissim'),(8,375,18,'2013-12-13 10:21:20','imperdiet ullamcorper. Duis at lacus. Quisque purus sapien, gravida'),(9,445,24,'2015-09-15 06:37:29','Phasellus vitae mauris sit amet lorem semper auctor. Mauris vel turpis. Aliquam adipiscing lobortis'),(10,461,8,'2015-10-18 20:32:43','nisi nibh lacinia orci, consectetuer euismod est arcu ac orci. Ut semper pretium neque. Morbi quis urna.');

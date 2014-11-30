@@ -123,7 +123,7 @@ def get_book(cur,book_id):
     author_info = []
     for author_name in cur:
         # print author_name
-        author_info.append(author_name)
+        author_info.append(author_name[0].decode('utf8', 'xmlcharrefreplace'))
     book_info['authors'] = author_info
     print book_info['authors']
     book_info['author_count'] = cur.rowcount
@@ -137,7 +137,7 @@ def get_book(cur,book_id):
     book_info['subjects_count'] = cur.rowcount
     subject_info = []
     for subject_name in cur:
-        subject_info.append(subject_name)
+        subject_info.append(subject_name[0].decode('utf8', 'xmlcharrefreplace'))
     book_info['subjects'] = subject_info
 
     print book_info['subjects']

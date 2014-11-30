@@ -91,9 +91,9 @@
 
                 {% if selected_user.id != current_user.id %}
                     {% if selected_user.is_followed %}
-                    <a href="{{url_for('unfollow_user',uid=selected_user.id)}}?next={{url_for('users_index')}}?page={{page}}" class="btn btn-lg btn-block btn-warning">Unfollow</a>
+                    <a href="{{url_for('unfollow_user',uid=selected_user.id)}}?next={{ request.path }}" class="btn btn-lg btn-block btn-warning">Unfollow</a>
                     {% else %}
-                    <a href="{{url_for('follow_user',uid=selected_user.id)}}?next={{url_for('users_index')}}?page={{page}}"  class="btn btn-lg btn-block btn-default">Follow</a>
+                    <a href="{{url_for('follow_user',uid=selected_user.id)}}?next={{ request.path }}"  class="btn btn-lg btn-block btn-default">Follow</a>
                     {% endif %}
                 {% else %}
                     <a href="{{url_for('user_dashboard')}}"  class="btn btn-lg btn-block btn-primary">Dashboard</a>

@@ -15,8 +15,43 @@ def get_total_pages(cur):
 def logout_user():
     raise NotImplementedError
 
+#Users need to be able to follow other users, and see a news feed containing the new reviews, reads, etc. by the users they follow.
+def get_user_feed(cur,user_id):
+    cur.execute('''
+        SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE), COUNT(DISTINCT review_id) as num_reviews, COUNT(DISTINCT list_id) as num_lists
+        FROM booknet_user
+        JOIN review ON user_id = reviewer
+        JOIN list USING (user_id)
+        JOIN user_level USING (level_id)
+        LEFT JOIN  follow ON user_id = user_followed
+        WHERE follower = %s
+        GROUP BY user_id, login_name, level_name, is_followed
+    ''', (user_id,))
+    user_info = {'following': []}
 
-def get_user(cur,user_id,current_user_id):
+    for user_id, login_name, level_name, is_followed, num_reviews, num_lists in cur:
+        user_info['following'].append({'user_id':user_id, 'name': login_name, 'access_level': level_name, 'num_reviews': num_reviews,
+                          'num_lists': num_lists, 'num_books_read': None, 'is_followed': is_followed, 'reviews':[]})
+
+
+
+
+    # for user_followed, login_name, is_followed in cur:
+    #     user_info['following'].append({'user_id': user_followed, 'name': login_name, 'is_followed': is_followed, 'reviews':[]})
+
+    for user in user_info['following']:
+        cur.execute('''
+            SELECT review_id, book_id, to_char(date_reviewed,'Mon. DD, YYYY') as date_reviewed, book_title, review_text
+            FROM review
+            JOIN book_core ON book_id = core_id
+            WHERE reviewer = %s AND date_reviewed > NOW() - INTERVAL '60 days'
+        ''', (user['user_id'],))
+        for review_id, book_id, date_reviewed, book_title, review_text in cur:
+            user['reviews'].append({'review_id': review_id, 'book_id': book_id, 'date_reviewed': date_reviewed,
+                                    'review_text': review_text, 'book_title': book_title.decode('utf8', 'xmlcharrefreplace')})
+
+    return user_info
+def get_user(cur,user_id,current_user_id=None):
     cur.execute('''
         SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE), COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
         COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read

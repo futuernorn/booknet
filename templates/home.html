@@ -19,7 +19,7 @@
         {% else %}
         <h1>Welcome back {{ current_user.name }}!</h1>
         <p>Happy to see you again!</p>
-        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard')}}" role="button">Dashboard &raquo;</a></div>
+        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard_following')}}" role="button">Feed</a><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard')}}" role="button">Dashboard &raquo;</a></div>
         {% endif %}
 
       </div>

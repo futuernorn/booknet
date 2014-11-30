@@ -1,29 +1,32 @@
 {% extends "dashboard.html" %}
 {% set active_page = 'user_dashboard' %}
 {% block dashboard_body %}
-        <h1>Overview</h1>
+          <h1 class="page-header">{{ user_info.name }}'s Dashboard Overview</h1>
             <ul class="list-group">
-              <li class="list-group-item">Name: </li>
-              <li class="list-group-item">Lists: </li>
-              <li class="list-group-item">Reading Log: </li>
-                <li class="list-group-item">Books In Lists: </li>
-                <li class="list-group-item">Books Read: Unique - Total </li>
-                <li class="list-group-item">The number of books, and the number of pages, that they have read each year, with the ability to view each year’s reading log. </li>
-            </ul>
-
-
+              <li class="list-group-item"><h4>Name: {{ user_info.name }}</h4> </li>
+                <li class="list-group-item"><h4>Unique Books Placed In Lists:</h4>{{ user_info.num_unique_list_books }}</li>
+                <li class="list-group-item"><h4>Books Read (unique):</h4>{{ user_info.num_unique_books_read }}</li>
+                <li class="list-group-item"><h4>Books Read (total):</h4>{{ user_info.num_total_books_read }}</li>
+             </ul>
 
           <h2 class="sub-header"><a name="logs">Reading Logs</a></h2>
-          <div class="table-responsive">
-            <table class="table table-striped">
-                 <thead>
-              <tr>
-              <th>Date Completed</th><th>Date Started</th><th>Log</th>
-              </tr>
-              </thead>
-              <tbody>
-
-              </tbody>
-            </table>
-          </div>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Book</th><th style="width: 125px;">Date Completed</th><th style="width: 125px;">Date Started</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for log in user_info.reading_logs %}
+                        <tr>
+                            <td><a href="{{url_for('display_book',bid=log.core_id)}}">{{log.book_title}}</a></td>
+                            <td>{{log.date_completed}}</td>
+                            <td>{{log.date_started}}</td>
+                            <td><a href="{{url_for('display_log',lid=log.log_id)}}" class="btn btn-primary">View</a></td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
 {% endblock %}

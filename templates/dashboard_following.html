@@ -1,18 +1,74 @@
 {% extends "dashboard.html" %}
 {% set active_page = 'user_dashboard' %}
 {% block dashboard_body %}
-        <h1>Following</h1>
+        <h1>{{ current_user.name }}'s Following</h1>
+<div class="panel panel-default">
+  <div class="panel-heading">Users
+  </div>
+  <!-- Table -->
+  <table class="table">
+    <thead><tr>
+        <th>Username</th><th>Access Level</th><th># of Reviews</th><th># of Lists</th><th># of Books Read</th>
+        {% if current_user.is_authenticated() %}
+        <th>Actions</th>
+        {% endif %}
+    </tr></thead>
+    <tbody>
+    {% for user in user_info.following %}
+    <tr>
+        <td><a href="{{ url_for('display_user_profile', uid=user.id)}}">{{user.name}}</a></td>
+        <td>{{user.access_level}}</a></td>
+        <td>{{user.num_reviews}}</td>
+        <td>{{user.num_lists}}</td>
+        <td>{{user.num_books_read}}</td>
+        {% if current_user.is_authenticated() %}
+        <td>
+            <div class="btn-group" role="group" aria-label="User Actions">
+                {% if user.id != current_user.id %}
+                    {% if user.is_followed %}
+                    <a href="{{url_for('unfollow_user',uid=user.id)}}?next={{ request.path }}" class="btn btn-warning">Unfollow</a>
+                    {% else %}
+                    <a href="{{url_for('follow_user',uid=user.id)}}?next={{ request.path }}"  class="btn btn-default">Follow</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{url_for('user_dashboard')}}"  class="btn btn-primary">Dashboard</a>
+                {% endif %}
+                </div>
+        </td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
 
-          <div class="table-responsive">
-            <table class="table table-striped">
-                 <thead>
-              <tr>
-              <th>Date Completed</th><th>Date Started</th><th>Log</th>
-              </tr>
-              </thead>
-              <tbody>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">Recent Reviews</div>
+  <!-- Table -->
 
-              </tbody>
-            </table>
-          </div>
+  <table class="table">
+    <thead><tr>
+        <th>Book ID</th><th>Reviewer</th><th>Review</th><th style="width:125px;">Date Reviewed</th><th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for user in user_info.following %}
+    {% for review in user.reviews %}
+    <tr>
+        <td><a href="{{ url_for('display_book', bid=review.book_id)}}?next={{ request.path }}">{{ review.book_title }}</a></td>
+        <td><a href="{{ url_for('display_user_profile', uid=user.user_id)}}?next={{ request.path }}">{{ user.name }}</a></td>
+
+        <td class="truncate">{{ review.review_text }}</td>
+        <td>{{ review.date_reviewed }}</td>
+        <td>
+            <div class="btn-group" role="group" aria-label="User Actions">
+                    <button type="button" class="btn btn-default">View</button>
+                </div>
+        </td>
+
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
