@@ -8,13 +8,13 @@
     <div class="container-fluid">
 
           <h1 class="page-header">{{ selected_user.name }}'s Profile</h1>
-            <a href="#lists">Lists</a> - <a href="#logs">Reading Logs</a> - <a href="#logs_by_year">Reading Logs By Year</a>
+            <a href="#lists">Lists</a> - <a href="#logs">Reading Logs</a> - <a href="#logs_by_year">Reading Logs By Year</a> - <a href="#follow_user">Follow</a>
             <ul class="list-group">
               <li class="list-group-item"><h4>Name: {{ selected_user.name }}</h4> </li>
                 <li class="list-group-item"><h4>Unique Books Placed In Lists:</h4>{{ selected_user.num_unique_list_books }}</li>
                 <li class="list-group-item"><h4>Books Read (unique):</h4>{{ selected_user.num_unique_books_read }}</li>
                 <li class="list-group-item"><h4>Books Read (total):</h4>{{ selected_user.num_total_books_read }}</li>
-                <li class="list-group-item"><h4><a name="lists">Lists</a></h4>
+                <li class="list-group-item"><h4><a name="lists"></a>Lists</h4>
                 <div class="table-responsive">
                 <table class="table table-striped">
                      <thead>
@@ -36,7 +36,7 @@
 
 
               </li>
-              <li class="list-group-item"><h4><a name="logs">Reading Logs</a></h4>
+              <li class="list-group-item"><h4><a name="logs"></a>Reading Logs</h4>
                 <div class="table-responsive">
                 <table class="table table-striped">
                      <thead>
@@ -59,7 +59,7 @@
 
 
               </li>
-                <li class="list-group-item"><h4><a name="logs_by_year">Reading By Year</a></h4>
+                <li class="list-group-item"><h4><a name="logs_by_year"></a>Reading By Year</h4>
                 <div class="table-responsive">
                 <table class="table table-striped">
                      <thead>
@@ -85,6 +85,7 @@
             </ul>
 
 <hr />
+            <a name="follow_user"></a>
             <div class="control-group">
               <!-- Button -->
               <div class="controls">

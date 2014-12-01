@@ -34,7 +34,7 @@
   <!-- Table -->
   <table class="table">
     <thead><tr>
-        <th>Cover</th><th>Title</th><th>Author</th><th>Avg. Rating</th><th>Tags</th><th>Actions</th>
+        <th>Cover</th><th>Title</th><th>Author</th><th># Pages</th><th>Avg. Rating</th><th>Tags</th><th>Actions</th>
         {% if current_user.is_authenticated() %}
 
         {% endif %}
@@ -42,15 +42,25 @@
     <tbody>
     {% for book in books %}
     <tr>
-        <td><img src="{{ url_for('static', filename='images/covers/'+book.cover_name) }}"/></td>
-        <td><a href="{{ url_for('display_book', bid=book.core_id)}}?next={{ request.path }}?page={{ page }}">{{ book.title }}</a></td>
+        <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}"/></td>
+        <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
         <td>
 	  {% for author in book.authors %}
 	  {{ author }}
 	  {% endfor %}
 	</td>
+        <td>
+            {% if book.num_pages %}
+                {{book.num_pages}}
+            {% else %}
+                Unknown
+            {% endif %}
+        </td>
         <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,book.discrete_rating) }} <span style="padding-top:15px;">(avg. {{ book.avg_rating }})</span></div>
+            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,url_for('books_index') ~ '?page=' ~ page,book.discrete_rating) }}
+                {% if book.avg_rating %}
+                    <span class="small">(avg. {{ book.avg_rating }})</span></div>
+                {% endif %}
             <hr class="listing-cell-divider" />
             {% if book.user_rating %}<p class="text-muted"><a href="{{url_for('remove_book_rating', bid=book.core_id)}}" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>Your rating: {{ book.user_rating }}</p> {% endif %}
         </td>

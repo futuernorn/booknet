@@ -31,11 +31,11 @@
           <h2>Book Spotlight</h2>
             {% for book in books %}
             <div class="media">
-              <a class="media-left" href="{{url_for('display_book',bid=books.core_id)}}">
+              <a class="media-left" href="{{url_for('display_book',bid=book.core_id)}}">
                 <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
               </a>
               <div class="media-body">
-                <h4 class="media-heading"><a href="{{url_for('display_book',bid=books.core_id)}}">{{ book.title }}</a></h4>
+                <h4 class="media-heading"><a href="{{url_for('display_book',bid=book.core_id)}}">{{ book.title }}</a></h4>
                 {{ book.description }}
               </div>
             </div>

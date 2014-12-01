@@ -88,17 +88,17 @@ core_id bigint NOT NULL REFERENCES book_core,
 series_id bigint NOT NULL REFERENCES series
 );
 
-DROP TABLE IF EXISTS "publicist" CASCADE;
+DROP TABLE IF EXISTS publisher CASCADE;
 CREATE TABLE publicist(
 publicist_id SERIAL PRIMARY KEY NOT NULL,
 publicist_name VARCHAR(255) NOT NULL
 );
 
-DROP TABLE IF EXISTS "book_publication" CASCADE;
+DROP TABLE IF EXISTS book_publisher CASCADE;
 CREATE TABLE book_publication(
 publication_id SERIAL PRIMARY KEY NOT NULL,
 book_id bigint NOT NULL REFERENCES books,
-publicist_id bigint NOT NULL REFERENCES publicist,
+publicist_id bigint NOT NULL REFERENCES publisher,
 position smallint NOT NULL
 );
 

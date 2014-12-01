@@ -6,8 +6,12 @@ from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
 import re
+<<<<<<< HEAD
 from BooknetUser import *
+from lib import books, reviews, users
+=======
 from lib import books, reviews, users, lists
+>>>>>>> netbookdev
 
 
 
@@ -40,23 +44,16 @@ def home_index():
 
 
 
-######################## Books #########################################################################################
+######################## Books ################################
 
-# Author ##############################
+
 @app.route("/books/author")
 def books_by_author():
     raise NotImplementedError
-
-@app.route("/author/<author_name>")
-def display_author(author_name):
-    raise NotImplementedError
-
-# Publisher ###########################
 @app.route("/books/publisher")
 def books_by_publisher():
     raise NotImplementedError
 
-# Subject #############################
 @app.route("/books/subject")
 def books_by_subjects():
     raise NotImplementedError
@@ -68,10 +65,7 @@ def books_by_subject(subject):
 @app.route("/books/<bid>")
 def display_book(bid):
     with easypg.cursor() as cur:
-        if flask.ext.login.current_user.is_authenticated():
-            book_info = books.get_book(cur,bid,flask.ext.login.current_user.id)
-        else:
-            book_info = books.get_book(cur,bid)
+        book_info = books.get_book(cur,bid)
     # print book_info
     if 'next' in flask.request.args:
         next = flask.request.args['next']
@@ -80,11 +74,6 @@ def display_book(bid):
     return flask.render_template("book.html",
                                  book_info=book_info,
                                  next=next)
-
-@app.route("/book/add")
-def add_book():
-    raise NotImplementedError
-
 @app.route("/book/edit/<bid>")
 def edit_book(bid):
     with easypg.cursor() as cur:
@@ -217,10 +206,6 @@ def remove_book_rating(bid):
         message = books.remove_rating(cur, book_id, user_id)
 
     flask.flash(message)
-
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-        return flask.redirect(next)
     return flask.redirect(flask.url_for('books_index'))
 
 
@@ -252,7 +237,11 @@ def add_review(bid):
                                  book_info = book_info,
                                  next=next)
 
+<<<<<<< HEAD
 
+=======
+@app.route("/list")
+def lists_index():
 
     if 'page' in flask.request.args:
         page = int(flask.request.args['page'])
@@ -286,6 +275,7 @@ def add_review(bid):
                                  totalPages=total_pages,
                                  nextPage=nextPage,
                                  prevPage=prevPage)
+>>>>>>> netbookdev
 
 @app.route("/reviews")
 def reviews_index():

@@ -4,7 +4,7 @@ Functions for working with the books database.
 __author__ = 'Jeffrey Hogan'
 
 from psycopg2 import errorcodes
-
+import books
 LISTS_PER_PAGE = 15;
 
 def get_total_pages(cur):
@@ -25,7 +25,7 @@ def get_all_lists(cur, page, user_id=None):
     :param cur: the database cursor
     :return: a list of dictionaries of article IDs and titles
     """
-    return get_list_range(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id= None)
+    return get_list_range(cur,((page - 1) * LISTS_PER_PAGE), LISTS_PER_PAGE, user_id= None)
 
 def get_list_range(cur,start,amount, user_id=None):
     cur.execute('''
@@ -82,7 +82,7 @@ def create_list(cur, list_name, description, user_id):
 
     return message
 
-def delete_list(cur,list_id,user_id):
+# def delete_list(cur,list_id,user_id):
 
 
 def add_book_to_list(cur, book_id, list_id, user_id):
@@ -115,7 +115,7 @@ def add_book_to_list(cur, book_id, list_id, user_id):
 
 def remove_book_from_list(cur, book_id, list_id):
     print "Book id for removing rating: %s" % book_id
-    book_info = get_book(cur, book_id)
+    book_info = books.get_book(cur, book_id)
     # try:
     cur.execute('''
         DELETE FROM book_list

@@ -1,5 +1,16 @@
 {% import 'book_helpers.html' as helpers with context %}
-
+{% macro add_remove_field(suffix, index, total_count, placeholder='', value='') %}
+<div class="add-remove-field">
+    <input autocomplete="off" data-id="inputBook{{suffix}}" data-placeholder="{{placeholder}}"
+           class="input form-control add-remove-input" id="inputBook{{suffix}}{{index}}"
+           name="inputBook{{suffix}}{{index}}" type="text" placeholder="{{placeholder}}" value="{{ value }}"/>
+    {% if index == total_count %}
+        <button id="b{{index}}" class="btn add-more" type="button">+</button>
+    {% else %}
+        <button id="b{{index}}" class="btn btn-danger remove-me" type="button">-</button>
+    {% endif %}
+</div>
+{% endmacro %}
 {% set page_title = 'Book Info: ' + book_info.title %}
 {% set active_page = 'books_index' %}
 {% extends "layout.html" %}
@@ -16,56 +27,57 @@
         <label for="inputBookTitle" class="sr-only">Book Title</label>
         <input type="text" name="inputBookTitle" id="inputBookTitle" class="form-control" placeholder="Book Title" value="{{ book_info.title }}" required autofocus>
         </li>
+        <li class="list-group-item"><h4>Description:</h4>
+            <label for="book_description" class="sr-only">Book Description:</label>
+            <textarea class="form-control" rows="5" id="book_description">
+                {{book_info.book_description}}
+            </textarea>
+        </li>
+        <li class="list-group-item"><h4>ISBN: </h4>
+        <label for="inputBookISBN" class="sr-only">Book ISBN</label>
+        <input type="text" name="inputBookISBN" id="inputBookISBN" class="form-control" placeholder="Book ISBN" value="{{ book_info.isbn }}">
+        </li>
         <li class="list-group-item"><h4>Authors:</h4>
 
             <input type="hidden" name="author_count" class="add-remove-field-count" value="{%if book_info.author_count %}{{book_info.author_count }}{% else %}1{% endif %}" />
+            {% if not book_info.authors|length %}
+                {{ add_remove_field('Author',1,1,'Author Name') }}
+            {% endif %}
             {% for author in book_info.authors %}
-                <div class="add-remove-field">
-
-
-                <!--<label for="inputBookAuthor{{ loop.index }}" class="sr-only">Book Title</label>-->
-                <input autocomplete="off" data-id="inputBookAuthor" data-placeholder="Author name" class="input form-control add-remove-input" id="inputBookAuthor{{ loop.index }}" name="inputBookAuthor{{ loop.index }}" type="text" placeholder="Author name" value="{{ author }}"/>
-                {% if loop.index == book_info.author_count %}
-                <button id="b{{loop.index}}" class="btn add-more" type="button">+</button>
-                {% else %}
-                <button id="b{{loop.index}}" class="btn btn-danger remove-me" type="button">-</button>
-
-                {% endif %}
-            </div>
+                {{ add_remove_field('Author',loop.index,book_info.authors|length,'Author Name',author) }}
             {% endfor %}
 
         </li>
-        <li class="list-group-item"><h4>Tags:</h4>
+        <li class="list-group-item">
+            <h4>Publisher:</h4>
+            <label for="inputBookPublisher" class="sr-only">Book Publisher Name</label>
+            <input type="text" name="inputBookPublisher" id="inputBookPublisher" class="form-control" placeholder="Publisher" value="{{ book_info.publisher_name }}">
+        </li>
+        <li class="list-group-item">
+            <h4>Publication Date:</h4>
+            <div class='input-group date' id='publication_date_input'>
+                <input type='text' class="form-control" name="inputBookPubDate" placeholder="Publication Date" value="{{ book_info.publication_date }}" />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
 
+        </li>
+
+        <li class="list-group-item"><h4>Subjects:</h4>
             <input type="hidden" name="subject_count" class="add-remove-field-count" value="{%if book_info.subjects_count %}{{book_info.subjects_count }}{% else %}1{% endif %}" />
+            {% if not book_info.subjects|length %}
+                {{ add_remove_field('Subject',1,1,'Subject') }}
+            {% endif %}
             {% for subject in book_info.subjects %}
-                <div class="add-remove-field">
-
-
-                <!--<label for="inputBookAuthor{{ loop.index }}" class="sr-only">Book Title</label>-->
-                <input autocomplete="off" data-placeholder="Subject" data-id="inputBookSubject" class="input form-control add-remove-input" id="inputBookSubject{{ loop.index }}" name="inputBookSubject{{ loop.index }}" type="text" placeholder="Subject" value="{{ subject }}"/>
-                {% if loop.index == book_info.subjects_count %}
-                <button id="b{{loop.index}}" class="btn add-more" type="button">+</button>
-                {% else %}
-                <button id="b{{loop.index}}" class="btn btn-danger remove-me" type="button">-</button>
-
-                {% endif %}
-            </div>
+                {{ add_remove_field('Subject',loop.index,book_info.subjects|length,'Subject',subject) }}
             {% endfor %}
-
         </li>
-
-        <li class="list-group-item"><h4>Tags:
-            {% for subject in book_info.subjects %}
-            <span class="label label-default">{{ subject }}</span>&nbsp;
-            {% endfor %}
-        </h4></li>
     </ul>
     <hr />
     <div class="control-group">
       <!-- Button -->
       <div class="controls">
-          <a href="{{ url_for('edit_book',bid=book_info.core_id) }}" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+          <a href="{{ url_for('edit_book',bid=book_info.core_id) }}" class="btn btn-lg btn-default btn-block" type="submit">Submit Edits</a>
           <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
       </div>
     </div>
@@ -79,6 +91,9 @@
 {% block footer_scripts %}
 <script type="text/javascript">
 $(window).load(function() {
+    $("#publication_date_input").datetimepicker({
+        pickTime: false
+    });
 //    var author_next = {%if book_info.author_count %} {{ book_info.author_count }} {% else %} 1 {% endif %};
     $(document).on("click", '.add-more', function () {
         next = $(this).parent().parent().find('.add-remove-field-count').val();
