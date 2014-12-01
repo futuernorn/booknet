@@ -1,0 +1,163 @@
+{% import 'book_helpers.html' as helpers with context %}
+{% macro add_remove_field(suffix, index, total_count, placeholder='', value='') %}
+<div class="add-remove-field">
+    <input autocomplete="off" data-id="inputBook{{suffix}}" data-placeholder="{{placeholder}}"
+           class="input form-control add-remove-input" id="inputBook{{suffix}}{{index}}"
+           name="inputBook{{suffix}}{{index}}" type="text" placeholder="{{placeholder}}" value="{{ value }}"/>
+    {% if index == total_count %}
+        <button id="b{{index}}" class="btn add-more" type="button">+</button>
+    {% else %}
+        <button id="b{{index}}" class="btn btn-danger remove-me" type="button">-</button>
+    {% endif %}
+</div>
+{% endmacro %}
+{% set page_title = 'Book Info: ' + book_info.title %}
+{% set active_page = 'books_index' %}
+{% extends "layout.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+<!-- TODO: Add book_type, page_count field -->
+    <div class="container-fluid">
+    {% for error in errors %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Oh snap!</strong> {{ error }}
+    </div>
+    {% endfor %}
+    <div class="clearfix">
+        <img src="{{ url_for('static', filename='images/covers/medium/m'+book_info.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+        <h1 class="page-header">{{ book_info.title }}</h1>
+    </div>
+    <form action="{{ url_for('edit_book', bid=book_info.core_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
+    <ul class="list-group">
+        <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
+        <li class="list-group-item"><h4>Title: </h4>
+        <label for="inputBookTitle" class="sr-only">Book Title</label>
+        <input type="text" name="inputBookTitle" id="inputBookTitle" class="form-control" placeholder="Book Title" value="{{ book_info.title }}" required autofocus>
+        </li>
+        <li class="list-group-item"><h4>Description:</h4>
+            <label for="book_description" class="sr-only">Book Description:</label>
+            <textarea class="form-control" rows="5" id="book_description">
+                {{book_info.book_description}}
+            </textarea>
+        </li>
+        <li class="list-group-item"><h4>ISBN: </h4>
+        <label for="inputBookISBN" class="sr-only">Book ISBN</label>
+        <input type="text" name="inputBookISBN" id="inputBookISBN" class="form-control" placeholder="Book ISBN" value="{{ book_info.isbn }}">
+        </li>
+        <li class="list-group-item"><h4>Authors:</h4>
+
+            <input type="hidden" name="author_count" class="add-remove-field-count" value="{%if book_info.author_count %}{{book_info.author_count }}{% else %}1{% endif %}" />
+            {% if not book_info.authors|length %}
+                {{ add_remove_field('Author',1,1,'Author Name') }}
+            {% endif %}
+            {% for author in book_info.authors %}
+                {{ add_remove_field('Author',loop.index,book_info.authors|length,'Author Name',author) }}
+            {% endfor %}
+
+        </li>
+        <li class="list-group-item">
+            <h4>Publisher:</h4>
+            <label for="inputBookPublisher" class="sr-only">Book Publisher Name</label>
+            <input type="text" name="inputBookPublisher" id="inputBookPublisher" class="form-control" placeholder="Publisher" value="{{ book_info.publisher_name }}">
+        </li>
+        <li class="list-group-item">
+            <h4>Publication Date:</h4>
+            <div class='input-group date' id='publication_date_input'>
+                <input type='text' class="form-control" name="inputBookPubDate" placeholder="Publication Date" data-date-defaultDate="{{book_info.publication_date_fmt}}" />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+
+        </li>
+
+        <li class="list-group-item"><h4>Subjects:</h4>
+            <input type="hidden" name="subject_count" class="add-remove-field-count" value="{%if book_info.subjects_count %}{{book_info.subjects_count }}{% else %}1{% endif %}" />
+            {% if not book_info.subjects|length %}
+                {{ add_remove_field('Subject',1,1,'Subject') }}
+            {% endif %}
+            {% for subject in book_info.subjects %}
+                {{ add_remove_field('Subject',loop.index,book_info.subjects|length,'Subject',subject) }}
+            {% endfor %}
+        </li>
+    </ul>
+    <hr />
+    <div class="control-group">
+      <!-- Button -->
+      <div class="controls">
+          <button type="submit" class="btn btn-lg btn-default btn-block" type="submit" id="submit_edit_btn">Submit Edits</button>
+          <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+      </div>
+    </div>
+    </form>
+    </div>
+
+
+
+{% endblock %}
+
+{% block footer_scripts %}
+<script type="text/javascript">
+$(window).load(function() {
+  $('#submit_edit_btn').click(function() {
+
+      $(this).closest("form").submit();
+  });
+    $("#publication_date_input").datetimepicker({
+        pickTime: false
+    });
+//    var author_next = {%if book_info.author_count %} {{ book_info.author_count }} {% else %} 1 {% endif %};
+    $(document).on("click", '.add-more', function () {
+        next = $(this).parent().parent().find('.add-remove-field-count').val();
+//        e.preventDefault();
+        console.log($("#b"+next));
+        var addto = $(this).parent();//('.add-remove-field');
+        var addRemove = $(this).closest('.add-remove-input');
+//        var fieldNum = this.id.charAt(this.id.length - 1);
+        console.log($(this).siblings('.add-remove-input').data('id'));
+        $(this).parent().children('.btn').html("-");
+        $(this).parent().children('.btn').removeClass('add-more')
+        $(this).parent().children('.btn').addClass('btn-danger remove-me');
+        $(this).parent().children('.btn').addClass('remove-me');
+        var newIDPrefix = $(this).siblings('.add-remove-input').data('id');
+        var newPlaceholder = $(this).siblings('.add-remove-input').data('placeholder');
+        next = Number(next) + 1;
+//        var newIn = '<input autocomplete="off" class="input form-control" id="field' + next + '" name="field' + next + '" type="text">';
+        var newDiv = '<div class="add-remove-field"></div>';
+        var div = $(newDiv)
+        var newIn = '<input autocomplete="off" class="input form-control add-remove-input" data-placeholder="'+newPlaceholder+'" data-id="'+newIDPrefix+'"id="'+newIDPrefix+next+'" name="'+newIDPrefix+next+'" type="text" placeholder="'+newPlaceholder+'" value=""/>'
+        var newInput = $(newIn);
+        var newBtn = '<button id="b'+next+'" class="btn add-more" type="button">+</button>';
+        var addButton = $(newBtn);
+        $(addto).after(div);
+        $(div).append(newInput)
+        $(div).append(addButton);
+//        $(".add-remove-field" + next).attr('data-source', $(addto).attr('data-source'));
+        $(this).parent().parent().find('.add-remove-field-count').val(next);
+
+
+
+    });
+
+    $(document).on("click", '.remove-me', function () {
+//            e.preventDefault();
+//            var fieldNum = this.id.charAt(this.id.length - 1);
+//            console.log($(this).siblings(":last").attr('id') == $(this).attr('id'))
+            if ($(this).siblings(":last").attr('id') == $(this).attr('id')) {
+                $(this).prev(".btn").removeClass('remove-me');
+                $(this).prev(".btn").removeClass('remove-me');
+                $(this).prev(".btn").addClass('add-more');
+                $(this).prev(".btn").html("+");
+            }
+//            var fieldID = "#b"+fieldNum;
+        console.log($(this).siblings('.add-remove-input'));
+        var curTotal = $(this).parent().parent().find('.add-remove-field-count').val();
+        $(this).parent().parent().find('.add-remove-field-count').val(curTotal-1);
+        $(this).parent().remove();
+            $(this).remove();
+
+
+        });
+});
+</script>
+{% endblock %}

@@ -281,4 +281,98 @@ def remove_rating(cur, book_id, user_id):
 
 def edit_book(cur, book_id, form):
     print form
-    return False, "Not implemented yet!"
+
+    update_status = True
+
+    author_names = {}
+    subjects = []
+    for key, value in form.iteritems():
+        if 'inputBookAuthor' in key:
+            author_names[key[15:]] = value #try to keep position
+        if 'inputBookSubject' in key:
+            subject.append(value)
+            
+    publication_date = form['inputBookPubDate']
+    isbn = form['inputBookISBN']
+    page_count = form['inputBookPageCount']
+    book_title = form['inputBookTitle']
+    book_description = form['inputBookDescription']
+    
+    cur.execute('''
+    UPDATE books SET 
+    publication_date = %s
+    ISBN = %s
+    book_type = %s
+    page_count = %s
+    book_title = %s
+    book_description = %s
+    WHERE book_id = %s
+    RETURNING book_id
+    ''', (publication_date, isbn, page_count, book_title, book_description, book_id))
+    if cur.rowcount == 1:
+        message = "Book %s updated!" % book_info['title']
+
+    else:
+        message = "Unknown error!"    
+
+    for position,author in author_names.iteritems():
+        # First check to see if we have a matching author
+        cur.execute('''
+        SELECT author_id
+        FROM author
+        WHERE author_name = %s
+        ''', (author,))
+        if cur.rowcount == 0:
+            # Need to insert this author
+            cur.execute('''
+            INSERT INTO author (author_name)
+            VALUES(%s)
+            RETURNING author_id
+            ''', (author,))
+        author_id = cur.fetchone()[0]
+
+        # Now we see if this author is already associated with our book
+        cur.execute('''
+        SELECT authorship_id
+        FROM authorship
+        WHERE core_id = %s AND author_id = %s
+        ''', (book_id,author))
+        if cur.rowcount == 0:
+            # Need to insert this author
+            cur.execute('''
+            INSERT INTO authorship (core_id, author_id, position)
+            VALUES(%s, %s, %s)
+            RETURNING authorship_id
+            ''', (book_id,author_id,position))
+        authorship_id = cur.fetchone()[0]
+     
+    for subject in subjects:
+        
+        cur.execute('''
+        SELECT subject_id
+        FROM subject_genre
+        WHERE subject_name = %s
+        ''', (subject,))
+        if cur.rowcount == 0:
+            # Need to insert this subject
+            cur.execute('''
+            INSERT INTO subject_genre (subject)
+            VALUES(%s)
+            RETURNING subject_id
+            ''', (subject,))
+        subject_id = cur.fetchone()[0]
+
+        # Now we see if this author is already associated with our book
+        cur.execute('''
+        SELECT categorize_id
+        FROM book_categorization
+        WHERE core_id = %s AND subject_id = %s
+        ''', (book_id,subject))
+        if cur.rowcount == 0:            
+            cur.execute('''
+            INSERT INTO book_categorization (core_id, subject_id)
+            VALUES(%s, %s)
+            RETURNING authorship_id
+            ''', (book_id,author_id))
+        categorize_id = cur.fetchone()[0]
+    return True, message
