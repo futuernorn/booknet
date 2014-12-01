@@ -30,7 +30,7 @@
             </div>
         {% endif %}
         </div>
-    {{ navigation.paginator('books_index','pull-right') }}
+    {{ navigation.paginator('books_index','pull-right','&sorting='~sorting~'&sort_direction='~sort_direction) }}
   <!-- Table -->
   <table class="table">
     <thead><tr>
@@ -46,7 +46,7 @@
         <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
         <td>
 	  {% for author in book.authors %}
-	  {{ author }}
+	  <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>
 	  {% endfor %}
 	</td>
         <td>
@@ -159,7 +159,7 @@
             </div>
             <div class="form-group">
                 <div class='input-group date' id='completed_date'>
-                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <input type='text' class="form-control" placeholder="Completed Date" />
                     <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div>
@@ -221,6 +221,12 @@
 {% block footer_scripts %}
 <script type="text/javascript">
 $(window).load(function(){
+        $("#starting_date").datetimepicker({
+					pickTime: false
+				});
+        $("#completed_date").datetimepicker({
+					pickTime: false
+				});
     //$(document).ready(function(){
         {% if not sorting %}
       $('#table_sorting_options').toggleClass('hidden');
@@ -246,14 +252,14 @@ $(window).load(function(){
     });
 
             //http://eonasdan.github.io/bootstrap-datetimepicker
+
+    $(".add_to_shelf").click(function () {
     $("#starting_date").datetimepicker({
 					pickTime: false
 				});
         $("#completed_date").datetimepicker({
 					pickTime: false
 				});
-    $(".add_to_shelf").click(function () {
-
      var currentID = $(this).data('id');
      var currentTitle = $(this).data('title');
      $("#bookModalBookId").val( currentID );

@@ -14,7 +14,7 @@
 </li>
 {% endmacro %}
 
-{% macro paginator(endpoint, align='', showCount=false) %}
+{% macro paginator(endpoint, align='', parameters='', showCount=false) %}
     <div class="btn-group {{align}}">
     <nav>
       <ul class="pagination">
@@ -23,28 +23,28 @@
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="{{ url_for(endpoint) }}?page={{ prevPage }}"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
+            <a href="{{ url_for(endpoint) }}?page={{ prevPage }}{{parameters}}"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
         {% if totalPages > 15 %}
             {% if ((page > 6) and (page < totalPages - 5)) %}
-                {{ paginator_range(endpoint,1,4) }}
+                {{ paginator_range(endpoint,1,4,parameters) }}
                 <li><span>...<span class="sr-only">(spacer)</span></span></li>
-                {{ paginator_range(endpoint,page-2,page+2) }}
+                {{ paginator_range(endpoint,page-2,page+2,parameters) }}
                 <li><span>...<span class="sr-only">(spacer)</span></span></li>
-                {{ paginator_range(endpoint,totalPages-3,totalPages) }}
+                {{ paginator_range(endpoint,totalPages-3,totalPages,parameters) }}
             {% else %}
-                {{ paginator_range(endpoint,1,7) }}
+                {{ paginator_range(endpoint,1,7,parameters) }}
                 <li><span>...<span class="sr-only">(spacer)</span></span></li>
-                {{ paginator_range(endpoint,totalPages-6,totalPages) }}
+                {{ paginator_range(endpoint,totalPages-6,totalPages,parameters) }}
             {% endif %}
         {% else %}
-            {{ paginator_range(endpoint,1,totalPages) }}
+            {{ paginator_range(endpoint,1,totalPages,parameters) }}
         {% endif %}
         {% if nextPage %}
             <li>
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="{{ url_for(endpoint) }}?page={{ nextPage }}"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
+            <a href="{{ url_for(endpoint) }}?page={{ nextPage }}{{parameters}}"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
 
       </ul>
     </nav>
@@ -52,10 +52,10 @@
     </div>
 {% endmacro %}
 
-{% macro paginator_range(endpoint, start, end) %}
+{% macro paginator_range(endpoint, start, end, parameters='') %}
 {% for currentPage in range(start,end+1) %}
     <li {% if currentPage == page %} class='active' {% endif %}>
-        <a href="{{ url_for(endpoint) }}?page={{ currentPage }}">{{ currentPage }}</a>
+        <a href="{{ url_for(endpoint) }}?page={{ currentPage }}{{parameters}}">{{ currentPage }}</a>
     </li>
 {% endfor %}
 {% endmacro %}

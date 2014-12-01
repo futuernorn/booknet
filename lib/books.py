@@ -105,23 +105,25 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
 
 def get_book(cur,book_id,user_id=None):
     cur.execute('''
-        SELECT DISTINCT core_id,book_title, isbn, page_count, publisher_name, book_description, to_char(publication_date,'Mon. DD, YYYY') as publication_date, COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating
+        SELECT DISTINCT core_id,book_title, isbn, page_count, publisher_name, book_description,
+        to_char(publication_date,'Mon. DD, YYYY') as publication_date, to_char(publication_date,'MM/DD/YYYY') as publication_date_fmt,
+        COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating
         FROM book_core
         LEFT JOIN books USING (core_id)
         LEFT JOIN ratings ON core_id = ratings.book_id
         JOIN book_publisher ON core_id = book_publisher.book_id
         JOIN publisher USING (publisher_id)
         WHERE core_id = %s
-        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, publisher_name
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, publication_date_fmt, publisher_name
     ''', (book_id,))
     book_info = {'core_id': book_id, 'title': 'Error loading data...'}
     # print cur.fetchone()
-    for core_id, book_title, isbn, page_count, publisher_name, book_description, publication_date, cover_name, avg_rating in cur:
+    for core_id, book_title, isbn, page_count, publisher_name, book_description, publication_date, publication_date_fmt, cover_name, avg_rating in cur:
         book_info = {'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'), 'isbn': isbn,
                      'num_pages': page_count, 'publisher_name': publisher_name, 'cover_name': cover_name, 'authors': [],
                      'subjects': [], 'avg_rating': avg_rating, 'book_description': book_description,
-                     'publication_date': publication_date, 'containing_lists': [], 'reading_logs': [], 'reviews': []}
-        print book_info
+                     'publication_date': publication_date, 'publication_date_fmt': publication_date_fmt, 'containing_lists': [], 'reading_logs': [], 'reviews': []}
+        # print book_info
 
     cur.execute('''
     SELECT author_name
@@ -274,3 +276,8 @@ def remove_rating(cur, book_id, user_id):
     #     message = "User not currently authenticated!"
 
     return message
+
+
+def edit_book(cur, book_id, form):
+    print form
+    return False, "Not implemented yet!"

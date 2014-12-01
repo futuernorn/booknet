@@ -50,6 +50,38 @@ def books_by_author():
 @app.route("/author/<author_name>")
 def display_author(author_name):
     raise NotImplementedError
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = books.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('author.html',
+                                 books=book_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
 
 # Publisher ###########################
 @app.route("/books/publisher")
@@ -81,25 +113,39 @@ def display_book(bid):
                                  book_info=book_info,
                                  next=next)
 
-@app.route("/book/add")
+@app.route("/book/add", methods=['GET', 'POST'])
 def add_book():
-    raise NotImplementedError
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("add_book")
+    return flask.render_template("book_edit_form.html",
+                                 book_info=None,
+                                 next=next)
 
-@app.route("/book/edit/<bid>")
+@app.route("/book/edit/<bid>", methods=['GET', 'POST'])
 def edit_book(bid):
-    with easypg.cursor() as cur:
-        book_info = books.get_book(cur,bid)
+    errors = []
+    if flask.request.method == 'POST':
+        with easypg.cursor() as cur:
+            edit_status, messages = books.edit_book(cur, bid, flask.request.form)
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=bid))
+            else:
+                for message in messages:
+                    errors.append(message)
+
     if 'next' in flask.request.args:
         next = flask.request.args['next']
     else:
         next = flask.url_for("display_book", bid=bid)
-    # book_info['authors'].append("Test 1")
-    # book_info['authors'].append("Test 2")
-    # book_info['authors'].append("Test 3")
-    # book_info['authors'].append("Test 4")
-    # book_info['author_count'] = 4
+    with easypg.cursor() as cur:
+            book_info = books.get_book(cur,bid)
     return flask.render_template("book_edit_form.html",
                                  book_info=book_info,
+                                 error=errors,
                                  next=next)
 
 @app.route("/books")
@@ -451,7 +497,7 @@ def users_index():
                                  prevPage=prevPage)
 
 
-#################### Login Registration #################################
+#################### Login Registration ################################################################################
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
