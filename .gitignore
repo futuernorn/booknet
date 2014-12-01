@@ -63,3 +63,7 @@ data/sample-data/logs
 
 # Ignore covers (subdirectories)
 static/images/covers/*/
+
+# Ignore old dumps
+booknet_11291400_parsed.sql.gz
+booknet_11301400_parsed.sql.gz
