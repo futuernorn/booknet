@@ -8,24 +8,73 @@
 {% block body %}
 
     <div class="container-fluid">
-
-          <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" class="pull-left"/><h1 class="page-header">{{ book_info.title }}</h1>
-
+        <div class="clearfix">
+            <img src="{{ url_for('static', filename='images/covers/medium/m'+book_info.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+            <h1 class="page-header">{{ book_info.title }}</h1>
+            {% if current_user.is_authenticated() %}<a class="small pull-right" href="#edit_book" style="padding-right:10px;">Edit</a> {% endif %}
+        </div>
             <ul class="list-group">
               <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
                 <li class="list-group-item"><h4>Title: {{ book_info.title }}</h4></li>
-                <li class="list-group-item"><h4>Authors:</h4>
-
-                {% for author in book_info.authors %}
-                  {{ author }}{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}
-                {% endfor %}
+                <li class="list-group-item"><h4>Description:</h4>
+                <div class="well">
+                    {% if book_info.book_description %}
+                        {{book_info.book_description}}
+                    {% else %}
+                        ---
+                    {% endif %}
+                </div>
                 </li>
-                <li class="list-group-item"><h4>Ratings:
-                    Average Rating: {{book_info.avg_rating}}{{ helpers.star_ratings(book_info.core_id,book_info.avg_rating) }}&nbsp;
-                </h4></li>
-                <li class="list-group-item"><h4>Tags:
+                <li class="list-group-item">
+                    <h4>ISBN:
+                        {% if book_info.isbn %}
+                            <a target="_blank" href="https://www.googleapis.com/books/v1/volumes?q=isbn:{{book_info.isbn}}">{{ book_info.isbn }}</a>
+                        {% else %}
+                            ---
+                        {% endif %}
+                    </h4>
+                </li>
+                <li class="list-group-item">
+                    <h4>{% if book_info.authors|length > 1 %}
+                        Authors:
+                        {% else %}
+                        Author:
+                        {% endif %}
+                    {% for author in book_info.authors %}
+                      <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}
+                    {% endfor %}
+                    </h4>
+                </li>
+              <li class="list-group-item">
+                  <h4>Publisher:
+                    {% if book_info.publisher_name %}
+                        {{book_info.publisher_name}}
+                    {% else %}
+                        ---
+                    {% endif %}
+                  </h4>
+              </li>
+                <li class="list-group-item"><h4>Publication Date: {{ book_info.publication_date }}</h4> </li>
+
+
+                <li class="list-group-item"><h4>Rating (avg): {{book_info.avg_rating}}</h4>
+                    {{ helpers.star_ratings(book_info.core_id,request.path,book_info.avg_rating) }}&nbsp;
+                    <br/>
+                    {% if book_info.user_rating %}
+                        <div class="clearfix">
+                            <hr />
+                            <p class="small">
+                                <a href="{{url_for('remove_book_rating', bid=book_info.core_id)}}?next={{request.path}}" >
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                </a>
+                                Your rating: {{ book_info.user_rating }}
+                            </p>
+                        </div>
+                    {% endif %}
+                </li>
+                <li class="list-group-item"><h4>Subjects:
                     {% for subject in book_info.subjects %}
-                    <span class="label label-default">{{ subject }}</span>&nbsp;
+                    <a href="{{url_for('books_by_subject',subject=subject)}}"><span class="label label-default">{{ subject }}</span></a>&nbsp;
                     {% endfor %}
                 </h4></li>
                 <li class="list-group-item"><h4>Member of Lists:</h4>
@@ -37,11 +86,21 @@
                       </tr>
                       </thead>
                       <tbody>
-
+                      {% if not book_info.containing_lists|length %}
+                        <tr><td colspan="4">None yet!</td></tr>
+                      {% endif %}
+                      {% for list in book_info.containing_lists %}
+                        <tr>
+                            <td><a href="{{url_for('display_list',lid=list.id)}}">{{list.list_name}}</a></td>
+                            <td><a href="{{ url_for('display_user_profile', uid=list.user_id)}}">{{list.login_name}}</a></td>
+                            <td>{{list.date_created}}</td>
+                            <td>{{list.num_books}}</td>
+                        </tr>
+                        {% endfor %}
                       </tbody>
                     </table>
                   </div>
-
+<!--'containing_lists': [], 'reading_logs': [], 'reviews': []}-->
 
               </li>
               <li class="list-group-item"><h4>Associated Reading Logs:</h4>
@@ -49,11 +108,22 @@
                 <table class="table table-striped">
                      <thead>
                       <tr>
-                      <th>User</th><th>Date Completed</th><th>Date Started</th><th>Logs</th>
+                      <th>User</th><th>Date Completed</th><th>Date Started</th><th>Entry</th><th>View</th>
                       </tr>
                       </thead>
                       <tbody>
-
+                      {% if not book_info.reading_logs|length %}
+                        <tr><td colspan="4">None yet!</td></tr>
+                      {% endif %}
+                      {% for log in book_info.reading_logs %}
+                        <tr>
+                            <td><a href="{{ url_for('display_user_profile', uid=log.user_id)}}">{{log.login_name}}</a></td>
+                            <td>{{log.date_started}}</td>
+                            <td>{{log.date_completed}}</td>
+                            <td>{{log.log_text}}</td>
+                            <td><a href="{{url_for('display_log',lid=log.log_id)}}" class="btn btn-primary">View</a></td>
+                        </tr>
+                        {% endfor %}
                       </tbody>
                     </table>
                   </div>
@@ -63,12 +133,27 @@
                 <li class="list-group-item"><h4>Reviews</h4>
                 <div class="table-responsive">
                 <table class="table table-striped">
-                     <thead>
-                      <tr>
-                      <th>User</th><th>Books Read</th><th>Pages Read</th><th>Logs</th>
-                      </tr>
-                      </thead>
-                      <tbody>
+                <thead>
+              <tr>
+                    <th>Reviewer</th><th style="width:125px;">Date Reviewed</th><th>Review</th><th>Actions</th>
+              </tr></thead>
+            <tbody>
+              {% if not book_info.reviews|length %}
+                <tr><td colspan="4">None yet!</td></tr>
+              {% endif %}
+                    {% for review in book_info.reviews %}
+                    <tr>
+                        <td><a href="{{ url_for('display_user_profile', uid=review.user_id)}}?next={{ request.path }}">{{ review.login_name }}</a></td>
+                        <td>{{ review.date_reviewed }}</td>
+                        <td class="truncate">{{ review.review_text }}</td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="User Actions">
+                                    <a href="{{url_for('display_review',rid=review.review_id)}}" class="btn btn-default">View</a>
+                                </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
 
                       </tbody>
                     </table>
@@ -81,7 +166,10 @@
             <div class="control-group">
               <!-- Button -->
               <div class="controls">
+                  {% if current_user.is_authenticated() %}
+                  <a name="edit_book"></a>
                   <a href="{{ url_for('edit_book',bid=book_info.core_id) }}" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+                  {% endif %}
                   <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
               </div>
             </div>
@@ -90,3 +178,37 @@
 
 
 {% endblock %}
+
+{% block footer_scripts %}
+<script type="text/javascript">
+$(window).load(function(){
+    $('.rating-star').click(function(){
+        var value = $(this).attr('value');
+        var book_id = $(this).attr('book_id');
+        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+        $("#pleaseWaitDialog").modal('show')
+        $(this).closest("form").submit();
+    });
+});
+</script>
+{% endblock %}
+            <!--Copied from openlibrary.org example-->
+            <!--<div class="illustration">-->
+            <!--<div class="coverMagic">-->
+                <!--<div class="SRPCover bookCover" style="display: none;">-->
+                <!--<a href="" class="coverLook" title="Pull up a bigger book cover"><img itemprop="image" src="" class="cover" alt="Cover of: Search results by Emily K. Larned"></a>-->
+                <!--</div>-->
+                <!--<div class="SRPCoverBlank" style="display: block;">-->
+                    <!--<div class="innerBorder">-->
+                        <!--<div class="BookTitle">-->
+                            <!--{{book_info.title}}-->
+                        <!--<div class="Author">-->
+                            <!--{% for author in book_info.authors %}-->
+                                <!--{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}{{ author }}-->
+                            <!--{% endfor %}-->
+                        <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--</div>-->

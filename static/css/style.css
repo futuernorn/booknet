@@ -101,3 +101,28 @@ hr.listing-cell-divider {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+
+/* Copied from openlibrary.org */
+/*.illustration img {max-width:180px!important;}*/
+/*#contentOnethird .illustration img, .workCover .illustration img {max-width:270px!important;}*/
+/*.illustration .SRPCoverBlank {position:relative;width:148px;height:225px;padding:15px;text-align:center;background:#dedede;font-size:1.0em;display:none;}*/
+/*.workCover .illustration .SRPCoverBlank {margin:0 auto;}*/
+/*.illustration .SRPCoverBlank .innerBorder {border:2px solid #fff;width:144px;height:221px;}*/
+/*.illustration .SRPCoverBlank.author {position:relative;width:131px;height:180px;text-align:center;background:transparent url("/images/icons/avatar_author-lg.png") 15px 15px no-repeat;font-size:1.0em;margin:0 auto;display:none;}*/
+/*.illustration .BookTitle {position:absolute;top:50%;left:50%;width:108px;margin-left:-54px;height:100px;margin-top:-50px;color:#333;}*/
+/*.illustration .author .BookTitle {position:absolute;top:50%;left:50%;width:108px;margin-left:-54px;height:80px;margin-top:-40px;color:#000;display:none;}*/
+/*.illustration .Author {color:#666;font-style:italic;padding:4px 4px 0;font-size:11px;}*/
+/*.illustration .edition {font-size:0.6875em;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;margin:10px auto;}*/
+/*.illustration .SRPCoverBlank {position:relative;width:148px;height:225px;padding:15px;text-align:center;background:#dedede;font-size:1.0em;display:none;}*/
+/*.workCover .illustration .SRPCoverBlank {margin:0 auto;}*/
+/*.illustration .SRPCoverBlank .innerBorder {border:2px solid #fff;width:144px;height:221px;}*/
+/*.illustration .SRPCoverBlank.author {position:relative;width:131px;height:180px;text-align:center;font-size:1.0em;margin:0 auto;display:none;}*/
+/*.formBackRight .illustration .SRPCoverBlank {width:90px;height:150px;font-size:0.75em;}*/
+/*.formBackRight .illustration .SRPCoverBlank .innerBorder {border:1px solid #fff;width:88px;height:148px;}*/
+
+/*div.books .SRPCover {float:left;height:115px;vertical-align:middle;}*/
+/*div.books .SRPCover img {height:115px;}*/
+/*div.books .SRPCoverBlank {position:relative;width:74px;height:105px;padding:5px;*/
+/*text-align:center;float:left;font-size:0.6875em;cursor:pointer;display:none;background-color:#dedede;}*/
+/*div.books .SRPCoverBlank .innerBorder {border:1px solid #fff;width:72px;height:103px;}*/

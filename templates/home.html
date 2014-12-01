@@ -19,7 +19,7 @@
         {% else %}
         <h1>Welcome back {{ current_user.name }}!</h1>
         <p>Happy to see you again!</p>
-        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard')}}" role="button">Dashboard &raquo;</a></div>
+        <div class="btn-group"><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard_following')}}" role="button">Feed</a><a class="btn btn-primary btn-lg" href="{{url_for('user_dashboard')}}" role="button">Dashboard &raquo;</a></div>
         {% endif %}
 
       </div>
@@ -31,11 +31,11 @@
           <h2>Book Spotlight</h2>
             {% for book in books %}
             <div class="media">
-              <a class="media-left" href="{{url_for('display_book',bid=books.core_id)}}">
+              <a class="media-left" href="{{url_for('display_book',bid=book.core_id)}}">
                 <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
               </a>
               <div class="media-body">
-                <h4 class="media-heading"><a href="{{url_for('display_book',bid=books.core_id)}}">{{ book.title }}</a></h4>
+                <h4 class="media-heading"><a href="{{url_for('display_book',bid=book.core_id)}}">{{ book.title }}</a></h4>
                 {{ book.description }}
               </div>
             </div>
@@ -52,7 +52,7 @@
               <div class="media-body">
                 <h4 class="media-heading"><a href="{{url_for('display_review',rid=review.review_id)}}">{{ review.book_title }}</a></h4>
                 {{ review.review_text }}<br/>
-                  <p class="text-muted">by: <a href="{{url_for('display_user',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
+                  <p class="text-muted">by: <a href="{{url_for('display_user_profile',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
               </div>
             </div>
           {% endfor %}

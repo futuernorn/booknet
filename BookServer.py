@@ -6,25 +6,28 @@ from flask.ext.login import LoginManager
 import easypg
 easypg.config_name = 'bookserver'
 import re
-from lib import books, reviews, users
+from BooknetUser import *
+from lib import books, reviews, users, lists
 
 
+
+
+########################## Login Manager / Session Control ######################
 app = flask.Flask('BookServer')
 app.secret_key = 'ItLWMzHsirkwfiiI9kIa'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_index'
 
-# app.jinja_env.globals['get_resource_as_string'] = get_resource_as_string
+
+@login_manager.user_loader
+def load_user(userid):
+    return BooknetUser.get(userid)
 
 # during developement
 app.debug = True
 
-@login_manager.user_loader
-def load_user(userid):
-    return User.get(userid)
-
-
+######################### Main Index / Home #################################
 @app.route("/")
 def home_index():
     with easypg.cursor() as cur:
@@ -36,17 +39,56 @@ def home_index():
 
 
 
-@app.route("/list/add/book")
-def add_book_list():
-    raise NotImplementedError
 
+######################## Books #########################################################################################
+
+# Author ##############################
 @app.route("/books/author")
 def books_by_author():
     raise NotImplementedError
+
+@app.route("/author/<author_name>")
+def display_author(author_name):
+    raise NotImplementedError
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = books.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('author.html',
+                                 books=book_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+
+# Publisher ###########################
 @app.route("/books/publisher")
 def books_by_publisher():
     raise NotImplementedError
 
+# Subject #############################
 @app.route("/books/subject")
 def books_by_subjects():
     raise NotImplementedError
@@ -58,7 +100,10 @@ def books_by_subject(subject):
 @app.route("/books/<bid>")
 def display_book(bid):
     with easypg.cursor() as cur:
-        book_info = books.get_book(cur,bid)
+        if flask.ext.login.current_user.is_authenticated():
+            book_info = books.get_book(cur,bid,flask.ext.login.current_user.id)
+        else:
+            book_info = books.get_book(cur,bid)
     # print book_info
     if 'next' in flask.request.args:
         next = flask.request.args['next']
@@ -67,21 +112,40 @@ def display_book(bid):
     return flask.render_template("book.html",
                                  book_info=book_info,
                                  next=next)
-@app.route("/book/edit/<bid>")
+
+@app.route("/book/add", methods=['GET', 'POST'])
+def add_book():
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("add_book")
+    return flask.render_template("book_edit_form.html",
+                                 book_info=None,
+                                 next=next)
+
+@app.route("/book/edit/<bid>", methods=['GET', 'POST'])
 def edit_book(bid):
-    with easypg.cursor() as cur:
-        book_info = books.get_book(cur,bid)
+    errors = []
+    if flask.request.method == 'POST':
+        with easypg.cursor() as cur:
+            edit_status, messages = books.edit_book(cur, bid, flask.request.form)
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=bid))
+            else:
+                for message in messages:
+                    errors.append(message)
+
     if 'next' in flask.request.args:
         next = flask.request.args['next']
     else:
         next = flask.url_for("display_book", bid=bid)
-    # book_info['authors'].append("Test 1")
-    # book_info['authors'].append("Test 2")
-    # book_info['authors'].append("Test 3")
-    # book_info['authors'].append("Test 4")
-    # book_info['author_count'] = 4
+    with easypg.cursor() as cur:
+            book_info = books.get_book(cur,bid)
     return flask.render_template("book_edit_form.html",
                                  book_info=book_info,
+                                 error=errors,
                                  next=next)
 
 @app.route("/books")
@@ -132,14 +196,36 @@ def books_index():
                                  sorting=sorting,
                                  sort_direction=sort_direction)
 
+#################### Reading Logs #############################
+
+@app.route("/log/<lid>")
+def display_log(lid):
+    raise NotImplementedError
+
+@app.route("/log/<year>")
+def display_logs_by_year(year):
+    raise NotImplementedError
+
+
 @app.route("/books/log/add", methods=['POST'])
 def add_reading_log():
     raise NotImplementedError
     return redirect(request.args.get("next") or url_for("books_index"))
 
 
+####################### Lists #####################
 
+@app.route("/list/add/book")
+def add_book_list():
+    raise NotImplementedError
 
+@app.route("/list/<lid>")
+def display_list(lid):
+    raise NotImplementedError
+
+@app.route("/list")
+def lists_index():
+    return flask.render_template("lists_list.html")
 
 
 ################## Ratings #########################
@@ -151,7 +237,7 @@ def add_book_rating(bid):
     book_id = bid
     # print flask.request.form
     user_id = flask.request.form['user_id']
-    user = User.get(user_id)
+    user = BooknetUser.get(user_id)
     with easypg.cursor() as cur:
         message = books.add_rating(cur, book_id, rating, user_id)
 
@@ -165,7 +251,7 @@ def add_book_rating(bid):
 def remove_book_rating(bid):
     # raise NotImplementedError
     book_id = bid
-    if current_user.is_authenticated():
+    if flask.ext.login.current_user.is_authenticated():
         user_id = flask.session['user_id']
     else:
         user_id = None
@@ -177,7 +263,14 @@ def remove_book_rating(bid):
         message = books.remove_rating(cur, book_id, user_id)
 
     flask.flash(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+        return flask.redirect(next)
     return flask.redirect(flask.url_for('books_index'))
+
+
+###################### Reviews ###########################
 
 @app.route("/reviews/book/<bid>")
 def display_reviews_for_book(bid):
@@ -205,9 +298,40 @@ def add_review(bid):
                                  book_info = book_info,
                                  next=next)
 
-@app.route("/list")
-def lists_index():
-    return flask.render_template("lists_list.html")
+
+
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = lists.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            list_info = lists.get_all_lists(cur, page, flask.session['user_id'])
+        else:
+            list_info = lists.get_all_lists(cur, page, None)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('lists_list.html',
+                                 lists=list_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
 
 @app.route("/reviews")
 def reviews_index():
@@ -243,14 +367,90 @@ def reviews_index():
 
 
 
-@app.route("/user/<uid>")
-def display_user(uid):
-    # Other user's profile page
-    raise NotImplementedError
 
-@app.route("/dashboard")
+################### Moderation / Current User Actions ############################
+
+@app.route("/dashboard/")
+@flask.ext.login.login_required
 def user_dashboard():
-    return flask.render_template('dashboard.html')
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur,flask.ext.login.current_user.get_id())
+    return flask.render_template('dashboard_overview.html',
+                                 user_info = user_info)
+
+@app.route("/dashboard/followers")
+def user_dashboard_followers():
+    return flask.render_template('dashboard_followers.html')
+
+@app.route("/dashboard/following")
+@flask.ext.login.login_required
+def user_dashboard_following():
+    with easypg.cursor() as cur:
+        user_info = users.get_user_feed(cur,flask.ext.login.current_user.get_id())
+    # user_info['name'] = flask.ext.login.current_user.name
+    return flask.render_template('dashboard_following.html',
+                                 user_info=user_info)
+
+@app.route("/profile")
+def current_user_profile():
+    return NotImplementedError
+
+
+
+
+#####################  User Management ##########################
+
+@app.route("/user/<uid>")
+def display_user_profile(uid):
+    # selected_user = BooknetUser.get(uid)
+    user_info = None
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur, uid, current_user_id)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("users_index")
+    return flask.render_template('user_profile.html',
+                                 user_id=uid,
+                                 selected_user=user_info,
+                                 next=next)
+
+@app.route("/user/follow/<uid>")
+@flask.ext.login.login_required
+def follow_user(uid):
+    followee = BooknetUser.get(uid)
+    if flask.ext.login.current_user.is_authenticated():
+        follower = flask.session['user_id']
+    else:
+        follower = None
+    with easypg.cursor() as cur:
+        message = users.add_follower(cur, followee, follower)
+
+    flask.flash(message)
+    if 'next' in flask.request.args:
+        return flask.redirect(flask.request.args['next'])
+
+    return flask.redirect(flask.url_for('users_index'))
+
+@app.route("/user/unfollow/<uid>")
+def unfollow_user(uid):
+    followee = BooknetUser.get(uid)
+    if flask.ext.login.current_user.is_authenticated():
+        follower = flask.session['user_id']
+    else:
+        follower = None
+    with easypg.cursor() as cur:
+        message = users.remove_follower(cur, followee, follower)
+
+    flask.flash(message)
+    if flask.request.form['next']:
+        return flask.redirect(flask.request.form['next'])
+
+    return flask.redirect(flask.url_for('users_index'))
 
 @app.route("/users")
 def users_index():
@@ -295,32 +495,9 @@ def users_index():
                                  totalPages=total_pages,
                                  nextPage=nextPage,
                                  prevPage=prevPage)
-@app.route("/profile")
-def current_user_profile():
-    return NotImplementedError
-@app.route("/user/<uid>")
-def user_profile(uid):
-    selected_user = User.get(uid)
-    user_info = None
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-    else:
-        next = flask.url_for("home_index")
-    return flask.render_template('profile.html',
-                                 user_id=uid,
-                                 selected_user=selected_user,
-                                 user_info = user_info,
-                                 next=next)
 
-##################### Login / User Management ##########################
-@app.route("/user/follow/<uid>")
-def follow_user(uid):
-    raise NotImplementedError
 
-@app.route("/user/unfollow/<uid>")
-def unfollow_user(uid):
-    raise NotImplementedError
-
+#################### Login Registration ################################################################################
 @app.route("/user/login", methods=['GET', 'POST'])
 def login_index():
     # Login page
@@ -332,7 +509,7 @@ def login_index():
 
             login_status = users.validate_login(cur, flask.request.form)
             if login_status > 0:
-                user = User.get(login_status)
+                user = BooknetUser.get(login_status)
                 try:
                     if flask.request.form['remeberLogin'] == "remeber-me":
                         remember = True
@@ -367,7 +544,7 @@ def register_index():
                 register_status, id, message = users.register_user(cur, flask.request.form)
 
                 if register_status:
-                    user = User.get(id)
+                    user = BooknetUser.get(id)
                     try:
                         if flask.request.form['remeberLogin'] == "remeber-me":
                             remember = True
@@ -385,9 +562,6 @@ def register_index():
         next = None
     return flask.render_template("register.html", errors=errors, next=next)
 
-
-
-
 @app.route("/user/logout")
 @flask.ext.login.login_required
 def logout():
@@ -395,6 +569,8 @@ def logout():
     flask.flash("You have been logged out!")
     return flask.redirect(flask.url_for('home_index'))
 
+
+###################################### Search #################################
 @app.route('/search')
 def search_index():
     if 'q' in flask.request.args:
@@ -419,58 +595,10 @@ def add_comment(aid):
 
 
 
-class UserNotFoundError(Exception):
-    pass
 
 
 
-# Simple user class base on UserMixin
-# http://flask-login.readthedocs.org/en/latest/_modules/flask/ext/login.html#UserMixin
-class User():
-    '''
-    This provides default implementations for the methods that Flask-Login
-    expects user objects to have.
-    '''
 
-    def is_active(self):
-        return True
-
-    def is_authenticated(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        try:
-            return unicode(self.id)
-        except AttributeError:
-            raise NotImplementedError('No `id` attribute - override `get_id`')
-
-    def __init__(self, id):
-        with easypg.cursor() as cur:
-            cur.execute('''
-                SELECT user_id, login_name, password
-                FROM "user"
-                WHERE user_id = %s
-            ''', (id,))
-
-
-            for id, login_name, password in cur:
-                self.id = id
-                self.name = login_name
-                self.password = password
-
-    @classmethod
-    def get(self_class, id):
-        '''Return user instance of id, return None if not exist'''
-        try:
-            return self_class(id)
-        except UserNotFoundError:
-            return None
-
-    def __repr__(self):
-        return '<User %r>' % (self.name)
 
 
 

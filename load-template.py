@@ -94,12 +94,15 @@ def retrieve_cover_dump_names():
     #     print  "Big time error! %s" % e
 
 def import_cover_dump(cover_size='s'):
+    folder_names = {'s': 'small', 'm': 'medium'}
+    if not os.path.exists("static/images/covers/"+folder_names[cover_size]):
+        os.makedirs("static/images/covers/"+folder_names[cover_size])
     with open('data/sample-data/logs/cover_ids.json') as covers_file:
         covers = json.load(covers_file)
         loop_counter = 0
-        download_list = open('data/sample-data/covers/import_download_list.tmp', 'w')
-        missing_files = open('data/sample-data/covers/import_missing_file_list.tmp', 'w')
-        log_file = open('data/sample-data/covers/import_cover_dump.log', 'w')
+        download_list = open('data/sample-data/covers/'+folder_names[cover_size]+'_import_download_list.tmp', 'w')
+        missing_files = open('data/sample-data/covers/'+folder_names[cover_size]+'_import_missing_file_list.tmp', 'w')
+        log_file = open('data/sample-data/covers/'+folder_names[cover_size]+'_import_cover_dump.log', 'w')
         needed_files = []
         for book_id, cover in covers.iteritems():
 
@@ -126,17 +129,17 @@ def import_cover_dump(cover_size='s'):
                     # print "data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename
                     # print os.path.isfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename)
                     # print "-------------"
-                    if os.path.isfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename):
+                    if os.path.isfile("data/sample-data/covers/archives/extracted_"+folder_names[cover_size]+"_covers/"+directory+"/"+filename):
                         cur.execute('''
                           UPDATE books SET cover_name = %s
                           WHERE core_id = %s
                         ''', ("_covers_%s_%s/%s" % (first_subset,second_subset,cover.zfill(10)), book_id))
                         print >> log_file, "Inserting cover %s into book with core_id %s..." % (cover, book_id)
-                        print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename, "static/images/covers/"+filename)
-                        if not os.path.exists("static/images/covers/"+directory):
-                            os.makedirs("static/images/covers/"+directory)
-                        if not os.path.isfile("static/images/covers/"+directory+"/"+filename):
-                            copyfile("data/sample-data/covers/archives/extracted_small_covers/"+directory+"/"+filename, "static/images/covers/"+directory+"/"+filename)
+                        print >> log_file, "Moving %s to %s..." % ("data/sample-data/covers/archives/extracted_"+folder_names[cover_size]+"_covers/"+directory+"/"+filename, "static/images/covers/"+filename)
+                        if not os.path.exists("static/images/covers/"+folder_names[cover_size]+"/"+directory):
+                            os.makedirs("static/images/covers/"+folder_names[cover_size]+"/"+directory)
+                        if not os.path.isfile("static/images/covers/"+folder_names[cover_size]+"/"+directory+"/"+filename):
+                            copyfile("data/sample-data/covers/archives/extracted_"+folder_names[cover_size]+"_covers/"+directory+"/"+filename, "static/images/covers/"+folder_names[cover_size]+"/"+directory+"/"+filename)
                     else:
                         print >> missing_files, "Unable to find: %s..." % cover
                         needed_files.append( "_covers_%s_%s" % (first_subset,second_subset))
@@ -583,7 +586,7 @@ def import_all():
 # retrieve_cover_dump_names()
 # import_all()
 # retrieve_cover_dump_names()
-import_cover_dump()
+import_cover_dump('m')
 
 log_file.close()
 error_log.close()
