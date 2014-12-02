@@ -55,7 +55,7 @@
 {% macro paginator_range(endpoint, start, end, parameters='') %}
 {% for currentPage in range(start,end+1) %}
     <li {% if currentPage == page %} class='active' {% endif %}>
-        <a href="{{endpoint~'?currentPage='~nextPage~parameters}}">{{ currentPage }}</a>
+        <a href="{{endpoint~'?page='~currentPage~parameters}}">{{ currentPage }}</a>
     </li>
 {% endfor %}
 {% endmacro %}

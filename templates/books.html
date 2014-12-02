@@ -10,6 +10,7 @@
 <br>
 <div class="panel panel-default">
   <!-- Default panel contents -->
+  {% block books_body %}{% endblock %}
   <div class="panel-heading">
     <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
       <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
@@ -18,21 +19,19 @@
   </div>
     <div id="table_sorting_options" class="well">
 
-
-    {{ helpers.sort_button(request.url, "Title","book_title") }}
-    {{ helpers.sort_button(request.url, "Publication Date","publication_date") }}
-    {{ helpers.sort_button(request.url, "Avg. Rating","avg_rating") }}
-    {{ helpers.sort_button(request.url, "Number of Readers","num_readers") }}
+    {% for sort_display,sort_attribute in sort_options.iteritems() %}
+        {{ helpers.sort_button(request.path, sort_display, sort_attribute) }}
+    {% endfor %}
     {% if sorting %}
         <div class="btn-group">
-          <a href="{{request.url}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
+          <a href="{{request.path}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
         </div>
     {% endif %}
     </div>
-    {{ navigation.paginator(request.url,'pull-right',parameters) }}
+    {{ navigation.paginator(request.path,'pull-right',parameters) }}
     <!-- Table -->
-    {% block books_body %}{% endblock %}
-    {{ navigation.paginator(request.url, 'pull-left', parameters) }}
+    {% block books_table %}{% endblock %}
+    {{ navigation.paginator(request.path, 'pull-left', parameters) }}
 </div>
 
             <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">

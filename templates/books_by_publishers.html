@@ -1,20 +1,20 @@
 {% extends "books.html" %}
-{% block books_table %}
+{% block books_body %}
   <!-- Table -->
   <table class="table">
     <thead><tr>
-        <th>Subject</th><th>Avg. Rating</th><th># Pages</th><th># Books</th><th>Actions</th>
+        <th>Author</th><th>Avg. Rating</th><th># Pages</th><th># Books</th><th>Actions</th>
         {% if current_user.is_authenticated() %}
 
         {% endif %}
     </tr></thead>
     <tbody>
-    {% for subject in data %}
+    {% for publisher in data %}
     <tr>
-        <td><a href="{{ url_for('books_by_subject', subject=subject.subject)}}">{{subject.subject}}</a></td>
-        <td>{{subject.avg_rating}}</td>
-        <td>{{subject.num_pages}}</td>
-        <td>{{subject.num_books}}</td>
+        <td><a href="{{ url_for('display_publisher', pid=publisher.id)}}">{{publisher.name}}</a></td>
+        <td>{{publisher.avg_rating}}</td>
+        <td>{{publisher.num_pages}}</td>
+        <td>{{publisher.num_books}}</td>
         <td>
             <div class="btn-group">
                 <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">

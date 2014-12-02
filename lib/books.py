@@ -7,11 +7,94 @@ from psycopg2 import errorcodes
 
 BOOKS_PER_PAGE = 15;
 
-def get_total_pages(cur):
-    cur.execute('''
-        SELECT COUNT(DISTINCT core_id)
-        FROM book_core JOIN books USING (core_id);
-    ''')
+QUERIES = {
+    'books_count': '''
+        SELECT COUNT(*) FROM book_core;
+    ''',
+    'books_by_subjects_count': '''
+        SELECT COUNT(*) FROM subject_genre;
+    ''',
+    'books_by_authors_count': '''
+        SELECT COUNT(*) FROM author;
+    ''',
+    'books_by_publishers_count': '''
+        SELECT COUNT(*) FROM author;
+    ''',
+    'books_by_subjects': '''
+        SELECT subject_id, subject_name, AVG(rating) as avg_rating, COUNT(DISTINCT core_id) as num_books, SUM(page_count) as num_pages
+        FROM subject_genre
+        JOIN book_categorization USING (subject_id)
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        LEFT JOIN books USING (core_id)
+        GROUP BY subject_id, subject_name
+        %s
+        LIMIT %s OFFSET %s
+    ''',
+    'books_by_authors': '''
+        SELECT author_id, author_name, AVG(rating) as avg_rating, COUNT(DISTINCT core_id) as num_books, SUM(page_count) as num_pages
+        FROM author
+        JOIN authorship USING (author_id)
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        LEFT JOIN books USING (core_id)
+        %s
+        GROUP BY author_id, author_name
+        %s
+        LIMIT %s OFFSET %s
+    ''',
+    'books_by_publishers': '''
+        SELECT publisher_id, publisher_name, AVG(rating) as avg_rating, COUNT(DISTINCT core_id) as num_books, SUM(page_count) as num_pages
+        FROM publisher
+        JOIN book_publisher USING (publisher_id)
+        LEFT JOIN ratings USING (book_id)
+        LEFT JOIN books USING (book_id)
+        %s
+        GROUP BY publisher_id, publisher_name
+        %s
+        LIMIT %s OFFSET %s
+    ''',
+    'select_books': '''
+        SELECT core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name,
+          AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
+        FROM book_core
+        JOIN books USING (core_id)
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        JOIN user_log ON core_id = user_log.book_id
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
+        %s
+        LIMIT %s OFFSET %s
+    ''',
+    'select_books_where': '''
+        SELECT %s, core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
+        FROM book_core
+        LEFT JOIN books USING (core_id)
+        %s
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        LEFT JOIN user_log ON core_id = user_log.book_id
+        LEFT JOIN book_categorization USING (core_id)
+        %s
+        GROUP BY %s, core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
+        %s
+        LIMIT %s OFFSET %s
+    '''
+}
+
+SORTING = {
+    'book_title': 'ORDER BY book_title',
+    'publication_date': 'ORDER BY publication_date',
+    'num_reader': 'ORDER BY num_reader',
+    'num_books': 'ORDER BY num_books',
+    'num_pages': 'ORDER BY num_pages',
+    'subject_name': 'ORDER BY subject_name',
+    'average_rating': 'ORDER BY avg_rating'
+}
+
+SORT_DIRECTION = {
+    'ASC': 'ASC',
+    'DESC': 'DESC'
+}
+
+def get_total_pages(cur,query):
+    cur.execute(query)
     total_books = cur.fetchone()[0];
     total_pages = (total_books / BOOKS_PER_PAGE) + 1;
     return total_pages
@@ -28,44 +111,21 @@ def get_all_books(cur, page, user_id, sorting, sort_direction):
     return get_book_range(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id,  sorting, sort_direction)
 
 def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=None):
-    if sorting and sort_direction:
-        order_by = "ORDER BY %s %s " % (sorting,sort_direction) # this is stupid
-    else:
-        order_by = ""
-    # cur.execute(
-    #     "SELECT core_id, book_title, book_description "+
-    #     "FROM book_core "+
-    #     "JOIN books USING (core_id) "
-    # )
-    # print "Total rows retrieved: %s..." % cur.rowcount
-    cur.execute(
-        "SELECT core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers "+
-        "FROM book_core "+
-        "JOIN books USING (core_id) "+
-        # "JOIN book_categorization USING (core_id) "+
-        # "JOIN subject_genre USING (subject_id) "+
-        "LEFT JOIN ratings ON core_id = ratings.book_id "+
-        "JOIN user_log ON core_id = user_log.book_id "+
-        # "GROUP BY core_id, book_id, picture, book_title, book_description, isbn, publication_date "+
-        # order_by+
-        # "SELECT DISTINCT core_id, book_title, book_description,  ROUND(AVG(rating)) as avg_rating "+
-        # "FROM books "+
-        # "JOIN book_core USING (core_id) "+
-        # "JOIN book_categorization USING (core_id) "+
-        # "JOIN subject_genre USING (subject_id) "+
-        # "LEFT JOIN ratings USING (book_id) "+
-        "GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date " +
-        order_by+
-        "LIMIT %s OFFSET %s"
-    , ( amount, start))
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = ''
+
+    total_pages = get_total_pages(cur, QUERIES['books_count'])
+    cur.execute(QUERIES['select_books'] % (order_by,'%s','%s'), (amount, start))
 
 
-    total_books = cur.rowcount
-    total_pages = (total_books / BOOKS_PER_PAGE) + 1;
 
     book_info = []
     # print "Retrieved %s book rows..." % cur.rowcount
     for core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
+        if not cover_name:
+            cover_name = '_placeholder'
         if avg_rating:
             discrete_rating = round(avg_rating*2) / 2
         else:
@@ -108,6 +168,244 @@ def get_book_range(cur,start,amount, user_id=None, sorting=None, sort_direction=
 
     return total_pages, book_info
 
+def get_all_books_by_publishers(cur, page, user_id, sorting, sort_direction):
+    return get_books_by_publishers(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id,  sorting, sort_direction)
+
+
+def get_books_by_publishers(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
+    # sanitize inputs(?)
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+    total_pages = get_total_pages(cur, QUERIES['books_by_publishers_count'])
+    cur.execute(QUERIES['books_by_publishers'] % (order_by,'%s','%s'), (amount, start))
+
+    publisher_info = []
+    for publisher_id, publisher_name, avg_rating, num_books, num_pages in cur:
+        publisher_info.append({'id':publisher_id, 'name': publisher_name.decode('utf8', 'xmlcharrefreplace'),
+                          'avg_rating': avg_rating, 'num_books': num_books, 'num_pages': num_pages})
+
+    return total_pages, publisher_info
+
+def get_all_books_by_authors(cur, page, user_id, sorting, sort_direction):
+    return get_books_by_authors(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id,  sorting, sort_direction)
+
+
+def get_books_by_authors(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
+    # sanitize inputs(?)
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+    total_pages = get_total_pages(cur, QUERIES['books_by_authors_count'])
+    cur.execute(QUERIES['books_by_authors'] % ('', order_by,'%s','%s'), (amount, start))
+
+    author_info = []
+    for author_id, author_name, avg_rating, num_books, num_pages in cur:
+        print author_name
+        author_info.append({'id':author_id, 'name': author_name.decode('utf8', 'xmlcharrefreplace'),
+                          'avg_rating': avg_rating, 'num_books': num_books, 'num_pages': num_pages})
+
+    return total_pages, author_info
+
+def get_all_books_by_author(cur, page, author_name, user_id, sorting, sort_direction):
+    """
+    Get a list of all article IDs, titles, proceeding titles, authors, and year of publication.
+    :param cur: the database cursor
+    :return: a list of dictionaries of article IDs and titles
+    """
+    return get_books_by_author(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, author_name, user_id,  sorting, sort_direction)
+
+
+def get_books_by_author(cur, start, amount, author_name, user_id=None, sorting=None, sort_direction=None):
+
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+    cur.execute('''
+        SELECT author_id
+        FROM author
+        WHERE author_name = %s
+    ''', (author_name,))
+    author_id = cur.fetchone()[0]
+
+    cur.execute(QUERIES['select_books_where'] % ('WHERE author_id = %s', order_by,'%s','%s'), (author_id, amount, start))
+
+
+    total_books = cur.rowcount
+    total_pages = int((total_books / BOOKS_PER_PAGE) + 1);
+
+    book_info = []
+    # print "Retrieved %s book rows..." % cur.rowcount
+    for author_id, core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
+        if avg_rating:
+            discrete_rating = round(avg_rating*2) / 2
+        else:
+            discrete_rating = 0
+        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'),
+                          'cover_name': cover_name, 'authors': [], 'subjects': [], 'isbn': isbn, 'num_pages': page_count,
+                          'num_readers': num_readers, 'avg_rating': avg_rating, 'discrete_rating': discrete_rating, 'user_rating': None})
+    for book in book_info:
+        cur.execute('''
+        SELECT author_name
+        FROM author JOIN authorship USING (author_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        author_info = []
+        for author_name in cur:
+            author_info.append(str(author_name[0]).decode('utf8', 'xmlcharrefreplace'))
+
+        book['authors'] = author_info
+        # print book['authors']
+        cur.execute('''
+        SELECT subject_name
+        FROM subject_genre JOIN book_categorization USING (subject_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        # subject_info = []
+        # print cur.fetchone()
+        for subject_name in cur:
+            book['subjects'].append(subject_name[0].decode('utf8', 'xmlcharrefreplace'))
+        # book['subjects'] = subject_info
+        if (user_id):
+            cur.execute('''
+            SELECT rating
+            FROM ratings
+            WHERE book_id = %s AND rater = %s
+            ''', (book['core_id'], user_id))
+            if cur.rowcount > 0:
+                book['user_rating'] = cur.fetchone()[0]
+        # print book['subjects']
+
+    cur.execute(QUERIES['books_by_authors'] % ('WHERE author_id = %s', order_by,'%s','%s'), (author_id, amount, start))
+
+
+    for author_id, author_name, avg_rating, num_books, num_pages in cur:
+        print author_name
+        author_info = {'id':author_id, 'name': author_name.decode('utf8', 'xmlcharrefreplace'), 'books': book_info,
+                          'avg_rating': avg_rating, 'num_books': num_books, 'num_pages': num_pages}
+
+    return total_pages, author_info
+
+def get_all_books_by_publisher(cur, page, publisher_id, user_id, sorting, sort_direction):
+    """
+    Get a list of all article IDs, titles, proceeding titles, authors, and year of publication.
+    :param cur: the database cursor
+    :return: a list of dictionaries of article IDs and titles
+    """
+    return get_books_by_publisher(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, publisher_id, user_id,  sorting, sort_direction)
+
+
+def get_books_by_publisher(cur, start, amount, publisher_id, user_id=None, sorting=None, sort_direction=None):
+
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+    # cur.execute('''
+    #     SELECT author_id
+    #     FROM author
+    #     WHERE author_name = %s
+    # ''', (author_name,))
+    # author_id = cur.fetchone()[0]
+
+    cur.execute(QUERIES['select_books_where'] % ('publisher_id', 'JOIN book_publisher ON core_id = book_publisher.book_id', 'WHERE publisher_id = %s', 'publisher_id', order_by,'%s','%s'), (publisher_id, amount, start))
+
+
+    total_books = cur.rowcount
+    total_pages = int((total_books / BOOKS_PER_PAGE) + 1);
+
+    book_info = []
+    # print "Retrieved %s book rows..." % cur.rowcount
+    for author_id, core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
+        if avg_rating:
+            discrete_rating = round(avg_rating*2) / 2
+        else:
+            discrete_rating = 0
+        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'),
+                          'cover_name': cover_name, 'authors': [], 'subjects': [], 'isbn': isbn, 'num_pages': page_count,
+                          'num_readers': num_readers, 'avg_rating': avg_rating, 'discrete_rating': discrete_rating, 'user_rating': None})
+    for book in book_info:
+        cur.execute('''
+        SELECT author_name
+        FROM author JOIN authorship USING (author_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        author_info = []
+        for author_name in cur:
+            author_info.append(str(author_name[0]).decode('utf8', 'xmlcharrefreplace'))
+
+        book['authors'] = author_info
+        # print book['authors']
+        cur.execute('''
+        SELECT subject_name
+        FROM subject_genre JOIN book_categorization USING (subject_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        # subject_info = []
+        # print cur.fetchone()
+        for subject_name in cur:
+            book['subjects'].append(subject_name[0].decode('utf8', 'xmlcharrefreplace'))
+        # book['subjects'] = subject_info
+        if (user_id):
+            cur.execute('''
+            SELECT rating
+            FROM ratings
+            WHERE book_id = %s AND rater = %s
+            ''', (book['core_id'], user_id))
+            if cur.rowcount > 0:
+                book['user_rating'] = cur.fetchone()[0]
+        # print book['subjects']
+
+    cur.execute(QUERIES['books_by_publishers'] % ('WHERE publisher_id = %s', order_by,'%s','%s'), (publisher_id, amount, start))
+
+
+    for publisher_id, publisher_name, avg_rating, num_books, num_pages in cur:
+        publisher_info = {'id':publisher_id, 'name': publisher_name.decode('utf8', 'xmlcharrefreplace'), 'books': book_info,
+                          'avg_rating': avg_rating, 'num_books': num_books, 'num_pages': num_pages}
+
+    return total_pages, publisher_info
+
+
+def get_all_books_by_subjects(cur, page, user_id, sorting, sort_direction):
+    """
+    Get a list of all article IDs, titles, proceeding titles, authors, and year of publication.
+    :param cur: the database cursor
+    :return: a list of dictionaries of article IDs and titles
+    """
+    return get_books_by_subjects(cur,((page - 1) * BOOKS_PER_PAGE), BOOKS_PER_PAGE, user_id,  sorting, sort_direction)
+
+
+def get_books_by_subjects(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
+    # sanitize inputs(?)
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+    total_pages = get_total_pages(cur, QUERIES['books_by_subjects_count'])
+    cur.execute(QUERIES['books_by_subjects'] % (order_by,'%s','%s'), (amount, start))
+
+
+
+    book_info = []
+    for subject_id, subject_name, avg_rating, num_books, num_pages in cur:
+        if avg_rating:
+            discrete_rating = round(avg_rating*2) / 2
+        else:
+            discrete_rating = 0
+        book_info.append({'id':subject_id, 'subject': subject_name.decode('utf8', 'xmlcharrefreplace'),
+                          'avg_rating': avg_rating, 'num_books': num_books, 'num_pages': num_pages})
+
+
+    return total_pages, book_info
+
 def get_all_books_by_subject(cur, page, subject, user_id, sorting, sort_direction):
     """
     Get a list of all article IDs, titles, proceeding titles, authors, and year of publication.
@@ -118,6 +416,7 @@ def get_all_books_by_subject(cur, page, subject, user_id, sorting, sort_directio
 
 
 def get_books_by_subject (cur, start, amount, subject, user_id=None, sorting=None, sort_direction=None):
+
     if sorting and sort_direction:
         order_by = "ORDER BY %s %s " % (sorting,sort_direction) # this is stupid
     else:

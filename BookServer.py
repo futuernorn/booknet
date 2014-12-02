@@ -45,55 +45,94 @@ def home_index():
 ######################## Books #########################################################################################
 
 # Author ##############################
-@app.route("/books/author")
-def books_by_author():
-    raise NotImplementedError
-
-@app.route("/author/<author_name>")
-def display_author(author_name):
-    raise NotImplementedError
-    if 'page' in flask.request.args:
-        page = int(flask.request.args['page'])
-    else:
-        page = 1
-    if page <= 0:
-        flask.abort(404)
-
-    with easypg.cursor() as cur:
-        total_pages = books.get_total_pages(cur)
+@app.route("/books/authors")
+def books_by_authors():
+    page, sorting, sort_direction = parse_sorting()
 
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+            total_pages, book_info = books.get_all_books_by_authors(cur, page, flask.session['user_id'], sorting, sort_direction)
         else:
-            book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
+            total_pages, book_info = books.get_all_books_by_authors(cur, page, None, sorting, sort_direction)
 
-    if page > 1:
-        prevPage = page - 1
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
     else:
-        prevPage = None
+        parameters = ''
 
-    if page == total_pages:
-        nextPage = None
-    else:
-        nextPage = page + 1
 
-    return flask.render_template('author.html',
-                                 books=book_info,
-                                 page=page,
-                                 totalPages=total_pages,
-                                 nextPage=nextPage,
-                                 prevPage=prevPage)
+    sort_options = {"Author Name": "author_name", "Avg. Rating": "avg_rating", "# Pages": "num_pages", "# Books": "num_books"}
+    return render_books_index('books_by_authors.html', book_info, total_pages, sort_options, parameters, 'Books By Authors')
+
+@app.route("/author/<author_name>")
+def display_author(author_name):
+    page, sorting, sort_direction = parse_sorting()
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, author_info = books.get_all_books_by_author(cur, page, author_name, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, author_info = books.get_all_books_by_author(cur, page, author_name, None, sorting, sort_direction)
+
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
+    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    return render_books_index('author.html', author_info, total_pages, sort_options, parameters, 'Books - %s' % author_name)
 
 # Publisher ###########################
 @app.route("/books/publisher")
-def books_by_publisher():
-    raise NotImplementedError
+def books_by_publishers():
+    page, sorting, sort_direction = parse_sorting()
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, publisher_info = books.get_all_books_by_publishers(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, publisher_info = books.get_all_books_by_publishers(cur, page, None, sorting, sort_direction)
+
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
+
+
+    sort_options = {"Publisher": "publisher_name", "Avg. Rating": "avg_rating", "# Pages": "num_pages", "# Books": "num_books"}
+    return render_books_index('books_by_publishers.html', publisher_info, total_pages, sort_options, parameters, 'Books By Publishers')
+
+@app.route("/publisher/<pid>")
+def display_publisher(pid):
+    page, sorting, sort_direction = parse_sorting()
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, publisher_info = books.get_all_books_by_publisher(cur, page, pid, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, publisher_info = books.get_all_books_by_publisher(cur, page, pid, None, sorting, sort_direction)
+
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
+    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    return render_books_index('author.html', publisher_info, total_pages, sort_options, parameters, 'Books - %s' % publisher_info['name'])
 
 # Subject #############################
-@app.route("/books/subject")
+@app.route("/books/subjects")
 def books_by_subjects():
-    raise NotImplementedError
+    page, sorting, sort_direction = parse_sorting()
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, book_info = books.get_all_books_by_subjects(cur, page, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, book_info = books.get_all_books_by_subjects(cur, page, None, sorting, sort_direction)
+
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
+
+
+    sort_options = {"Subject": "subject_name", "Avg. Rating": "avg_rating", "# Pages": "num_pages", "# Books": "num_books"}
+    return render_books_index('books_by_subjects.html', book_info, total_pages, sort_options, parameters, 'Books By Subjects')
 
 @app.route("/books/subject/<subject>")
 def books_by_subject(subject):
@@ -105,8 +144,10 @@ def books_by_subject(subject):
         else:
             total_pages, book_info = books.get_all_books_by_subject(cur, page, subject, None, sorting, sort_direction)
 
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
-    return render_books_index('books_index.html', book_info, total_pages, parameters, 'Books - %s' % subject)
+    return render_books_index('books_index.html', book_info, total_pages, sort_options, parameters, 'Books - %s' % subject)
 
 @app.route("/books/<bid>")
 def display_book(bid):
@@ -170,7 +211,9 @@ def books_index():
             total_pages, book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
 
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
-    return render_books_index('books_index.html',book_info, total_pages, parameters)
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
+    return render_books_index('books_index.html',book_info, total_pages, sort_options, parameters)
 
 def parse_sorting():
     if 'sorting' in flask.request.args:
@@ -191,9 +234,8 @@ def parse_sorting():
 
     return page, sorting, sort_direction
 
-def render_books_index(template, info, total_pages, parameters = None, title='Books'):
+def render_books_index(template, data, total_pages, sort_options = None, parameters = None, title='Books'):
     page, sorting, sort_direction = parse_sorting()
-    print total_pages
     if page > 1:
         prevPage = page - 1
     else:
@@ -205,13 +247,14 @@ def render_books_index(template, info, total_pages, parameters = None, title='Bo
         nextPage = page + 1
 
     return flask.render_template(template,
-                                 books=info,
+                                 data=data,
                                  page=page,
                                  totalPages=total_pages,
                                  nextPage=nextPage,
                                  prevPage=prevPage,
                                  sorting=sorting,
                                  sort_direction=sort_direction,
+                                 sort_options=sort_options,
                                  parameters=parameters,
                                  page_title=title)
 #################### Reading Logs #############################

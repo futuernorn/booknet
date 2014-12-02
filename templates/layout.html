@@ -49,9 +49,10 @@
             {% call navigation.menudropdown('books_index', 'Books', active=active_page) %}
                 {{navigation.menuitem('books_index', 'Browse', active=active_page)}}
                 <li class="divider"></li>
-                {{navigation.menuitem('books_by_author', 'By Author', active=active_page)}}
-                {{navigation.menuitem('books_by_publisher', 'By Publisher', active=active_page)}}
+                {{navigation.menuitem('books_by_authors', 'By Author', active=active_page)}}
+                {{navigation.menuitem('books_by_publishers', 'By Publisher', active=active_page)}}
                 {{navigation.menuitem('books_by_subjects', 'By Subject', active=active_page)}}
+                <li class="divider"></li>
                 <li class="divider"></li>
                 {{navigation.menuitem('add_book', 'Add New Book', active=active_page)}}
             {% endcall %}

@@ -3,18 +3,18 @@
   <!-- Table -->
   <table class="table">
     <thead><tr>
-        <th>Subject</th><th>Avg. Rating</th><th># Pages</th><th># Books</th><th>Actions</th>
+        <th>Author</th><th>Avg. Rating</th><th># Pages</th><th># Books</th><th>Actions</th>
         {% if current_user.is_authenticated() %}
 
         {% endif %}
     </tr></thead>
     <tbody>
-    {% for subject in data %}
+    {% for author in data %}
     <tr>
-        <td><a href="{{ url_for('books_by_subject', subject=subject.subject)}}">{{subject.subject}}</a></td>
-        <td>{{subject.avg_rating}}</td>
-        <td>{{subject.num_pages}}</td>
-        <td>{{subject.num_books}}</td>
+        <td><a href="{{ url_for('display_author', author_name=author.name)}}">{{author.name}}</a></td>
+        <td>{{author.avg_rating}}</td>
+        <td>{{author.num_pages}}</td>
+        <td>{{author.num_books}}</td>
         <td>
             <div class="btn-group">
                 <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">

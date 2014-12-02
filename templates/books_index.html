@@ -1,5 +1,5 @@
 {% extends "books.html" %}
-{% block books_body %}
+{% block books_table %}
   <!-- Table -->
   <table class="table">
     <thead><tr>
@@ -9,7 +9,7 @@
         {% endif %}
     </tr></thead>
     <tbody>
-    {% for book in books %}
+    {% for book in data %}
     <tr>
         <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}"/></td>
         <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
