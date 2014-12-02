@@ -1,7 +1,6 @@
 {% import 'book_helpers.html' as helpers with context %}
 
 {# layout.html settings #}
-{% set page_title = 'Books' %}
 {% set active_page = 'books_index' %}
 {% extends "layout.html" %}
 {% block head %}
@@ -15,99 +14,25 @@
     <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
       <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
     </button>
-    <h4>Books</h4>
+    <h4>{{page_title}}</h4>
   </div>
-        <div id="table_sorting_options" class="well">
+    <div id="table_sorting_options" class="well">
 
 
-        {{ helpers.sort_button("Title","book_title") }}
-        {{ helpers.sort_button("Publication Date","publication_date") }}
-        {{ helpers.sort_button("Avg. Rating","avg_rating") }}
-        {{ helpers.sort_button("Number of Readers","num_readers") }}
-        {% if sorting %}
-            <div class="btn-group">
-              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
-            </div>
-        {% endif %}
+    {{ helpers.sort_button(request.url, "Title","book_title") }}
+    {{ helpers.sort_button(request.url, "Publication Date","publication_date") }}
+    {{ helpers.sort_button(request.url, "Avg. Rating","avg_rating") }}
+    {{ helpers.sort_button(request.url, "Number of Readers","num_readers") }}
+    {% if sorting %}
+        <div class="btn-group">
+          <a href="{{request.url}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
         </div>
-    {{ navigation.paginator('books_index','pull-right','&sorting='~sorting~'&sort_direction='~sort_direction) }}
-  <!-- Table -->
-  <table class="table">
-    <thead><tr>
-        <th>Cover</th><th>Title</th><th>Author</th><th># Pages</th><th>Avg. Rating</th><th>Tags</th><th>Actions</th>
-        {% if current_user.is_authenticated() %}
-
-        {% endif %}
-    </tr></thead>
-    <tbody>
-    {% for book in books %}
-    <tr>
-        <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}"/></td>
-        <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
-        <td>
-	  {% for author in book.authors %}
-	  <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>
-	  {% endfor %}
-	</td>
-        <td>
-            {% if book.num_pages %}
-                {{book.num_pages}}
-            {% else %}
-                Unknown
-            {% endif %}
-        </td>
-        <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,url_for('books_index') ~ '?page=' ~ page,book.discrete_rating) }}
-                {% if book.avg_rating %}
-                    <span class="small">(avg. {{ book.avg_rating }})</span></div>
-                {% endif %}
-            <hr class="listing-cell-divider" />
-            {% if book.user_rating %}<p class="text-muted"><a href="{{url_for('remove_book_rating', bid=book.core_id)}}" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>Your rating: {{ book.user_rating }}</p> {% endif %}
-        </td>
-        <td>
-            {% for subject in book.subjects %}
-            <a href="{{url_for('books_by_subject',subject=subject)}}"><span class="label label-default">{{ subject }}</span></a>&nbsp;
-            {% endfor %}
-        </td>
-        <td>
-        {% if current_user.is_authenticated() %}
-
-
-            <div class="btn-group">
-                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Add<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="{{ url_for('add_review', bid=book.core_id)}}?next={{ request.path }}">Review</a></li>
-                    <li><a href="#" class="add_to_shelf" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">To List</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Book Details</a></li>
-                  </ul>
-                </div>
-        {% endif %}
-            <div class="btn-group">
-
-                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    View<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-
-
-                    <li><a href="{{ url_for('display_reviews_for_book',bid=book.core_id) }}">Reviews</a></li>
-                    <li><a href="#">Lists</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">View Lists Containing</a></li>
-                  </ul>
-                </div>
-        </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-
-    {{ navigation.paginator('books_index') }}
+    {% endif %}
+    </div>
+    {{ navigation.paginator(request.url,'pull-right',parameters) }}
+    <!-- Table -->
+    {% block books_body %}{% endblock %}
+    {{ navigation.paginator(request.url, 'pull-left', parameters) }}
 </div>
 
             <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
@@ -235,7 +160,9 @@ $(window).load(function(){
         {% endif %}
       $('#sorting_toggle_btn').click(function(){
         $('#table_sorting_options').toggleClass('hidden');
+          {% if not sorting %}
         $(this).toggleClass('active');
+          {% endif %}
 
 
       });

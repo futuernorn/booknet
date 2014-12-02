@@ -42,21 +42,26 @@ def get_list_range(cur,start,amount, user_id=None):
         list_info.append({'id':list_id, 'list_name': list_name, 'user_id': user_id, 'creator': login_name,
                           'date_created': date_created, 'description': list_description, 'num_books': num_books})
 
+
+
     return list_info
 
 
-def get_list(cur,list_id):
+def get_list(cur,list_id,user_id=None):
     cur.execute('''
-        SELECT list_id, list_name, user_id, date_created, list_description
+        SELECT list_id, list_name, user_id, login_name, to_char(list.date_created,'Mon. DD, YYYY') as date_created, list_description, COUNT(DISTINCT book_id) as num_books
         FROM list
+        JOIN book_list USING (list_id)
         JOIN booknet_user USING (user_id)
         WHERE list_id = %s
+        GROUP BY list_id, list_name, user_id, login_name, list.date_created, list_description
     ''', (list_id,))
-    list_info = []
+    list_info = {}
 
-    for list_id, list_name, user_id, date_created, list_description in cur:
-        list_info.append({'id':list_id, 'list_name': list_name, 'user_id': user_id, 'date_created': date_created, 'description': list_description})
-
+    for list_id, list_name, user_id, login_name, date_created, list_description, num_books in cur:
+        list_info = {'id':list_id, 'list_name': list_name, 'user_id': user_id, 'creator': login_name,
+                          'date_created': date_created, 'description': list_description, 'num_books': num_books}
+    list_info['books'] = books.get_books_in_list(cur,list_id,user_id)
     return list_info
 
 def create_list(cur, list_name, description, user_id):

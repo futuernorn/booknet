@@ -3,7 +3,7 @@ Functions for working with the books database.
 """
 __author__ = 'Jeffrey Hogan'
 
-
+import books
 
 REVIEWS_PER_PAGE = 15;
 
@@ -38,6 +38,23 @@ def get_review_range(cur,start,amount):
     ''', (amount, start))
     review_info = []
     for  review_id, core_id, book_id, book_title, reviewer, login_name, date_reviewed, review_text in cur:
-        review_info.append({'core_id':core_id, 'review_id':review_id, 'book_id': book_id, 'book_title':book_title.decode('utf8', 'xmlcharrefreplace'), 'reviewer':reviewer, 'reviewer_name': login_name, 'date_reviewed': date_reviewed, 'review_text':review_text})
+        review_info.append({'core_id':core_id, 'id':review_id, 'book_id': book_id, 'book_title':book_title.decode('utf8', 'xmlcharrefreplace'), 'reviewer':reviewer, 'reviewer_name': login_name, 'date_reviewed': date_reviewed, 'review_text':review_text})
 
+    return review_info
+
+def get_review(cur,review_id):
+    cur.execute('''
+        SELECT review_id, core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
+        FROM review
+        JOIN books USING (book_id)
+        JOIN book_core USING (core_id)
+        JOIN booknet_user ON reviewer = user_id
+        WHERE review_id = %s
+    ''', (review_id,))
+    review_info = {}
+    for  review_id, core_id, book_id, book_title, reviewer, login_name, date_reviewed, review_text in cur:
+        review_info = {'core_id':core_id, 'id':review_id, 'book_id': book_id, 'book_title':book_title.decode('utf8', 'xmlcharrefreplace'),
+                       'user_id':reviewer, 'reviewer': login_name, 'date_reviewed': date_reviewed, 'review_text':review_text}
+
+    review_info['book'] = books.get_book(cur, review_info['book_id'])
     return review_info

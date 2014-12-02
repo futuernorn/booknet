@@ -23,7 +23,7 @@
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="{{ url_for(endpoint) }}?page={{ prevPage }}{{parameters}}"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
+            <a href="{{endpoint~'?page='~prevPage~parameters}}"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>
         {% if totalPages > 15 %}
             {% if ((page > 6) and (page < totalPages - 5)) %}
                 {{ paginator_range(endpoint,1,4,parameters) }}
@@ -44,7 +44,7 @@
         {% else %}
             <li class="disabled">
         {% endif %}
-            <a href="{{ url_for(endpoint) }}?page={{ nextPage }}{{parameters}}"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
+            <a href="{{endpoint~'?page='~nextPage~parameters}}"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>
 
       </ul>
     </nav>
@@ -55,7 +55,7 @@
 {% macro paginator_range(endpoint, start, end, parameters='') %}
 {% for currentPage in range(start,end+1) %}
     <li {% if currentPage == page %} class='active' {% endif %}>
-        <a href="{{ url_for(endpoint) }}?page={{ currentPage }}{{parameters}}">{{ currentPage }}</a>
+        <a href="{{endpoint~'?currentPage='~nextPage~parameters}}">{{ currentPage }}</a>
     </li>
 {% endfor %}
 {% endmacro %}

@@ -61,14 +61,14 @@
             {{navigation.menuitem('lists_index','Lists', active=active_page)}}
             {% call navigation.menudropdown('users_index', 'Users', active=active_page) %}
                 {{navigation.menuitem('users_index', 'Browse', active=active_page)}}
-                {% if not current_user.is_authenticated() %}
+                {% if current_user.is_authenticated() %}
                     <li class="divider"></li>
                     <li {% if request.endpoint == 'current_user_profile' or active_page == endpoint %} class='active' {% endif %}>
                     <a href="{{url_for('current_user_profile')}}">Profile</a>
                     </li>
+                    <li class="divider"></li>
+                    <li><a href="{{url_for('user_dashboard_following')}}">Following</a></li>
                 {% endif %}
-                <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
             {% endcall %}
             {% if not current_user.is_authenticated() %}
                 {{navigation.menuitem('login_index', 'Login', active=active_page)}}

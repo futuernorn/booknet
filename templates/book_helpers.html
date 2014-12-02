@@ -24,17 +24,17 @@
 </form>
 {% endmacro %}
 
-{% macro sort_button(display, attribute, direction='') %}
+{% macro sort_button(endpoint, display, attribute, direction='') %}
     <div class="btn-group">
       <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         {{ display }} <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
         <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
-          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
+          <a href="{{endpoint}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
           </li>
         <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
-          <a href="{{url_for('books_index')}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
+          <a href="{{endpoint}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
         </li>
       </ul>
     </div>
