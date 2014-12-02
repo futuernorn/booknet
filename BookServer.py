@@ -213,7 +213,7 @@ def add_reading_log():
     return redirect(request.args.get("next") or url_for("books_index"))
 
 
-####################### Lists #####################
+####################### Lists ##########################################################################################
 
 @app.route("/list/add/book")
 def add_book_list():
@@ -225,7 +225,40 @@ def display_list(lid):
 
 @app.route("/list")
 def lists_index():
-    return flask.render_template("lists_list.html")
+
+    if 'page' in flask.request.args:
+        page = int(flask.request.args['page'])
+    else:
+        page = 1
+    if page <= 0:
+        flask.abort(404)
+
+    with easypg.cursor() as cur:
+        total_pages = lists.get_total_pages(cur)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            list_info = lists.get_all_lists(cur, page, flask.session['user_id'])
+        else:
+            list_info = lists.get_all_lists(cur, page, None)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('lists_list.html',
+                                 lists=list_info,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
+
 
 
 ################## Ratings #########################
