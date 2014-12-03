@@ -52,7 +52,11 @@
     <tbody>
     {% for book in data %}
     <tr>
-        <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}"/></td>
+        {% if data.cover_name %}
+        <td><img src="{{ url_for('static', filename='images/covers/small/s'+data.cover_name+'-S.jpg') }}" class="pull-right img-thumbnail"/></td>
+        {% else %}
+        <td><img src="{{ url_for('static', filename='images/covers/small/s_placeholder-S.jpg') }}" class="pull-right img-thumbnail"/></td>
+        {% endif %}
         <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
         <td>
 	  {% for author in book.authors %}

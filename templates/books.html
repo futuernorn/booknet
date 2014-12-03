@@ -12,9 +12,11 @@
   <!-- Default panel contents -->
   {% block books_body %}{% endblock %}
   <div class="panel-heading">
+  {% if sort_options|length > 1 %}
     <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
       <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
     </button>
+  {% endif %}
     <h4>{{page_title}}</h4>
   </div>
     <div id="table_sorting_options" class="well">

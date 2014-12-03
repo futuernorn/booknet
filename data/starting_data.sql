@@ -325,3 +325,18 @@ ALTER SEQUENCE user_log_log_id_seq RESTART WITH 3001;
   SET date_started = date_completed,
       date_completed = date_started
   WHERE date_started > date_completed;
+  
+  
+  -- Batch update
+TRUNCATE TABLE book_search;
+INSERT INTO book_search (book_id, search_vector)
+  SELECT book_id,
+    setweight(to_tsvector(book_title), 'A')
+    || setweight(to_tsvector(coalesce(book_description, '')), 'B')
+  FROM books
+    LEFT OUTER JOIN (SELECT core_id, book_title, book_description
+                     FROM book_core
+                     ) core_info
+    USING (core_id);
+
+ANALYZE;

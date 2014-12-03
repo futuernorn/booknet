@@ -7,10 +7,13 @@ import easypg
 easypg.config_name = 'bookserver'
 import re
 from BooknetUser import *
-from lib import books, reviews, users, lists
+from lib import books, reviews, users, lists, logs
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
-
+ITEMS_PER_PAGE = 15
 
 ########################## Login Manager / Session Control ######################
 app = flask.Flask('BookServer')
@@ -31,7 +34,7 @@ app.debug = True
 @app.route("/")
 def home_index():
     with easypg.cursor() as cur:
-        book_info = books.get_spotlight_books(cur,4)
+        pages, book_info = books.get_spotlight_books(cur,4)
         review_info = reviews.get_spotlight_reviews(cur,4)
         list_info = lists.get_spotlight_lists(cur,4)
     return flask.render_template('home.html',
@@ -48,12 +51,12 @@ def home_index():
 @app.route("/books/authors")
 def books_by_authors():
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, book_info = books.get_all_books_by_authors(cur, page, flask.session['user_id'], sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_authors(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, book_info = books.get_all_books_by_authors(cur, page, None, sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_authors(cur, start, limit, None, sorting, sort_direction)
 
     if sorting:
         parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
@@ -67,12 +70,12 @@ def books_by_authors():
 @app.route("/author/<author_name>")
 def display_author(author_name):
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, author_info = books.get_all_books_by_author(cur, page, author_name, flask.session['user_id'], sorting, sort_direction)
+            total_pages, author_info = books.get_books_by_author(cur, start, limit, author_name, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, author_info = books.get_all_books_by_author(cur, page, author_name, None, sorting, sort_direction)
+            total_pages, author_info = books.get_books_by_author(cur, start, limit, author_name, None, sorting, sort_direction)
 
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
@@ -80,15 +83,16 @@ def display_author(author_name):
     return render_books_index('author.html', author_info, total_pages, sort_options, parameters, 'Books - %s' % author_name)
 
 # Publisher ###########################
-@app.route("/books/publisher")
+@app.route("/books/publishers")
 def books_by_publishers():
     page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
 
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, publisher_info = books.get_all_books_by_publishers(cur, page, flask.session['user_id'], sorting, sort_direction)
+            total_pages, publisher_info = books.get_books_by_publishers(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, publisher_info = books.get_all_books_by_publishers(cur, page, None, sorting, sort_direction)
+            total_pages, publisher_info = books.get_books_by_publishers(cur, start, limit, None, sorting, sort_direction)
 
     if sorting:
         parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
@@ -102,12 +106,12 @@ def books_by_publishers():
 @app.route("/publisher/<pid>")
 def display_publisher(pid):
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, publisher_info = books.get_all_books_by_publisher(cur, page, pid, flask.session['user_id'], sorting, sort_direction)
+            total_pages, publisher_info = books.get_books_by_publisher(cur, start, limit, pid, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, publisher_info = books.get_all_books_by_publisher(cur, page, pid, None, sorting, sort_direction)
+            total_pages, publisher_info = books.get_books_by_publisher(cur, start, limit, pid, None, sorting, sort_direction)
 
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
@@ -118,12 +122,12 @@ def display_publisher(pid):
 @app.route("/books/subjects")
 def books_by_subjects():
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, book_info = books.get_all_books_by_subjects(cur, page, flask.session['user_id'], sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_subjects(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, book_info = books.get_all_books_by_subjects(cur, page, None, sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_subjects(cur, start, limit, None, sorting, sort_direction)
 
     if sorting:
         parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
@@ -137,16 +141,17 @@ def books_by_subjects():
 @app.route("/books/subject/<subject>")
 def books_by_subject(subject):
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, book_info = books.get_all_books_by_subject(cur, page, subject, flask.session['user_id'], sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_subject(cur, start, limit, subject, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, book_info = books.get_all_books_by_subject(cur, page, subject, None, sorting, sort_direction)
+            total_pages, book_info = books.get_books_by_subject(cur, start, limit, subject, None, sorting, sort_direction)
 
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+
     return render_books_index('books_index.html', book_info, total_pages, sort_options, parameters, 'Books - %s' % subject)
 
 @app.route("/books/<bid>")
@@ -165,50 +170,17 @@ def display_book(bid):
                                  book_info=book_info,
                                  next=next)
 
-@app.route("/book/add", methods=['GET', 'POST'])
-def add_book():
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-    else:
-        next = flask.url_for("add_book")
-    return flask.render_template("book_edit_form.html",
-                                 book_info=None,
-                                 next=next)
 
-@app.route("/book/edit/<bid>", methods=['GET', 'POST'])
-def edit_book(bid):
-    errors = []
-    if flask.request.method == 'POST':
-        with easypg.cursor() as cur:
-            edit_status, messages = books.edit_book(cur, bid, flask.request.form)
-            if edit_status:
-                for message in messages:
-                    flask.flash(message)
-                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=bid))
-            else:
-                for message in messages:
-                    errors.append(message)
-
-    if 'next' in flask.request.args:
-        next = flask.request.args['next']
-    else:
-        next = flask.url_for("display_book", bid=bid)
-    with easypg.cursor() as cur:
-            book_info = books.get_book(cur,bid)
-    return flask.render_template("book_edit_form.html",
-                                 book_info=book_info,
-                                 error=errors,
-                                 next=next)
 
 @app.route("/books")
 def books_index():
     page, sorting, sort_direction = parse_sorting()
-
+    start, limit = get_item_limits(page)
     with easypg.cursor() as cur:
         if flask.ext.login.current_user.is_authenticated():
-            total_pages, book_info = books.get_all_books(cur, page, flask.session['user_id'], sorting, sort_direction)
+            total_pages, book_info = books.get_books(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
         else:
-            total_pages, book_info = books.get_all_books(cur, page, None, sorting, sort_direction)
+            total_pages, book_info = books.get_books(cur, start, limit, None, sorting, sort_direction)
 
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
@@ -257,11 +229,80 @@ def render_books_index(template, data, total_pages, sort_options = None, paramet
                                  sort_options=sort_options,
                                  parameters=parameters,
                                  page_title=title)
-#################### Reading Logs #############################
+
+# Modify #######################
+@app.route("/book/add", methods=['GET', 'POST'])
+@flask.ext.login.login_required
+def add_book_core():
+    return add_book(0)
+
+@app.route("/book/add/<bid>", methods=['GET', 'POST'])
+@flask.ext.login.login_required
+def add_book(bid):
+    errors = []
+    if flask.request.method == 'POST':
+        with easypg.cursor() as cur:
+            edit_status, messages, book_id = books.add_book(cur, bid, flask.ext.login.current_user.id, flask.request.form)
+            print "Posted book data: %s..." % messages
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=book_id))
+            else:
+                for message in messages:
+                    errors.append(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+
+    book_info = {'title': 'New Book Addition', 'core_id': '0'}
+    return flask.render_template("book_edit_form.html",
+                                 book_info=book_info,
+                                 page_title="Add A Book!",
+                                 error=errors,
+                                 next=next)
+
+
+@app.route("/book/edit/<bid>", methods=['GET', 'POST'])
+def edit_book(bid):
+    errors = []
+    if flask.request.method == 'POST':
+        with easypg.cursor() as cur:
+            edit_status, messages = books.edit_book(cur, bid, flask.request.form)
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=bid))
+            else:
+                for message in messages:
+                    errors.append(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("display_book", bid=bid)
+    with easypg.cursor() as cur:
+            book_info = books.get_book(cur,bid)
+    return flask.render_template("book_edit_form.html",
+                                 book_info=book_info,
+                                 error=errors,
+                                 next=next)
+
+#################### Reading Logs ######################################################################################
 
 @app.route("/log/<lid>")
 def display_log(lid):
-    raise NotImplementedError
+    with easypg.cursor() as cur:
+        log_info = logs.get_log(cur, lid)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+    return flask.render_template("log.html",
+                          log=log_info,
+                          next=next)
 
 @app.route("/log/<year>")
 def display_logs_by_year(year):
@@ -334,7 +375,7 @@ def lists_index():
 
 
 
-################## Ratings #########################
+################## Ratings #############################################################################################
 
 @app.route("/books/rating/add/<bid>", methods=['POST'])
 @flask.ext.login.login_required
@@ -480,7 +521,7 @@ def reviews_index():
 
 
 
-################### Moderation / Current User Actions ############################
+################### Moderation / Current User Actions ##################################################################
 
 @app.route("/dashboard/")
 @flask.ext.login.login_required
@@ -510,7 +551,7 @@ def current_user_profile():
 
 
 
-#####################  User Management ##########################
+#####################  User Management #################################################################################
 
 @app.route("/user/<uid>")
 def display_user_profile(uid):
@@ -682,14 +723,49 @@ def logout():
     return flask.redirect(flask.url_for('home_index'))
 
 
-###################################### Search #################################
+###################################### Search ##########################################################################
 @app.route('/search')
 def search_index():
+    page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
+
+
+
     if 'q' in flask.request.args:
         query = flask.request.args['q']
     else:
         flask.abort(400)
-    raise NotImplementedError
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, results = books.search_books(cur, query, start, limit, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, results = books.search_books(cur, query, start, limit, None, sorting, sort_direction)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    sort_options = {}
+    return flask.render_template('book_search_results.html',
+                                 data=results,
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage,
+                                 sorting=sorting,
+                                 sort_direction=sort_direction,
+                                 sort_options=sort_options,
+                                 parameters='&q=%s' % query,
+                                 page_title='Search Results - %s' % query,
+                                 search=query)
+    # return render_books_index('book_search_results.html', results, total_pages, sort_options, '')
+
 
 @app.route('/articles/<aid>/comments/add', methods=['POST'])
 def add_comment(aid):
@@ -709,7 +785,9 @@ def add_comment(aid):
 
 
 
-
+####################################### Utility ########################################################################
+def get_item_limits(page):
+    return ((page - 1) * ITEMS_PER_PAGE), ITEMS_PER_PAGE
 
 
 

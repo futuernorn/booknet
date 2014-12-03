@@ -11,13 +11,11 @@
     {% endif %}
 </div>
 {% endmacro %}
-{% set page_title = 'Book Info: ' + book_info.title %}
 {% set active_page = 'books_index' %}
 {% extends "layout.html" %}
 {% block head %}
 {% endblock %}
 {% block body %}
-<!-- TODO: Add book_type, page_count field -->
     <div class="container-fluid">
     {% for error in errors %}
     <div class="alert alert-danger" role="alert">
@@ -25,10 +23,14 @@
     </div>
     {% endfor %}
     <div class="clearfix">
+        {% if book_info.cover_name %}
         <img src="{{ url_for('static', filename='images/covers/medium/m'+book_info.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+        {% else %}
+        <img src="{{ url_for('static', filename='images/covers/medium/m_placeholder-M.jpg') }}" class="pull-right img-thumbnail"/>
+        {% endif %}
         <h1 class="page-header">{{ book_info.title }}</h1>
     </div>
-    <form action="{{ url_for('edit_book', bid=book_info.core_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
+    <form action="{{request.url}}" method="POST" class="form-signin" role="form">
     <ul class="list-group">
         <li class="list-group-item"><h4>ID: {{ book_info.core_id }}</h4> </li>
         <li class="list-group-item"><h4>Title: </h4>
@@ -36,14 +38,22 @@
         <input type="text" name="inputBookTitle" id="inputBookTitle" class="form-control" placeholder="Book Title" value="{{ book_info.title }}" required autofocus>
         </li>
         <li class="list-group-item"><h4>Description:</h4>
-            <label for="book_description" class="sr-only">Book Description:</label>
-            <textarea class="form-control" rows="5" id="book_description">
+            <label for="inputBookDescription" class="sr-only">Book Description:</label>
+            <textarea class="form-control" rows="5" name="inputBookDescription" id="inputBookDescription">
                 {{book_info.book_description}}
             </textarea>
         </li>
         <li class="list-group-item"><h4>ISBN: </h4>
         <label for="inputBookISBN" class="sr-only">Book ISBN</label>
         <input type="text" name="inputBookISBN" id="inputBookISBN" class="form-control" placeholder="Book ISBN" value="{{ book_info.isbn }}">
+        </li>
+        <li class="list-group-item"><h4>Page Count: </h4>
+        <label for="inputBookPageCount" class="sr-only">Book Page Count</label>
+        <input type="text" name="inputBookPageCount" id="inputBookPageCount" class="form-control" placeholder="Page Count" value="{{ book_info.page_count }}">
+        </li>
+        <li class="list-group-item"><h4>Book Type: </h4>
+        <label for="inputBookType" class="sr-only">Book Type</label>
+        <input type="text" name="inputBookType" id="inputBookType" class="form-control" placeholder="Book Type" value="{{ book_info.type }}">
         </li>
         <li class="list-group-item"><h4>Authors:</h4>
 
@@ -80,12 +90,18 @@
                 {{ add_remove_field('Subject',loop.index,book_info.subjects|length,'Subject',subject) }}
             {% endfor %}
         </li>
+        <li class="list-group-item"><h4>Reason for Request:</h4>
+            <label for="inputBookRequestText" class="sr-only">Reason for Request:</label>
+            <textarea class="form-control" rows="5" name="inputBookRequestText" id="inputBookRequestText">
+                {{book_info.book_description}}
+            </textarea>
+        </li>
     </ul>
     <hr />
     <div class="control-group">
       <!-- Button -->
       <div class="controls">
-          <button type="submit" class="btn btn-lg btn-default btn-block" type="submit" id="submit_edit_btn">Submit Edits</button>
+          <button type="submit" class="btn btn-lg btn-default btn-block" type="submit" id="submit_edit_btn">Submit Book</button>
           <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
       </div>
     </div>
