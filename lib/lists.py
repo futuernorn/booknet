@@ -65,7 +65,11 @@ def get_list(cur,list_id,user_id=None):
     return list_info
 
 def create_list(cur, list_name, description, user_id):
-    
+    create_status = True
+    message = []
+    list_id = 0
+    if list_name == '':
+        return False, ['List name must be provided!'], 0
     cur.execute('''
         SELECT list_id
         FROM list
@@ -73,27 +77,40 @@ def create_list(cur, list_name, description, user_id):
     ''', (list_name, user_id))
     # first two queries should be able to be combined
     if cur.rowcount == 1:
-        message = "%s has already created a list with this name (%s)!" % (user_id, list_name)
+        message.append("%s has already created a list with this name (%s)!" % (user_id, list_name))
     else:
         cur.execute('''
           INSERT INTO list (list_name, user_id, date_created, list_description)
           VALUES(%s, %s, current_timestamp, %s)
-          RETURNING booklist_id
+          RETURNING list_id
         ''', (list_name, user_id, description))
         if cur.rowcount == 1:
-            message = "Created new list: %s!" % list_name
+            list_id = cur.fetchone()[0]
+            message.append("Created new list: %s!" % list_name)
         else:
-            message = "Unknown error!"
+            message.append("Unknown error!")
+            create_status = False
 
     # else:
     #     message = "User not currently authenticated!"
 
-    return message
+    return create_status, message, list_id
 
 # def delete_list(cur,list_id,user_id):
 
 
-def add_book_to_list(cur, book_id, list_id, user_id):
+def add_book_to_list(cur, user_id, form):
+    create_status = True
+    message = []
+    book_id = form['book_id']
+
+    if form['listRadioGroup'] == 'new':
+        create_status, message, list_id = create_list(cur, form['newInputListName'], form['newInputListDesc'], user_id)
+        if not create_status:
+            return create_status, message, list_id
+    else:
+        list_id = form['inputListID']
+
     print "Book id for adding list: %s" % book_id
     book_info = books.get_book(cur, book_id)
     # try:
@@ -104,7 +121,7 @@ def add_book_to_list(cur, book_id, list_id, user_id):
     ''', (book_id, list_id))
     # first two queries should be able to be combined
     if cur.rowcount == 1:
-        message = "%s already in list %s!" % (book_info['title'], list_id)
+        message.append("%s already in list %s!" % (book_info['title'], list_id))
     else:
         cur.execute('''
           INSERT INTO book_list (book_id, list_id, date_added)
@@ -112,14 +129,14 @@ def add_book_to_list(cur, book_id, list_id, user_id):
           RETURNING booklist_id
         ''', (book_info['core_id'], list_id))
         if cur.rowcount == 1:
-            message = "%s added to list %s!" % (book_info['title'], list_id)
+            message.append("%s added to list %s!" % (book_info['title'], list_id))
         else:
-            message = "Unknown error!"
+            message.append("Unknown error!")
 
     # else:
     #     message = "User not currently authenticated!"
 
-    return message
+    return create_status, message, list_id
 
 def remove_book_from_list(cur, book_id, list_id):
     print "Book id for removing rating: %s" % book_id

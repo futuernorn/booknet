@@ -318,9 +318,29 @@ def add_reading_log():
 
 ####################### Lists ##########################################################################################
 
-@app.route("/list/add/book")
+@app.route("/list/add/bid", methods=['POST'])
+@flask.ext.login.login_required
 def add_book_list():
-    raise NotImplementedError
+    errors = []
+
+    app.logger.info('Received new data for list from user_id %s: %s', flask.ext.login.current_user.id, flask.request.form)
+    with easypg.cursor() as cur:
+        entry_status, messages, list_id = lists.add_book_to_list(cur, flask.ext.login.current_user.id, flask.request.form)
+        app.logger.info("Review submitted %s - %s - %s", entry_status, messages, list_id)
+        if entry_status:
+            for message in messages:
+                flask.flash(message)
+            return flask.redirect(flask.request.args.get("next") or flask.url_for("display_list", lid=list_id))
+        else:
+            for message in messages:
+                errors.append(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("reviews_index")
+
+    return flask.redirect(next)
 
 @app.route("/list/<lid>")
 def display_list(lid):
@@ -374,6 +394,14 @@ def lists_index():
                                  nextPage=nextPage,
                                  prevPage=prevPage)
 
+#Reference: http://flask.pocoo.org/docs/0.10/patterns/jquery/
+@app.route("/list/_current_user")
+@flask.ext.login.login_required
+def get_user_lists():
+    user_id = flask.ext.login.current_user.id
+    with easypg.cursor() as cur:
+        user_lists = users.get_user_lists(cur, user_id)
+    return flask.jsonify(user_lists)
 
 
 ################## Ratings #############################################################################################
@@ -546,8 +574,9 @@ def user_dashboard_following():
                                  user_info=user_info)
 
 @app.route("/profile")
+@flask.ext.login.login_required
 def current_user_profile():
-    return NotImplementedError
+    return display_user_profile(flask.ext.login.current_user.id)
 
 
 

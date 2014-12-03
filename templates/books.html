@@ -75,7 +75,8 @@
 
 
 <div id="shelfForm" class="hidden">
-             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalForm">
+             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalFormShelf">
+                 <input type="hidden" name="book_id" id="list_book_id_shelf"/>
             <div class="form-group">
                 <div class='input-group date' id='starting_date'>
                     <input type='text' class="form-control" placeholder="Starting Date" />
@@ -111,31 +112,29 @@
 
 <div id="listForm" class="hidden">
 <form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
-<h4>Add to Existing List</h4>
-    <div class="input-group">
-          <span class="input-group-addon">
-            <input type="radio" name="listRadioGroup" >
-          </span>
-          <label for="inputListName" class="sr-only">List Name</label>
-          <select class="form-control" name="inputListName" id="inputListName">
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>5</option>
-            </select>
-        </div>
+<input type="hidden" name="book_id" id="list_book_id_list"/>
 
-    <hr />
+
 <h4>Add to New List</h4>
     <div class="input-group">
           <span class="input-group-addon">
-            <input type="radio" name="listRadioGroup" checked>
+            <input type="radio" name="listRadioGroup" id="newListRadio" value="new" checked>
           </span>
           <label for="newInputListName" class="sr-only">List Name</label>
           <input type="text" name="newInputListName" id="newInputListName" class="form-control" placeholder="List name" value="" required autofocus>
-        </div>
+            <label for="newInputListDesc" class="sr-only">Book Description:</label>
+            <textarea class="form-control" rows="5" name="newInputListDesc" id="newInputListDesc">Description</textarea>
 
+        </div>
+    <hr />
+<h4>Add to Existing List</h4>
+    <div class="input-group">
+          <span class="input-group-addon">
+            <input type="radio" name="listRadioGroup"  id="existingListRadio" value="existing">
+          </span>
+          <!--<label for="inputListName" class="sr-only">List Name</label>-->
+        <div id="existingListNameDiv"><select class="selectpicker" name="inputListID" id="existingListName"></select></div>
+        </div>
 
 </form>
 
@@ -147,66 +146,98 @@
 {% block footer_scripts %}
 <script type="text/javascript">
 $(window).load(function(){
-        $("#starting_date").datetimepicker({
-					pickTime: false
-				});
-        $("#completed_date").datetimepicker({
-					pickTime: false
-				});
-    //$(document).ready(function(){
-        {% if not sorting %}
-      $('#table_sorting_options').toggleClass('hidden');
-        {% else %}
-        $('#sorting_toggle_btn').toggleClass('active');
-        {% endif %}
-      $('#sorting_toggle_btn').click(function(){
+    //https://github.com/silviomoreto/bootstrap-select
+    $('.selectpicker').selectpicker();
+
+    //http://eonasdan.github.io/bootstrap-datetimepicker
+    $("#starting_date").datetimepicker({
+        pickTime: false
+    });
+    $("#completed_date").datetimepicker({
+        pickTime: false
+    });
+
+    {% if not sorting %}
         $('#table_sorting_options').toggleClass('hidden');
-          {% if not sorting %}
+    {% else %}
+        $('#sorting_toggle_btn').toggleClass('active');
+    {% endif %}
+
+    $('#sorting_toggle_btn').click(function(){
+        $('#table_sorting_options').toggleClass('hidden');
+        {% if not sorting %}
         $(this).toggleClass('active');
-          {% endif %}
+        {% endif %}
+    });
 
-
-      });
-      $('.rating-star').click(function(){
+    $('.rating-star').click(function(){
         var value = $(this).attr('value');
         var book_id = $(this).attr('book_id');
-        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
-          $("#pleaseWaitDialog").modal('show')
+
+        $("#pleaseWaitDialog").modal('show')
         $(this).closest("form").submit();
-
-    });
-    $("#bookModalSubmit").click(function(){
-        $("#bookModalForm").submit();
     });
 
-            //http://eonasdan.github.io/bootstrap-datetimepicker
 
     $(".add_to_shelf").click(function () {
-    $("#starting_date").datetimepicker({
-					pickTime: false
-				});
+        $("#starting_date").datetimepicker({
+            pickTime: false
+        });
         $("#completed_date").datetimepicker({
-					pickTime: false
-				});
-     var currentID = $(this).data('id');
-     var currentTitle = $(this).data('title');
-     $("#bookModalBookId").val( currentID );
-//        console.log($(this));
-     $("#bookModalBookTitle").html( currentTitle );
-     $("#bookModalBody").html($("#shelfForm").html())
-//        $.ajax() -- load logs?
-     // As pointed out in comments,
-     // it is superfluous to have to manually call the modal.
-     // $('#addBookDialog').modal('show');
-    });
-    $(".add_to_list").click(function() {
-             var currentID = $(this).data('id');
-     var currentTitle = $(this).data('title');
-     $("#bookModalBookId").val( currentID );
-//        console.log($(this));
-     $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
-     $("#bookModalBody").html($("#listForm").html())
+            pickTime: false
+        });
+        var currentID = $(this).data('id');
+        var currentTitle = $(this).data('title');
+        $("#bookModalBookId").val( currentID );
 
+        $("#bookModalBookTitle").html( currentTitle );
+        $("#bookModalBody").html($("#shelfForm").html())
+        //$.ajax() -- load logs?
+        // As pointed out in comments,
+        // it is superfluous to have to manually call the modal.
+        // $('#addBookDialog').modal('show');
+    });
+
+    $(".add_to_list").click(function() {
+        var currentID = $(this).data('id');
+        var currentTitle = $(this).data('title');
+        $("#bookModalBookId").val( currentID );
+        //console.log($(this));
+        $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
+        $("#bookModalBody").html($("#listForm").html())
+
+//        $("#listModalForm"){{ url_for('add_book_list') }}?next={{ request.path }}
+        $("#list_book_id_list").val(currentID);
+        $("#bookModalSubmit").click(function(){
+            $("#listModalForm").submit();
+        });
+
+
+        // Can't resist a bit of ajax
+        $.getJSON($SCRIPT_ROOT + '/list/_current_user', function(data) {
+            $('.selectpicker').selectpicker('destroy');
+            $("#existingListNameDiv").html('<select class="selectpicker" name="inputListID" id="existingListName"></select>')
+
+
+            if (!($.isEmptyObject(data))) {
+
+                innerHtml = '';
+                $.each(data, function(n, list) {
+                    innerHtml += "<option value='"+list['list_id']+"'>"+list['list_name']+" ("+list['num_books']+")</option>";
+                });
+
+                $("#existingListName").html(innerHtml).selectpicker();
+
+                $("#existingListRadio").attr("disabled",false);
+            } else {
+                $(".selectpicker").selectpicker('destroy')
+                        .html('<option>No Lists Found</option>')
+                        .prop('disabled',true)
+                        .selectpicker();
+
+                $("#existingListRadio").attr("disabled",true);
+            }
+        });
     });
 
 });

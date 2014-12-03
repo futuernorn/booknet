@@ -3,6 +3,36 @@ from psycopg2 import errorcodes
 
 USERS_PER_PAGE = 15;
 
+
+QUERIES = {
+    'reviews_count': '''
+        SELECT COUNT(*) FROM review;
+    ''',
+    'reviews_by_book_count': '''
+        SELECT COUNT(*) FROM review WHERE book_id = %s;
+    ''',
+    'select_user_where': '''
+        SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
+        COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
+        FROM booknet_user
+        JOIN review ON user_id = reviewer
+        LEFT JOIN list USING (user_id)
+        LEFT JOIN book_list USING (list_id)
+        JOIN user_level USING (level_id)
+        LEFT JOIN user_log ON user_id = reader
+        LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
+        WHERE user_id = %s
+        GROUP BY user_id, login_name, level_name, is_followed
+    ''',
+    'select_user_lists': '''
+      SELECT list_id, list_name, COUNT(DISTINCT book_id) as num_books
+      FROM list JOIN book_list USING (list_id)
+      WHERE user_id = %s
+      GROUP BY list_id, list_name;
+    '''
+}
+
+
 def get_total_pages(cur):
     cur.execute('''
         SELECT COUNT(*)
@@ -52,25 +82,15 @@ def get_user_feed(cur,user_id):
 
     return user_info
 def get_user(cur,user_id,current_user_id=None):
-    cur.execute('''
-        SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE), COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
-        COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read
-        FROM booknet_user
-        JOIN review ON user_id = reviewer
-        JOIN list USING (user_id)
-        JOIN book_list USING (list_id)
-        JOIN user_level USING (level_id)
-        JOIN user_log ON user_id = reader
-        LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
-        WHERE user_id = %s
-        GROUP BY user_id, login_name, level_name, is_followed
-    ''', (current_user_id, user_id))
+    query = QUERIES['select_user_where'] % ('%s', '%s')
+    cur.execute(query, (user_id, current_user_id))
     user_info = {}
-    for user_id, login_name, level_name, is_followed, num_unique_list_books, num_total_books_read, num_unique_books_read in cur:
+    for user_id, login_name, level_name, is_followed, num_unique_list_books, num_total_books_read, num_unique_books_read, num_reviews in cur:
     # is_followed = False
-        user_info = ({'id':user_id, 'name': login_name, 'access_level': level_name,
+        user_info = ({'id':user_id, 'name': login_name, 'access_level': level_name, 'num_reviews': num_reviews,
                       'num_unique_list_books': num_unique_list_books, 'num_total_books_read': num_total_books_read,
                       'num_unique_books_read': num_unique_books_read, 'is_followed': is_followed})
+
 
     # get lists
     cur.execute('''
@@ -83,6 +103,20 @@ def get_user(cur,user_id,current_user_id=None):
     user_info['lists'] = []
     for list_id, list_name, date_created, num_books in cur:
         user_info['lists'].append({'list_id': list_id, 'list_name': list_name, 'date_created': date_created, 'num_books': num_books})
+
+    # get reviews
+    cur.execute('''
+        SELECT review_id, book_core.core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
+        FROM review
+        JOIN book_core ON review.book_id = book_core.core_id
+        JOIN books USING (book_id)
+        JOIN booknet_user ON reviewer = user_id
+        WHERE reviewer = %s
+    ''', (user_id,))
+    user_info['reviews'] = []
+    for  review_id, core_id, book_id, book_title, reviewer, login_name, date_reviewed, review_text in cur:
+        user_info['reviews'].append({'core_id':core_id, 'id':review_id, 'book_id': book_id, 'date_reviewed': date_reviewed,
+                                     'review_text':review_text, 'book_title':book_title.decode('utf8', 'xmlcharrefreplace')})
 
     # get logs
     cur.execute('''
@@ -188,6 +222,18 @@ def get_user_range(cur,start,amount, user_id=None):
             user['num_books_read'] = num_books_read[0]
     return user_info
 
+def get_user_lists(cur,user_id):
+    lists = {}
+    query = QUERIES['select_user_lists'] % '%s'
+    cur.execute(query, (user_id,))
+
+    for list_id, list_name, num_books in cur:
+        lists[cur.rownumber] = {'list_id': list_id, 'list_name': list_name, 'num_books': num_books};
+
+    return lists
+
+
+#################### Following #########################################################################################
 def add_follower(cur, followee, follower):
 
     # user_info = get_user(cur,  followee.get_id())
