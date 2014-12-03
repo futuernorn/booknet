@@ -1,40 +1,4 @@
-{# Star rating macros #}
-{% macro star_ratings(endpoint, book_id, rating='') %}
-<form action="{{ url_for(endpoint) }}" method="POST" role="form" class="form-horizontal">
-<fieldset class="rating">
-    {% for num in range(10,0,-1) %}
-        {% set num = num / 2 %}
-        {% if num % 1 %}
-            {% set class = "half" %}
-        {% else %}
-            {% set class = "full" %}
-        {% endif %}
-        {% set is_selected = False %}
-        {% if num == rating %}
-            {% set is_selected = True %}
-        {% endif %}
-        <input type="radio" id="{{book_id}}_star{{num}}" book_id="{{book_id}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
-        <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
-    {% endfor %}
-</fieldset>
-</form>
-{% endmacro %}
-
-{% macro sort_button(endpoint, display, attribute, direction='') %}
-    <div class="btn-group">
-      <button type="button" class="btn {% if sorting == attribute %}btn-success {% else %}btn-default {% endif %}dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        {{ display }} <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        <li {% if sorting == attribute and sort_direction == "ASC" %} class='active' {% endif %}>
-          <a href="{{url_for(endpoint)}}?sorting={{attribute}}&sort_direction=ASC">Ascending</a>
-          </li>
-        <li {% if sorting == attribute and sort_direction == "DESC" %} class='active' {% endif %}>
-          <a href="{{url_for(endpoint)}}?sorting={{attribute}}&sort_direction=DESC">Decending</a>
-        </li>
-      </ul>
-    </div>
-{% endmacro %}
+{% import 'book_helpers.html' as helpers with context %}
 
 {# layout.html settings #}
 {% set page_title = 'Add Review' %}
@@ -45,56 +9,79 @@
 {% endblock %}
 {% block body %}
 <br>
-<div class="panel panel-default">
-  <!-- Default panel contents -->
-  <div class="panel-heading">
-    <h4>{{ book_info.title }} - Add Review</h4>
-  </div>
-    <ul class="list-group">
-      <li class="list-group-item">Author: {{ book_info.author }}</li>
-      <li class="list-group-item">Pages: {{ book_info.page_count}}</li>
-      <li class="list-group-item"><div>Average Rating: {{book_info.avg_rating}}{{ star_ratings("books_index",book_info.book_id,book_info.avg_rating) }}&nbsp;</div></li>
-    </ul>
-    <br />
 
-
-
-        <form action="{{ url_for('add_review', bid=book_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
-            <p class="help-block">Please enter your review below!</p>
-            <label for="review_input" class="sr-only">Username</label>
-            <textarea name="review_input" id="review_input" class="form-control" rows="10" required autofocus></textarea>
-
-
-
-<hr />
-            <div class="control-group">
-              <!-- Button -->
-              <div class="controls">
-
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Submit Review</button>
-                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
-              </div>
-            </div>
-          </fieldset>
-        </form>
+{% for error in errors %}
+<div class="alert alert-danger" role="alert">
+    <strong>Oh snap!</strong> {{ error }}
 </div>
+{% endfor %}
 
+<div class="panel panel-default">
+<!-- Default panel contents -->
+    <div class="panel-heading">
+        <h4><a href="{{url_for('display_book',bid=book_info.core_id)}}">{{ book_info.title }}</a> - Add Review</h4>
+    </div>
+    <ul class="list-group">
+        <form action="{{ url_for('add_review', bid=book_info.core_id) }}?next={{next}}" method="POST" class="form-signin" role="form">
+        <li class="list-group-item">{{ helpers.display_authors(book_info.authors) }}</li>
+        <li class="list-group-item">Pages: {{ book_info.num_pages}}</li>
+        <li class="list-group-item">
+            <div>
 
+                {{book_info.avg_rating}}{{ helpers.star_ratings_inputs(book_info.core_id,book_info.user_rating) }}
+                <span class="small">(avg. {{ book_info.avg_rating }})</span> &nbsp;
+
+            </div>
+
+            <div class="clearfix">
+                <a href="javascript:void(0);" class="remove-book-rating pull-left" >
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </a>
+                <hr />
+                {% if book_info.user_rating %}
+                <p class="small">
+                    <input type="radio" id="remove_rating" name="remove_rating" value="remove_rating" class="hidden" aria-hidden="true"/>
+                    <label  for="remove_rating" title="Remove rating"></label>
+                    Your current rating: {{ book_info.user_rating }}
+                </p>
+                {% endif %}
+            </div>
+
+        </li>
+        <li class="list-group-item">
+            <p class="help-block">Please enter your review below!</p>
+            <label for="review_input" class="sr-only">Review Text</label>
+            <textarea name="review_input" id="review_input" class="form-control" rows="10" required autofocus></textarea>
+        </li>
+        <liclass="list-group-item">
+            <div class="control-group">
+                <!-- Button -->
+                <div class="controls">
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Submit Review</button>
+                <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+                </div>
+            </div>
+        </li>
+        </form>
+    </ul>
+</div>
 {% endblock %}
 
 
 {% block footer_scripts %}
 <script type="text/javascript">
-    $(window).load(function(){
-    //$(document).ready(function(){
-
-      $('.rating-star').click(function(){
+$(window).load(function(){
+    $('.rating-star').click(function(){
         var value = $(this).attr('value');
         var book_id = $(this).attr('book_id');
         console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
-//        $(this).closest("form").submit();
     });
+
+    $('.remove-book-rating').click(function() {
+        $('.rating-star').prop('checked', false);
+        $('.remove_rating').prop('checked', false);
     });
+});
 
 </script>
 {% endblock %}

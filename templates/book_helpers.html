@@ -1,6 +1,13 @@
 {# Star rating macros #}
-{% macro star_ratings(book_id, next, rating='') %}
-<form action="{{ url_for('add_book_rating',bid=book_id) }}" method="POST" role="form">
+{% macro star_ratings(endpoint, book_id, next, rating='') %}
+<form action="{{ endpoint }}" method="POST" role="form">
+<input type="hidden" name="user_id" value="{{current_user.get_id()}}"/>
+<input type="hidden" name="next" value="{{next}}"/>
+{{ star_ratings_inputs(book_id, rating) }}
+</form>
+{% endmacro %}
+
+{% macro star_ratings_inputs(book_id, rating) %}
 <fieldset class="rating">
 
     {% for num in range(10,0,-1) %}
@@ -14,14 +21,12 @@
         {% if num == rating %}
             {% set is_selected = True %}
         {% endif %}
-        <input type="radio" id="{{book_id}}_star{{num}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
-        <!--<input type="hidden" name="book_id" value="{{book_id}}"/>-->
-        <input type="hidden" name="user_id" value="{{current_user.get_id()}}"/>
-        <input type="hidden" name="next" value="{{next}}"/>
-        <label class="{{class}}" for="{{book_id}}_star{{num}}" title="{{ num }} stars"></label>
+
+        <input type="radio" id="star{{num}}_{{book_id}}" name="rating" class="rating-star" value="{{ num }}" {% if is_selected %}checked="checked"{% endif %}/>
+        <label class="{{class}}" for="star{{num}}_{{book_id}}" title="{{ num }} stars"></label>
     {% endfor %}
 </fieldset>
-</form>
+
 {% endmacro %}
 
 {% macro sort_button(endpoint, display, attribute, direction='') %}
@@ -40,6 +45,18 @@
     </div>
 {% endmacro %}
 
+{% macro display_authors(author_info) %}
+<h4>{% if author_info|length > 1 %}
+    Authors:
+    {% else %}
+    Author:
+    {% endif %}
+{% for author in author_info %}
+  <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}
+{% endfor %}
+</h4>
+{% endmacro %}
+
 {% macro books_table(data) %}
   <!-- Table -->
   <table class="table">
@@ -51,6 +68,7 @@
     </tr></thead>
     <tbody>
     {% for book in data %}
+
     <tr>
         {% if data.cover_name %}
         <td><img src="{{ url_for('static', filename='images/covers/small/s'+data.cover_name+'-S.jpg') }}" class="pull-right img-thumbnail"/></td>
@@ -71,7 +89,7 @@
             {% endif %}
         </td>
         <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ star_ratings(book.core_id,url_for('books_index') ~ '?page=' ~ page,book.discrete_rating) }}
+            <div style="vertical-align: middle;">{{ star_ratings(url_for('add_book_rating',bid=book_id),  book.core_id, url_for('books_index') ~ '?page=' ~ page, book.discrete_rating) }}
                 {% if book.avg_rating %}
                     <span class="small">(avg. {{ book.avg_rating }})</span></div>
                 {% endif %}

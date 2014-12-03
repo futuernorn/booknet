@@ -218,6 +218,7 @@ def render_books_index(template, data, total_pages, sort_options = None, paramet
     else:
         nextPage = page + 1
 
+
     return flask.render_template(template,
                                  data=data,
                                  page=page,
@@ -421,7 +422,33 @@ def remove_book_rating(bid):
 
 @app.route("/reviews/book/<bid>")
 def display_reviews_for_book(bid):
-    raise NotImplementedError
+    page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
+
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            current_user_id = flask.ext.login.current_user.id
+        else:
+            current_user_id = None
+        total_pages, review_info = reviews.get_reviews_by_book(cur, start, limit, bid, current_user_id)
+
+    if page > 1:
+        prevPage = page - 1
+    else:
+        prevPage = None
+
+    if page == total_pages:
+        nextPage = None
+    else:
+        nextPage = page + 1
+
+    return flask.render_template('review_list.html',
+                                 reviews=review_info['reviews'],
+                                 page_title='Reviews for: %s' % review_info['book_info']['title'],
+                                 page=page,
+                                 totalPages=total_pages,
+                                 nextPage=nextPage,
+                                 prevPage=prevPage)
 
 @app.route("/reviews/<rid>")
 def display_review(rid):
@@ -440,66 +467,39 @@ def display_review(rid):
 def add_review(bid):
     errors = []
     if flask.request.method == 'POST':
-        raise NotImplementedError
+        app.logger.info('Received new data for review from user_id %s: %s', flask.ext.login.current_user.id, flask.request.form)
+        with easypg.cursor() as cur:
+            entry_status, messages, review_id = reviews.add_review(cur, bid, flask.ext.login.current_user.id, flask.request.form)
+            app.logger.info("Review submitted %s - %s - %s", entry_status, messages, review_id)
+            if entry_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_review", rid=review_id))
+            else:
+                for message in messages:
+                    errors.append(message)
     with easypg.cursor() as cur:
-        book_info = books.get_book(cur,bid)
+        book_info = books.get_book(cur, bid, flask.ext.login.current_user.id)
+        # print book_info['user_rating']
     if 'next' in flask.request.args:
         next = flask.request.args['next']
     else:
-        next = flask.url_for("home_index")
+        next = flask.url_for("reviews_index")
+
     return flask.render_template("review_add_form.html",
-                                 book_info = book_info,
+                                 book_info=book_info,
+                                 error=errors,
                                  next=next)
 
 
 
-    if 'page' in flask.request.args:
-        page = int(flask.request.args['page'])
-    else:
-        page = 1
-    if page <= 0:
-        flask.abort(404)
-
-    with easypg.cursor() as cur:
-        total_pages = lists.get_total_pages(cur)
-
-    with easypg.cursor() as cur:
-        if flask.ext.login.current_user.is_authenticated():
-            list_info = lists.get_all_lists(cur, page, flask.session['user_id'])
-        else:
-            list_info = lists.get_all_lists(cur, page, None)
-
-    if page > 1:
-        prevPage = page - 1
-    else:
-        prevPage = None
-
-    if page == total_pages:
-        nextPage = None
-    else:
-        nextPage = page + 1
-
-    return flask.render_template('lists_list.html',
-                                 lists=list_info,
-                                 page=page,
-                                 totalPages=total_pages,
-                                 nextPage=nextPage,
-                                 prevPage=prevPage)
-
 @app.route("/reviews")
 def reviews_index():
-    if 'page' in flask.request.args:
-        page = int(flask.request.args['page'])
-    else:
-        page = 1
-    if page <= 0:
-        flask.abort(404)
+    page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
 
     with easypg.cursor() as cur:
-        total_pages = reviews.get_total_pages(cur)
-
-    with easypg.cursor() as cur:
-        review_info = reviews.get_all_reviews(cur, page)
+        total_pages, review_info = reviews.get_review_range(cur, start, limit)
 
     if page > 1:
         prevPage = page - 1
@@ -513,6 +513,7 @@ def reviews_index():
 
     return flask.render_template('review_list.html',
                                  reviews=review_info,
+                                 page_title='Reviews',
                                  page=page,
                                  totalPages=total_pages,
                                  nextPage=nextPage,
@@ -765,23 +766,6 @@ def search_index():
                                  page_title='Search Results - %s' % query,
                                  search=query)
     # return render_books_index('book_search_results.html', results, total_pages, sort_options, '')
-
-
-@app.route('/articles/<aid>/comments/add', methods=['POST'])
-def add_comment(aid):
-    name = flask.request.form['name']
-    text = flask.request.form['comment']
-    raise NotImplementedError
-    app.logger.info('got comment from %s: %s', name, text)
-
-    with easypg.cursor() as cur:
-        articles.add_comment(cur, aid, name, text)
-    # redirect user back to article which will display comments
-    # always redirect after a POST
-    return flask.redirect('/articles/' + aid)
-
-
-
 
 
 
