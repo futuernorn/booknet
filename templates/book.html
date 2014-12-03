@@ -9,7 +9,11 @@
 
     <div class="container-fluid">
         <div class="clearfix">
-            <img src="{{ url_for('static', filename='images/covers/medium/m'+book_info.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+        {% if book_info.cover_name %}
+        <img src="{{ url_for('static', filename='images/covers/medium/m'+book_info.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+        {% else %}
+        <img src="{{ url_for('static', filename='images/covers/medium/m_placeholder-M.jpg') }}" class="pull-right img-thumbnail"/>
+        {% endif %}
             <h1 class="page-header">{{ book_info.title }}</h1>
             {% if current_user.is_authenticated() %}<a class="small pull-right" href="#edit_book" style="padding-right:10px;">Edit</a> {% endif %}
         </div>
@@ -34,6 +38,8 @@
                         {% endif %}
                     </h4>
                 </li>
+                <li class="list-group-item"><h4>Page Count: {{ book_info.page_count }}</h4></li>
+                <li class="list-group-item"><h4>Book Type: {{ book_info.book_type }}</h4></li>
                 <li class="list-group-item">
                     <h4>{% if book_info.authors|length > 1 %}
                         Authors:

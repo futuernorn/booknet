@@ -102,6 +102,14 @@ hr.listing-cell-divider {
   text-overflow: ellipsis;
 }
 
+/*.stacking-context {*/
+    /*position: static;; z-index:1;*/
+/*}*/
+
+/*.selectpicker {*/
+    /*position: static;*/
+    /*z-index:5000;*/
+/*}*/
 
 /* Copied from openlibrary.org */
 /*.illustration img {max-width:180px!important;}*/

@@ -20,6 +20,13 @@ gunzip < booknet_11291400_parsed.sql.gz  | psql booknet -U postgres
 3. Execute data/starting_data.sql on the database to import generic starting manual and randomly generated data.
 
 ## Generated Data Information
+#### ratings
+10,000 entries
+Targeting book_id 1-5000
+rater: 1-30
+rating: 0|0.5|1|1.5|2|2.5|3|3.5|4|4.5|5
+date_rated: 12/01/2011 - 12/04/2014
+
 #### list
 500 entries
 Targeting user_id 1-30

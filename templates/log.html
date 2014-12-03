@@ -1,0 +1,68 @@
+{% import 'book_helpers.html' as helpers with context %}
+
+{% set active_page = 'logs_index' %}
+{% set page_title = 'Log: ' + log.book_title %}
+{% extends "layout.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="clearfix">
+            <img src="{{ url_for('static', filename='images/covers/medium/m'+log.book.cover_name+'-M.jpg') }}" class="pull-right img-thumbnail"/>
+            <h1 class="page-header">{{ log.book.title }}</h1>
+            <!--{% if current_user.is_authenticated() %}<a class="small pull-right" href="#edit_book" style="padding-right:10px;">Edit</a> {% endif %}-->
+        </div>
+            <ul class="list-group">
+              <li class="list-group-item"><h4>ID: {{ log.id }}</h4> </li>
+                <li class="list-group-item"><h4>Book: {{ log.book.title }}</h4></li>
+                <li class="list-group-item">
+                    <h4>Reader: <a href="{{url_for('display_user_profile',uid=log.user_id)}}">{{log.reader}}</a></h4>
+                </li>
+                <li class="list-group-item"><h4>Date Started: {{ log.date_completed }}</h4> </li>
+                <li class="list-group-item"><h4>Date Completed: {{ log.date_completed }}</h4> </li>
+                <li class="list-group-item"><h4>Log Text:</h4>
+                <div class="well">
+                    {% if log.log_text %}
+                        {{log.log_text}}
+                    {% else %}
+                        ---
+                    {% endif %}
+                </div>
+                      </tbody>
+                    </table>
+                  </div>
+              </li>
+
+            </ul>
+
+<hr />
+            <div class="control-group">
+              <!-- Button -->
+              <div class="controls">
+                  {% if current_user.is_authenticated() %}
+                  <a name="edit_book"></a>
+                  <a href="#" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+                  {% endif %}
+                  <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
+              </div>
+            </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block footer_scripts %}
+<script type="text/javascript">
+$(window).load(function(){
+    $('.rating-star').click(function(){
+        var value = $(this).attr('value');
+        var book_id = $(this).attr('book_id');
+        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
+        $("#pleaseWaitDialog").modal('show')
+        $(this).closest("form").submit();
+    });
+});
+</script>
+{% endblock %}

@@ -1,7 +1,6 @@
 {% import 'book_helpers.html' as helpers with context %}
 
 {# layout.html settings #}
-{% set page_title = 'Books' %}
 {% set active_page = 'books_index' %}
 {% extends "layout.html" %}
 {% block head %}
@@ -11,103 +10,30 @@
 <br>
 <div class="panel panel-default">
   <!-- Default panel contents -->
+  {% block books_body %}{% endblock %}
   <div class="panel-heading">
+  {% if sort_options|length > 1 %}
     <button id="sorting_toggle_btn" type="button" class="btn btn-default pull-right" aria-label="Left Align">
       <span class="glyphicon glyphicon-filter" aria-hidden="true"></span> Sorting
     </button>
-    <h4>Books</h4>
+  {% endif %}
+    <h4>{{page_title}}</h4>
   </div>
-        <div id="table_sorting_options" class="well">
+    <div id="table_sorting_options" class="well">
 
-
-        {{ helpers.sort_button("Title","book_title") }}
-        {{ helpers.sort_button("Publication Date","publication_date") }}
-        {{ helpers.sort_button("Avg. Rating","avg_rating") }}
-        {{ helpers.sort_button("Number of Readers","num_readers") }}
-        {% if sorting %}
-            <div class="btn-group">
-              <a href="{{url_for('books_index')}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
-            </div>
-        {% endif %}
-        </div>
-    {{ navigation.paginator('books_index','pull-right','&sorting='~sorting~'&sort_direction='~sort_direction) }}
-  <!-- Table -->
-  <table class="table">
-    <thead><tr>
-        <th>Cover</th><th>Title</th><th>Author</th><th># Pages</th><th>Avg. Rating</th><th>Tags</th><th>Actions</th>
-        {% if current_user.is_authenticated() %}
-
-        {% endif %}
-    </tr></thead>
-    <tbody>
-    {% for book in books %}
-    <tr>
-        <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}"/></td>
-        <td><a href="{{ url_for('display_book', bid=book.core_id)}}">{{ book.title }}</a></td>
-        <td>
-	  {% for author in book.authors %}
-	  <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>
-	  {% endfor %}
-	</td>
-        <td>
-            {% if book.num_pages %}
-                {{book.num_pages}}
-            {% else %}
-                Unknown
-            {% endif %}
-        </td>
-        <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ helpers.star_ratings(book.core_id,url_for('books_index') ~ '?page=' ~ page,book.discrete_rating) }}
-                {% if book.avg_rating %}
-                    <span class="small">(avg. {{ book.avg_rating }})</span></div>
-                {% endif %}
-            <hr class="listing-cell-divider" />
-            {% if book.user_rating %}<p class="text-muted"><a href="{{url_for('remove_book_rating', bid=book.core_id)}}" ><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>Your rating: {{ book.user_rating }}</p> {% endif %}
-        </td>
-        <td>
-            {% for subject in book.subjects %}
-            <a href="{{url_for('books_by_subject',subject=subject)}}"><span class="label label-default">{{ subject }}</span></a>&nbsp;
-            {% endfor %}
-        </td>
-        <td>
-        {% if current_user.is_authenticated() %}
-
-
-            <div class="btn-group">
-                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Add<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="{{ url_for('add_review', bid=book.core_id)}}?next={{ request.path }}">Review</a></li>
-                    <li><a href="#" class="add_to_shelf" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Reading Log</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">To List</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#" class="add_to_list" data-id="{{ book.core_id }}" data-title="{{ book.title }}" data-toggle="modal" data-target="#bookModal">Book Details</a></li>
-                  </ul>
-                </div>
-        {% endif %}
-            <div class="btn-group">
-
-                  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    View<span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" role="menu">
-
-
-                    <li><a href="{{ url_for('display_reviews_for_book',bid=book.core_id) }}">Reviews</a></li>
-                    <li><a href="#">Lists</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">View Lists Containing</a></li>
-                  </ul>
-                </div>
-        </td>
-    </tr>
+    {% for sort_display,sort_attribute in sort_options.iteritems() %}
+        {{ helpers.sort_button(request.path, sort_display, sort_attribute) }}
     {% endfor %}
-    </tbody>
-  </table>
-
-    {{ navigation.paginator('books_index') }}
+    {% if sorting %}
+        <div class="btn-group">
+          <a href="{{request.path}}" type="button" class="btn btn-warning"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Disable Sorting</a>
+        </div>
+    {% endif %}
+    </div>
+    {{ navigation.paginator(request.path,'pull-right',parameters) }}
+    <!-- Table -->
+    {% block books_table %}{% endblock %}
+    {{ navigation.paginator(request.path, 'pull-left', parameters) }}
 </div>
 
             <div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
@@ -149,7 +75,8 @@
 
 
 <div id="shelfForm" class="hidden">
-             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalForm">
+             <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalFormShelf">
+                 <input type="hidden" name="book_id" id="list_book_id_shelf"/>
             <div class="form-group">
                 <div class='input-group date' id='starting_date'>
                     <input type='text' class="form-control" placeholder="Starting Date" />
@@ -185,31 +112,29 @@
 
 <div id="listForm" class="hidden">
 <form action="{{ url_for('add_book_list') }}?next={{ request.path }}" method="POST" role="form" id="listModalForm">
-<h4>Add to Existing List</h4>
-    <div class="input-group">
-          <span class="input-group-addon">
-            <input type="radio" name="listRadioGroup" >
-          </span>
-          <label for="inputListName" class="sr-only">List Name</label>
-          <select class="form-control" name="inputListName" id="inputListName">
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>5</option>
-            </select>
-        </div>
+<input type="hidden" name="book_id" id="list_book_id_list"/>
 
-    <hr />
+
 <h4>Add to New List</h4>
     <div class="input-group">
           <span class="input-group-addon">
-            <input type="radio" name="listRadioGroup" checked>
+            <input type="radio" name="listRadioGroup" id="newListRadio" value="new" checked>
           </span>
           <label for="newInputListName" class="sr-only">List Name</label>
           <input type="text" name="newInputListName" id="newInputListName" class="form-control" placeholder="List name" value="" required autofocus>
-        </div>
+            <label for="newInputListDesc" class="sr-only">Book Description:</label>
+            <textarea class="form-control" rows="5" name="newInputListDesc" id="newInputListDesc">Description</textarea>
 
+        </div>
+    <hr />
+<h4>Add to Existing List</h4>
+    <div class="input-group">
+          <span class="input-group-addon">
+            <input type="radio" name="listRadioGroup"  id="existingListRadio" value="existing">
+          </span>
+          <!--<label for="inputListName" class="sr-only">List Name</label>-->
+        <div id="existingListNameDiv"><select class="selectpicker" name="inputListID" id="existingListName"></select></div>
+        </div>
 
 </form>
 
@@ -221,64 +146,98 @@
 {% block footer_scripts %}
 <script type="text/javascript">
 $(window).load(function(){
-        $("#starting_date").datetimepicker({
-					pickTime: false
-				});
-        $("#completed_date").datetimepicker({
-					pickTime: false
-				});
-    //$(document).ready(function(){
-        {% if not sorting %}
-      $('#table_sorting_options').toggleClass('hidden');
-        {% else %}
-        $('#sorting_toggle_btn').toggleClass('active');
-        {% endif %}
-      $('#sorting_toggle_btn').click(function(){
+    //https://github.com/silviomoreto/bootstrap-select
+    $('.selectpicker').selectpicker();
+
+    //http://eonasdan.github.io/bootstrap-datetimepicker
+    $("#starting_date").datetimepicker({
+        pickTime: false
+    });
+    $("#completed_date").datetimepicker({
+        pickTime: false
+    });
+
+    {% if not sorting %}
         $('#table_sorting_options').toggleClass('hidden');
+    {% else %}
+        $('#sorting_toggle_btn').toggleClass('active');
+    {% endif %}
+
+    $('#sorting_toggle_btn').click(function(){
+        $('#table_sorting_options').toggleClass('hidden');
+        {% if not sorting %}
         $(this).toggleClass('active');
+        {% endif %}
+    });
 
-
-      });
-      $('.rating-star').click(function(){
+    $('.rating-star').click(function(){
         var value = $(this).attr('value');
         var book_id = $(this).attr('book_id');
-        console.debug("Rating clicked -- value: "+value+" -- book_id: "+book_id);
-          $("#pleaseWaitDialog").modal('show')
+
+        $("#pleaseWaitDialog").modal('show')
         $(this).closest("form").submit();
-
-    });
-    $("#bookModalSubmit").click(function(){
-        $("#bookModalForm").submit();
     });
 
-            //http://eonasdan.github.io/bootstrap-datetimepicker
 
     $(".add_to_shelf").click(function () {
-    $("#starting_date").datetimepicker({
-					pickTime: false
-				});
+        $("#starting_date").datetimepicker({
+            pickTime: false
+        });
         $("#completed_date").datetimepicker({
-					pickTime: false
-				});
-     var currentID = $(this).data('id');
-     var currentTitle = $(this).data('title');
-     $("#bookModalBookId").val( currentID );
-//        console.log($(this));
-     $("#bookModalBookTitle").html( currentTitle );
-     $("#bookModalBody").html($("#shelfForm").html())
-//        $.ajax() -- load logs?
-     // As pointed out in comments,
-     // it is superfluous to have to manually call the modal.
-     // $('#addBookDialog').modal('show');
-    });
-    $(".add_to_list").click(function() {
-             var currentID = $(this).data('id');
-     var currentTitle = $(this).data('title');
-     $("#bookModalBookId").val( currentID );
-//        console.log($(this));
-     $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
-     $("#bookModalBody").html($("#listForm").html())
+            pickTime: false
+        });
+        var currentID = $(this).data('id');
+        var currentTitle = $(this).data('title');
+        $("#bookModalBookId").val( currentID );
 
+        $("#bookModalBookTitle").html( currentTitle );
+        $("#bookModalBody").html($("#shelfForm").html())
+        //$.ajax() -- load logs?
+        // As pointed out in comments,
+        // it is superfluous to have to manually call the modal.
+        // $('#addBookDialog').modal('show');
+    });
+
+    $(".add_to_list").click(function() {
+        var currentID = $(this).data('id');
+        var currentTitle = $(this).data('title');
+        $("#bookModalBookId").val( currentID );
+        //console.log($(this));
+        $("#bookModalBookTitle").html( currentTitle + ' - Add to List' );
+        $("#bookModalBody").html($("#listForm").html())
+
+//        $("#listModalForm"){{ url_for('add_book_list') }}?next={{ request.path }}
+        $("#list_book_id_list").val(currentID);
+        $("#bookModalSubmit").click(function(){
+            $("#listModalForm").submit();
+        });
+
+
+        // Can't resist a bit of ajax
+        $.getJSON($SCRIPT_ROOT + '/list/_current_user', function(data) {
+            $('.selectpicker').selectpicker('destroy');
+            $("#existingListNameDiv").html('<select class="selectpicker" name="inputListID" id="existingListName"></select>')
+
+
+            if (!($.isEmptyObject(data))) {
+
+                innerHtml = '';
+                $.each(data, function(n, list) {
+                    innerHtml += "<option value='"+list['list_id']+"'>"+list['list_name']+" ("+list['num_books']+")</option>";
+                });
+
+                $("#existingListName").html(innerHtml).selectpicker();
+
+                $("#existingListRadio").attr("disabled",false);
+            } else {
+                $(".selectpicker").selectpicker('destroy')
+                        .html('<option>No Lists Found</option>')
+                        .prop('disabled',true)
+                        .selectpicker();
+
+                $("#existingListRadio").attr("disabled",true);
+            }
+        });
     });
 
 });

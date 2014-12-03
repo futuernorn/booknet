@@ -1,0 +1,26 @@
+
+{% extends "books.html" %}
+
+{% block books_body %}
+
+
+        <div class="clearfix">
+            <h1 class="page-header">{{ data.name }}</h1>
+        </div>
+            <ul class="list-group">
+              <li class="list-group-item"><h4>ID: {{ data.id }}</h4> </li>
+                <li class="list-group-item"><h4>Name: {{ data.name }}</h4></li>
+                <li class="list-group-item"><h4>Avg. Rating: {{ data.avg_rating }}</h4></li>
+                <li class="list-group-item"><h4># Pages: {{ data.num_pages }}</h4></li>
+                <li class="list-group-item"><h4># Books: {{ data.num_books }}</h4></li>
+            </ul>
+
+
+
+{% endblock %}
+
+{% block books_table %}
+{{ helpers.books_table(data.books) }}
+{% endblock %}
+
+

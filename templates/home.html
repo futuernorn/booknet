@@ -61,7 +61,19 @@
        </div>
         <div class="col-md-4">
           <h2>Lists</h2>
-          <p>Nothing yet!</p>
+          {% for list in lists%}
+            <div class="media">
+              <a class="media-left" href="#">
+
+              </a>
+              <div class="media-body">
+                <h4 class="media-heading"><a href="{{url_for('display_list',lid=list.id)}}">{{ list.list_name }}</a></h4>
+                {{ list.description }}<br/>
+                  <p class="text-muted">by: <a href="{{url_for('display_user_profile',uid=list.user_id)}}">{{list.creator}}</a></p>
+              </div>
+            </div>
+          {% endfor %}
+          <p><a class="btn btn-default" href="{{url_for('lists_index')}}" role="button">View more &raquo;</a></p>
         </div>
       </div>
 
