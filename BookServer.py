@@ -647,6 +647,14 @@ def moderator_dashboard():
     return flask.render_template('dashboard_moderation.html',
                                  mod_info=mod_info)
 
+@app.route("/dashboard/presentation")
+@flask.ext.login.login_required
+def moderator_presentation():
+
+    return flask.render_template('dashboard_presentation.html')
+
+
+
 @app.route("/dashboard/approve/<request_id>")
 @flask.ext.login.login_required
 def approve_request(request_id):
