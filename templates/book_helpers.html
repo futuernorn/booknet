@@ -90,7 +90,7 @@
             {% endif %}
         </td>
         <td style="width:250px;">
-            <div style="vertical-align: middle;">{{ star_ratings(url_for('add_book_rating',bid=book_id),  book.core_id, url_for('books_index') ~ '?page=' ~ page, book.discrete_rating) }}
+            <div style="vertical-align: middle;">{{ star_ratings(url_for('add_book_rating',bid=core_id),  book.core_id, url_for('books_index') ~ '?page=' ~ page, book.discrete_rating) }}
                 {% if book.avg_rating %}
                     <span class="small">(avg. {{ book.avg_rating }})</span></div>
                 {% endif %}
