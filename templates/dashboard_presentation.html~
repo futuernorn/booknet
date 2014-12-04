@@ -6,7 +6,7 @@
               <li class="list-group-item"><h4>Features:</h4> 
                             <div class="btn-group" role="group" aria-label="Extra-small button group">
     <a type="button" class="btn btn-default" href="{{url_for('books_index')}}" target="_blank">Books Index</a>
-    <a type="button" class="btn btn-default" href="{{url_for('books_with_covers')}} target="_blank"">Books w/ Covers</a>
+    <a type="button" class="btn btn-default" href="{{url_for('display_books_with_covers')}} target="_blank"">Books w/ Covers</a>
     </div>
 
 
