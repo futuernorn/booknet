@@ -102,6 +102,14 @@ hr.listing-cell-divider {
   text-overflow: ellipsis;
 }
 
+.bootstrap-datetimepicker-widget {
+   z-index:999999 !important;
+}
+
+.bootstrap-timepicker-widget.dropdown-menu.open {
+  display: inline-block;
+  z-index:999999 !important;
+}
 /*.stacking-context {*/
     /*position: static;; z-index:1;*/
 /*}*/

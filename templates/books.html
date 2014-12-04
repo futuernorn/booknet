@@ -97,17 +97,18 @@
          </form>
          <hr />
           <h4><a href="{{ url_for('user_dashboard') }}?section=logs#logs">Previous Logs</a></h4>
+            <div id="shelfLogTableDiv" style="height:250px;overflow: auto;">
           <table class="table" id="shelfPreviousLogsTable">
               <thead>
               <tr>
-              <th>Date Completed</th><th>Date Started</th><th>Log</th>
+              <th>Date Completed</th><th>Date Started</th><th>Log</th><th>Actions</th>
               </tr>
               </thead>
               <tbody>
 
               </tbody>
           </table>
-
+        </div>
 </div>
 
 <div id="listForm" class="hidden">
@@ -146,6 +147,9 @@
 {% block footer_scripts %}
 <script type="text/javascript">
 $(window).load(function(){
+
+
+
     //https://github.com/silviomoreto/bootstrap-select
     $('.selectpicker').selectpicker();
 
@@ -180,12 +184,12 @@ $(window).load(function(){
 
 
     $(".add_to_shelf").click(function () {
-        $("#starting_date").datetimepicker({
-            pickTime: false
-        });
-        $("#completed_date").datetimepicker({
-            pickTime: false
-        });
+//        $("#starting_date").datetimepicker({
+//            pickTime: false
+//        });
+//        $("#completed_date").datetimepicker({
+//            pickTime: false
+//        });
         var currentID = $(this).data('id');
         var currentTitle = $(this).data('title');
         $("#book_id_shelf").val( currentID );
@@ -202,14 +206,22 @@ $(window).load(function(){
 
 
         // Can't resist a bit of ajax
-        $.getJSON($SCRIPT_ROOT + '/log/_current_user', function(data) {
-
+        $.getJSON($SCRIPT_ROOT + '/log/_current_user/' + currentID, function(data) {
+            newContent = '';
             if (!($.isEmptyObject(data))) {
-newContent = '';
+                $.each(data, function(n, log) {
+                    newContent += "<tr>";
+                    newContent += "<td>" + log['date_completed'] + "</td>";
+                    newContent += "<td>" + log['date_started'] + "</td>";
+                    newContent += "<td>" + log['log_text'] + "</td>";
+                    newContent += "<td>" + generateLogTableActions(data['log']) + "</td>"
+                    newContent += "</tr>"
+                });
+
             } else {
-                newContent = "<td colspan='3'>None yet!</td>";
+                newContent = "<td colspan='4'>None yet!</td>";
             }
-$("#shelfPreviousLogsTable tbody").html(newContent);
+            $("#shelfPreviousLogsTable tbody").html(newContent);
         });
 
     });
@@ -258,5 +270,12 @@ $("#shelfPreviousLogsTable tbody").html(newContent);
 
 });
 
+function generateLogTableActions(log_id) {
+    var logTableActions = '<div class="btn-group btn-group-xs" role="group" aria-label="Extra-small button group">';
+    logTableActions += '<a type="button" class="btn btn-default" href="/log/'+log_id+'">View</a>';
+    logTableActions += '<a type="button" class="btn btn-default" href="/log/edit/'+log_id+'">Edit</a>';
+    logTableActions += '</div>';
+    return logTableActions;
+}
 </script>
 {% endblock %}

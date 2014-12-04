@@ -15,10 +15,10 @@ QUERIES = {
         SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
         COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
         FROM booknet_user
-        JOIN review ON user_id = reviewer
+        LEFT JOIN review ON user_id = reviewer
         LEFT JOIN list USING (user_id)
         LEFT JOIN book_list USING (list_id)
-        JOIN user_level USING (level_id)
+        LEFT JOIN user_level USING (level_id)
         LEFT JOIN user_log ON user_id = reader
         LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
         WHERE user_id = %s
@@ -29,6 +29,12 @@ QUERIES = {
       FROM list JOIN book_list USING (list_id)
       WHERE user_id = %s
       GROUP BY list_id, list_name;
+    ''',
+    'select_user_logs': '''
+      SELECT log_id, log_text, to_char(date_started,'Mon. DD, YYYY') as date_started,
+      to_char(date_completed,'Mon. DD, YYYY') as date_completed
+      FROM user_log
+      WHERE reader = %s AND book_id = %s;
     '''
 }
 
@@ -234,6 +240,15 @@ def get_user_lists(cur,user_id):
 
     return lists
 
+def get_user_logs(cur, user_id, book_id):
+    logs = {}
+    query = QUERIES['select_user_logs'] % ('%s', '%s')
+    cur.execute(query, (user_id, book_id))
+
+    for log_id, log_text, date_completed, date_started in cur:
+        logs[cur.rownumber] = {'log_id': log_id, 'log_text': log_text, 'date_completed': date_completed, 'date_started': date_started};
+
+    return logs
 
 #################### Following #########################################################################################
 def add_follower(cur, followee, follower):

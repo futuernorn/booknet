@@ -311,9 +311,38 @@ def display_logs_by_year(year):
 
 
 @app.route("/books/log/add", methods=['POST'])
+@flask.ext.login.login_required
 def add_reading_log():
-    raise NotImplementedError
-    return redirect(request.args.get("next") or url_for("books_index"))
+    errors = []
+
+    app.logger.info('Received new data for log from user_id %s: %s', flask.ext.login.current_user.id, flask.request.form)
+    with easypg.cursor() as cur:
+        entry_status, messages, log_id = books.add_log(cur, flask.ext.login.current_user.id, flask.request.form)
+        app.logger.info("Log submitted %s - %s - %s", entry_status, messages, log_id)
+        if entry_status:
+            for message in messages:
+                flask.flash(message)
+            return flask.redirect(flask.request.args.get("next") or flask.url_for("display_log", lid=log_id))
+        else:
+            for message in messages:
+                errors.append(message)
+
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("books_index")
+
+    return flask.redirect(next)
+
+@app.route("/log/_current_user/<bid>")
+@flask.ext.login.login_required
+def get_user_logs(bid):
+    user_id = flask.ext.login.current_user.id
+    with easypg.cursor() as cur:
+        user_lists = users.get_user_logs(cur, user_id, bid)
+    return flask.jsonify(user_lists)
+
 
 
 ####################### Lists ##########################################################################################
@@ -400,9 +429,8 @@ def lists_index():
 def get_user_lists():
     user_id = flask.ext.login.current_user.id
     with easypg.cursor() as cur:
-        user_lists = users.get_user_lists(cur, user_id)
-    return flask.jsonify(user_lists)
-
+        user_logs = users.get_user_ligs(cur, user_id)
+    return flask.jsonify(user_logs)
 
 ################## Ratings #############################################################################################
 
@@ -555,8 +583,14 @@ def reviews_index():
 @app.route("/dashboard/")
 @flask.ext.login.login_required
 def user_dashboard():
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
     with easypg.cursor() as cur:
-        user_info = users.get_user(cur,flask.ext.login.current_user.get_id())
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+
+    # print user_info
     return flask.render_template('dashboard_overview.html',
                                  user_info = user_info)
 
@@ -578,7 +612,13 @@ def user_dashboard_following():
 def current_user_profile():
     return display_user_profile(flask.ext.login.current_user.id)
 
+@app.route("/dashboard/moderation")
+@flask.ext.login.login_required
+def moderator_dashboard():
 
+    mod_info = None
+    return flask.render_template('dashboard_moderation.html',
+                                 mod_info=mod_info)
 
 
 #####################  User Management #################################################################################

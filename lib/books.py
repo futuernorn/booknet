@@ -85,6 +85,12 @@ QUERIES = {
         GROUP BY %s core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
         %s
         LIMIT %s OFFSET %s
+    ''',
+    'select_book_title': '''
+        SELECT core_id, book_title
+        FROM book_core
+        JOIN books USING (core_id)
+        WHERE core_id = %s;
     '''
 }
 
@@ -293,6 +299,11 @@ def get_book(cur,book_id,current_user_id=None):
             book_info['user_rating'] = cur.fetchone()[0]
     return book_info
 
+def get_book_title(cur, book_id):
+    cur.execute(QUERIES['select_book_title'], (book_id,))
+
+    for core_id, book_title in cur:
+        return book_title.decode('utf8', 'xmlcharrefreplace'), core_id
 
 ########################## Publishers #####################################################################################
 def get_books_by_publishers(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
@@ -1032,3 +1043,30 @@ def add_book(cur, core_id, user_id, form):
 
     print "Add_book completed..."
     return True, message, core_id
+
+def add_log(cur, user_id, form):
+    create_status = True
+    message = []
+    log_id = 0
+
+    book_id = form['book_id']
+    book_title, book_core = get_book_title(cur, book_id);
+    log_text = form['log_input']
+    date_started = form['starting_date']
+    date_completed = form['date_completed']
+
+    cur.execute('''
+      INSERT INTO user_log (book_id, reader, status, date_completed, pages_read, log_text, date_started)
+      VALUES(%s, %s, 1, %s, 1, %s, %s)
+      RETURNING log_id
+    ''', (book_id, user_id, date_completed, log_text, date_started))
+    if cur.rowcount == 1:
+        log_id = cur.fetchone()[0]
+        message.append("Created new log for: %s!" % book_title)
+    else:
+        message.append("Unknown error!")
+        create_status = False
+
+    return create_status, message, log_id
+
+# def delete_list(cur,list_id,user_id):

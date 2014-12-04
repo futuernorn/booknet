@@ -1,0 +1,29 @@
+{% extends "dashboard.html" %}
+{% set active_page = 'user_dashboard' %}
+{% block dashboard_body %}
+          <h1 class="page-header">Booknet Moderation</h1>
+            <ul class="list-group">
+              <li class="list-group-item"><h4># Total Requests: {{ mod_info.total_requests }}</h4> </li>
+                <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
+                <li class="list-group-item"><h4># Completed Requests: {{ mod_info.completed_requests }}</h4></li>
+
+             </ul>
+
+          <h2 class="sub-header"><a name="queue">Moderation Queue</a></h2>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Created By</th><th>Type</th><th style="width: 125px;">Date Requests</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for request in mod_info.current_requests%}
+                        <tr>
+
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+{% endblock %}

@@ -32,16 +32,17 @@ class BooknetUser(UserMixin):
     def __init__(self, id):
         with easypg.cursor() as cur:
             cur.execute('''
-                SELECT user_id, login_name, password
+                SELECT user_id, login_name, password, level_id
                 FROM booknet_user
                 WHERE user_id = %s
             ''', (id,))
 
 
-            for id, login_name, password in cur:
+            for id, login_name, password, level_id in cur:
                 self.id = id
                 self.name = login_name
                 self.password = password
+                self.access_level = level_id
 
     @classmethod
     def get(self_class, id):
