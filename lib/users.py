@@ -15,10 +15,10 @@ QUERIES = {
         SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
         COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
         FROM booknet_user
-        JOIN review ON user_id = reviewer
+        LEFT JOIN review ON user_id = reviewer
         LEFT JOIN list USING (user_id)
         LEFT JOIN book_list USING (list_id)
-        JOIN user_level USING (level_id)
+        LEFT JOIN user_level USING (level_id)
         LEFT JOIN user_log ON user_id = reader
         LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
         WHERE user_id = %s
@@ -29,6 +29,20 @@ QUERIES = {
       FROM list JOIN book_list USING (list_id)
       WHERE user_id = %s
       GROUP BY list_id, list_name;
+    ''',
+    'select_user_logs': '''
+      SELECT log_id, log_text, to_char(date_started,'Mon. DD, YYYY') as date_started,
+      to_char(date_completed,'Mon. DD, YYYY') as date_completed
+      FROM user_log
+      WHERE reader = %s AND book_id = %s;
+    ''',
+    'select_request_on_book_info': '''
+        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
+        FROM request
+        JOIN request_on_book USING (request_id)
+        JOIN books USING (book_id)
+        JOIN book_core USING (core_id)
+        JOIN booknet_user USING (user_id)
     '''
 }
 
@@ -83,7 +97,7 @@ def get_user_feed(cur,user_id):
     return user_info
 def get_user(cur,user_id,current_user_id=None):
     query = QUERIES['select_user_where'] % ('%s', '%s')
-    cur.execute(query, (user_id, current_user_id))
+    cur.execute(query, (current_user_id, user_id))
     user_info = {}
     for user_id, login_name, level_name, is_followed, num_unique_list_books, num_total_books_read, num_unique_books_read, num_reviews in cur:
     # is_followed = False
@@ -168,6 +182,8 @@ def validate_login(cur, form):
     else:
       for id, login_name, password in cur:
         print username
+      
+      print bcrypt
       if bcrypt.checkpw(posted_password, password):
           return id
       else:
@@ -232,7 +248,34 @@ def get_user_lists(cur,user_id):
 
     return lists
 
+def get_user_logs(cur, user_id, book_id):
+    logs = {}
+    query = QUERIES['select_user_logs'] % ('%s', '%s')
+    cur.execute(query, (user_id, book_id))
 
+    for log_id, log_text, date_completed, date_started in cur:
+        logs[cur.rownumber] = {'log_id': log_id, 'log_text': log_text, 'date_completed': date_completed, 'date_started': date_started};
+
+    return logs
+
+def get_moderation_info(cur):
+    # mod_info.total_requests }}</h4> </li>
+    #             <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
+    #             <li class="list-group-item"><h4># Completed Requests: {{ mod_info.completed_requests
+
+
+
+    mod_info = {'requests': []}
+    query = QUERIES['select_request_on_book_info']
+    cur.execute(query)
+
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
+
+        mod_info['requests'].append({'request_id': request_id, 'request_on_book_id': request_on_book_id, 'request_type': request_type,
+                               'book_id': book_id, 'request_text': request_text, 'book_title': book_title, 'requester': login_name,
+                               'user_id': user_id, 'date_requested': date_requested})
+    print mod_info
+    return mod_info
 #################### Following #########################################################################################
 def add_follower(cur, followee, follower):
 

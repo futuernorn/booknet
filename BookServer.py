@@ -35,7 +35,7 @@ app.debug = True
 def home_index():
     with easypg.cursor() as cur:
         pages, book_info = books.get_spotlight_books(cur,4)
-        review_info = reviews.get_spotlight_reviews(cur,4)
+        pages, review_info = reviews.get_spotlight_reviews(cur,4)
         list_info = lists.get_spotlight_lists(cur,4)
     return flask.render_template('home.html',
                                  books=book_info,
@@ -103,6 +103,8 @@ def books_by_publishers():
     sort_options = {"Publisher": "publisher_name", "Avg. Rating": "avg_rating", "# Pages": "num_pages", "# Books": "num_books"}
     return render_books_index('books_by_publishers.html', publisher_info, total_pages, sort_options, parameters, 'Books By Publishers')
 
+
+
 @app.route("/publisher/<pid>")
 def display_publisher(pid):
     page, sorting, sort_direction = parse_sorting()
@@ -115,7 +117,10 @@ def display_publisher(pid):
 
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
-    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
     return render_books_index('author.html', publisher_info, total_pages, sort_options, parameters, 'Books - %s' % publisher_info['name'])
 
 # Subject #############################
@@ -182,10 +187,31 @@ def books_index():
         else:
             total_pages, book_info = books.get_books(cur, start, limit, None, sorting, sort_direction)
 
-    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
     return render_books_index('books_index.html',book_info, total_pages, sort_options, parameters)
+
+@app.route("/books/covers")
+def display_books_with_covers():
+    page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, publisher_info = books.get_books_with_covers(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, publisher_info = books.get_books_with_covers(cur, start, limit, None, sorting, sort_direction)
+
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
+    return render_books_index('books_index.html', publisher_info, total_pages, sort_options, parameters, 'Books With Covers')
 
 def parse_sorting():
     if 'sorting' in flask.request.args:
@@ -311,9 +337,38 @@ def display_logs_by_year(year):
 
 
 @app.route("/books/log/add", methods=['POST'])
+@flask.ext.login.login_required
 def add_reading_log():
-    raise NotImplementedError
-    return redirect(request.args.get("next") or url_for("books_index"))
+    errors = []
+
+    app.logger.info('Received new data for log from user_id %s: %s', flask.ext.login.current_user.id, flask.request.form)
+    with easypg.cursor() as cur:
+        entry_status, messages, log_id = books.add_log(cur, flask.ext.login.current_user.id, flask.request.form)
+        app.logger.info("Log submitted %s - %s - %s", entry_status, messages, log_id)
+        if entry_status:
+            for message in messages:
+                flask.flash(message)
+            return flask.redirect(flask.request.args.get("next") or flask.url_for("display_log", lid=log_id))
+        else:
+            for message in messages:
+                errors.append(message)
+
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("books_index")
+
+    return flask.redirect(next)
+
+@app.route("/log/_current_user/<bid>")
+@flask.ext.login.login_required
+def get_user_logs(bid):
+    user_id = flask.ext.login.current_user.id
+    with easypg.cursor() as cur:
+        user_lists = users.get_user_logs(cur, user_id, bid)
+    return flask.jsonify(user_lists)
+
 
 
 ####################### Lists ##########################################################################################
@@ -400,9 +455,8 @@ def lists_index():
 def get_user_lists():
     user_id = flask.ext.login.current_user.id
     with easypg.cursor() as cur:
-        user_lists = users.get_user_lists(cur, user_id)
-    return flask.jsonify(user_lists)
-
+        user_logs = users.get_user_ligs(cur, user_id)
+    return flask.jsonify(user_logs)
 
 ################## Ratings #############################################################################################
 
@@ -555,8 +609,14 @@ def reviews_index():
 @app.route("/dashboard/")
 @flask.ext.login.login_required
 def user_dashboard():
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
     with easypg.cursor() as cur:
-        user_info = users.get_user(cur,flask.ext.login.current_user.get_id())
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+
+    # print user_info
     return flask.render_template('dashboard_overview.html',
                                  user_info = user_info)
 
@@ -578,9 +638,24 @@ def user_dashboard_following():
 def current_user_profile():
     return display_user_profile(flask.ext.login.current_user.id)
 
+@app.route("/dashboard/moderation")
+@flask.ext.login.login_required
+def moderator_dashboard():
 
+    with easypg.cursor() as cur:
+        mod_info = users.get_moderation_info(cur)
+    return flask.render_template('dashboard_moderation.html',
+                                 mod_info=mod_info)
 
+@app.route("/dashboard/approve/<request_id>")
+@flask.ext.login.login_required
+def approve_request(request_id):
+    raise NotImplementedError
 
+@app.route("/dashboard/reject/<request_id>")
+@flask.ext.login.login_required
+def reject_request(request_id):
+    raise NotImplementedError
 #####################  User Management #################################################################################
 
 @app.route("/user/<uid>")
