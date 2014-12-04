@@ -35,6 +35,14 @@ QUERIES = {
       to_char(date_completed,'Mon. DD, YYYY') as date_completed
       FROM user_log
       WHERE reader = %s AND book_id = %s;
+    ''',
+    'select_request_on_book_info': '''
+        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
+        FROM request
+        JOIN request_on_book USING (request_id)
+        JOIN books USING (book_id)
+        JOIN book_core USING (core_id)
+        JOIN booknet_user USING (user_id)
     '''
 }
 
@@ -89,7 +97,7 @@ def get_user_feed(cur,user_id):
     return user_info
 def get_user(cur,user_id,current_user_id=None):
     query = QUERIES['select_user_where'] % ('%s', '%s')
-    cur.execute(query, (user_id, current_user_id))
+    cur.execute(query, (current_user_id, user_id))
     user_info = {}
     for user_id, login_name, level_name, is_followed, num_unique_list_books, num_total_books_read, num_unique_books_read, num_reviews in cur:
     # is_followed = False
@@ -250,6 +258,24 @@ def get_user_logs(cur, user_id, book_id):
 
     return logs
 
+def get_moderation_info(cur):
+    # mod_info.total_requests }}</h4> </li>
+    #             <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
+    #             <li class="list-group-item"><h4># Completed Requests: {{ mod_info.completed_requests
+
+
+
+    mod_info = {'requests': []}
+    query = QUERIES['select_request_on_book_info']
+    cur.execute(query)
+
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
+
+        mod_info['requests'].append({'request_id': request_id, 'request_on_book_id': request_on_book_id, 'request_type': request_type,
+                               'book_id': book_id, 'request_text': request_text, 'book_title': book_title, 'requester': login_name,
+                               'user_id': user_id, 'date_requested': date_requested})
+    print mod_info
+    return mod_info
 #################### Following #########################################################################################
 def add_follower(cur, followee, follower):
 

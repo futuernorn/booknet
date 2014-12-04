@@ -47,7 +47,8 @@
                         Author:
                         {% endif %}
                     {% for author in book_info.authors %}
-                      <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>{% if not loop.first %}{% if loop.last %}and{% else %},{% endif %}{% endif %}
+                      <a href="{{url_for('display_author',author_name=author)}}">{{ author }}</a>
+                        <!--{% if not loop.first %}{% if loop.last and book_info.authors|length != 1%}and{% else %},{% endif %}{% endif %}-->
                     {% endfor %}
                     </h4>
                 </li>

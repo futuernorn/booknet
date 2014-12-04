@@ -9,7 +9,10 @@ BOOKS_PER_PAGE = 15;
 
 QUERIES = {
     'books_count': '''
-        SELECT COUNT(*) FROM book_core;
+        SELECT COUNT(*) FROM book_core JOIN books USING (core_id);
+    ''',
+    'books_with_covers_count': '''
+        SELECT COUNT(*) FROM book_core JOIN books USING (core_id) WHERE cover_name IS NOT NULL;
     ''',
     'books_by_subjects_count': '''
         SELECT COUNT(*) FROM subject_genre;
@@ -63,12 +66,12 @@ QUERIES = {
         LIMIT %s OFFSET %s
     ''',
     'select_books': '''
-        SELECT core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name,
+        SELECT core_id, book_title, book_description, isbn, page_count, cover_name,
           AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
         FROM book_core
         JOIN books USING (core_id)
         LEFT JOIN ratings ON core_id = ratings.book_id
-        JOIN user_log ON core_id = user_log.book_id
+        LEFT JOIN user_log ON core_id = user_log.book_id
         GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
         %s
         LIMIT %s OFFSET %s
@@ -132,8 +135,8 @@ def get_books(cur,start,amount, user_id=None, sorting=None, sort_direction=None)
     book_info = []
     # print "Retrieved %s book rows..." % cur.rowcount
     for core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
-        if not cover_name:
-            cover_name = '_placeholder'
+        # if not cover_name:
+        #     cover_name = '_placeholder'
         if avg_rating:
             discrete_rating = round(avg_rating*2) / 2
         else:
@@ -289,7 +292,7 @@ def get_book(cur,book_id,current_user_id=None):
     for review_id, user_id, login_name, date_reviewed, review_text in cur:
         book_info['reviews'].append({'review_id': review_id, 'user_id': user_id, 'date_reviewed': date_reviewed,
                                 'review_text': review_text, 'login_name': login_name})
-    if (user_id):
+    if (current_user_id):
         cur.execute('''
         SELECT rating
         FROM ratings
@@ -304,6 +307,73 @@ def get_book_title(cur, book_id):
 
     for core_id, book_title in cur:
         return book_title.decode('utf8', 'xmlcharrefreplace'), core_id
+
+def get_books_with_covers(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
+
+    try:
+        order_by = SORTING[sorting]+' '+SORT_DIRECTION[sort_direction]
+    except KeyError:
+        order_by = '' #no sorting requested or inproper parameters provided
+
+
+    total_pages = get_total_pages(cur, QUERIES['books_with_covers_count'])
+    cur.execute(QUERIES['select_books'] % (order_by,'%s','%s'), (amount, start))
+    query = QUERIES['select_books_where'] % ('', '', 'WHERE cover_name IS NOT NULL', '', order_by,'%s','%s')
+    cur.execute(query, (amount, start))
+
+
+    book_info = []
+    for core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
+
+        print cover_name
+        # if not cover_name:
+        #     cover_name = '_placeholder'
+        if avg_rating:
+            discrete_rating = round(avg_rating*2) / 2
+        else:
+            discrete_rating = 0
+        try:
+            avg_rating = round(avg_rating,2)
+        except TypeError:
+            # not a float / null
+            pass
+        book_info.append({'core_id':core_id, 'title': str(book_title).decode('utf8', 'xmlcharrefreplace'),
+                          'cover_name': cover_name, 'authors': [], 'subjects': [], 'isbn': isbn, 'num_pages': page_count,
+                          'num_readers': num_readers, 'avg_rating': avg_rating, 'discrete_rating': discrete_rating, 'user_rating': None})
+    for book in book_info:
+        cur.execute('''
+        SELECT author_name
+        FROM author JOIN authorship USING (author_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        author_info = []
+        for author_name in cur:
+            author_info.append(str(author_name[0]).decode('utf8', 'xmlcharrefreplace'))
+
+        book['authors'] = author_info
+        # print book['authors']
+        cur.execute('''
+        SELECT subject_name
+        FROM subject_genre JOIN book_categorization USING (subject_id)
+        WHERE core_id = %s
+        ''', (book['core_id'],))
+        # subject_info = []
+        # print cur.fetchone()
+        for subject_name in cur:
+            book['subjects'].append(subject_name[0].decode('utf8', 'xmlcharrefreplace'))
+        # book['subjects'] = subject_info
+        if (user_id):
+            cur.execute('''
+            SELECT rating
+            FROM ratings
+            WHERE book_id = %s AND rater = %s
+            ''', (book['core_id'], user_id))
+            if cur.rowcount > 0:
+                book['user_rating'] = cur.fetchone()[0]
+        # print book['subjects']
+
+
+    return total_pages, book_info
 
 ########################## Publishers #####################################################################################
 def get_books_by_publishers(cur, start, amount, user_id=None, sorting=None, sort_direction=None):
@@ -698,8 +768,8 @@ def search_books(cur, search_query, start,amount, user_id=None, sorting=None, so
     book_info = []
     # print "Retrieved %s book rows..." % cur.rowcount
     for core_id, book_title, description, isbn, page_count, cover_name, avg_rating, num_readers in cur:
-        if not cover_name:
-            cover_name = '_placeholder'
+        # if not cover_name:
+        #     cover_name = '_placeholder'
         if avg_rating:
             discrete_rating = round(avg_rating*2) / 2
         else:
@@ -914,7 +984,7 @@ def add_book(cur, core_id, user_id, form):
     print "Add_book started..."
     print "Form data: %s" % form
     update_status = True
-
+    message = []
     author_names = {}
     subjects = []
     for key, value in form.iteritems():
@@ -922,7 +992,9 @@ def add_book(cur, core_id, user_id, form):
             author_names[key[15:]] = value #try to keep position
         if 'inputBookSubject' in key:
             subjects.append(value)
-
+    print author_names
+    print subjects
+    # raise NotImplementedError
     publication_date = form['inputBookPubDate']
     isbn = form['inputBookISBN']
     page_count = form['inputBookPageCount']
@@ -955,10 +1027,10 @@ def add_book(cur, core_id, user_id, form):
 
     if cur.rowcount > 0:
         book_id = cur.fetchone()[0]
-        message = "New book %s queued for insertion!" % book_title
+        message.append("New book %s queued for insertion!" % book_title)
 
     else:
-        message = "Unknown error!"
+        message.append("Unknown error!")
         return False, message, 0
 
     for position,author in author_names.iteritems():
@@ -983,14 +1055,14 @@ def add_book(cur, core_id, user_id, form):
         FROM authorship
         JOIN author USING (author_id)
         WHERE core_id = %s AND author_name = %s
-        ''', (book_id,author))
+        ''', (core_id,author))
         if cur.rowcount == 0:
             # Need to insert this author
             cur.execute('''
             INSERT INTO authorship (core_id, author_id, position)
             VALUES(%s, %s, %s)
             RETURNING authorship_id
-            ''', (book_id,author_id,position))
+            ''', (core_id,author_id,position))
         authorship_id = cur.fetchone()[0]
 
     for subject in subjects:
@@ -1015,13 +1087,13 @@ def add_book(cur, core_id, user_id, form):
         FROM book_categorization
         JOIN subject_genre USING (subject_id)
         WHERE core_id = %s AND subject_name = %s
-        ''', (book_id,subject))
+        ''', (core_id,subject))
         if cur.rowcount == 0:
             cur.execute('''
             INSERT INTO book_categorization (core_id, subject_id)
             VALUES(%s, %s)
             RETURNING categorize_id
-            ''', (book_id,subject_id))
+            ''', (core_id,subject_id))
         categorize_id = cur.fetchone()[0]
 
 

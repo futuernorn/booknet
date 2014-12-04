@@ -4,23 +4,31 @@
           <h1 class="page-header">Booknet Moderation</h1>
             <ul class="list-group">
               <li class="list-group-item"><h4># Total Requests: {{ mod_info.total_requests }}</h4> </li>
-                <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
-                <li class="list-group-item"><h4># Completed Requests: {{ mod_info.completed_requests }}</h4></li>
+                <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.num_incomplete }}</h4></li>
+                <li class="list-group-item"><h4># Completed Requests: {{ mod_info.num_completed }}</h4></li>
 
              </ul>
 
-          <h2 class="sub-header"><a name="queue">Moderation Queue</a></h2>
+          <h2 class="sub-header"><a name="queue">Moderation Queue - Books</a></h2>
                 <div class="table-responsive">
                 <table class="table table-striped">
                      <thead>
                       <tr>
-                      <th>Created By</th><th>Type</th><th style="width: 125px;">Date Requests</th>
+                      <th>Created By</th><th>Type</th><th style="width: 125px;">Date Requested</th><th>Request Text</th><th>Associated Book</th><th>Actions</th>
                       </tr>
                       </thead>
                       <tbody>
-                        {% for request in mod_info.current_requests%}
+                        {% for request in mod_info.requests%}
                         <tr>
-
+                        <td><a href="{{url_for('display_user_profile',uid=request.user_id)}}">{{request.requester}}</a></td>
+                        <td>{{request.request_type}}</td>
+                            <td>{{request.date_requested}}</td>
+                            <td>{{request.request_text}}</td>
+                            <td><a href="{{url_for('display_book',bid=request.book_id)}}">{{request.book_title}}</a></td>
+                            <td><div class="btn-group btn-group-xs" role="group" aria-label="Extra-small button group">
+    <a type="button" class="btn btn-success" href="{{url_for('approve_request',request_id=request.request_id)}}">Approve</a>
+    <a type="button" class="btn btn-danger" href="{{url_for('reject_request',request_id=request.request_id)}}">Reject</a>
+    </div></td>
                         </tr>
                         {% endfor %}
                       </tbody>

@@ -16,7 +16,7 @@
     <tbody>
     {% for user in user_info.following %}
     <tr>
-        <td><a href="{{ url_for('display_user_profile', uid=user.id)}}">{{user.name}}</a></td>
+        <td><a href="{{ url_for('display_user_profile', uid=user.user_id)}}">{{user.name}}</a></td>
         <td>{{user.access_level}}</a></td>
         <td>{{user.num_reviews}}</td>
         <td>{{user.num_lists}}</td>

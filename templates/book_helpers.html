@@ -70,8 +70,9 @@
     {% for book in data %}
 
     <tr>
-        {% if data.cover_name %}
-        <td><img src="{{ url_for('static', filename='images/covers/small/s'+data.cover_name+'-S.jpg') }}" class="pull-right img-thumbnail"/></td>
+
+        {% if book.cover_name %}
+        <td><img src="{{ url_for('static', filename='images/covers/small/s'+book.cover_name+'-S.jpg') }}" class="pull-right img-thumbnail"/></td>
         {% else %}
         <td><img src="{{ url_for('static', filename='images/covers/small/s_placeholder-S.jpg') }}" class="pull-right img-thumbnail"/></td>
         {% endif %}

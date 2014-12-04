@@ -103,6 +103,8 @@ def books_by_publishers():
     sort_options = {"Publisher": "publisher_name", "Avg. Rating": "avg_rating", "# Pages": "num_pages", "# Books": "num_books"}
     return render_books_index('books_by_publishers.html', publisher_info, total_pages, sort_options, parameters, 'Books By Publishers')
 
+
+
 @app.route("/publisher/<pid>")
 def display_publisher(pid):
     page, sorting, sort_direction = parse_sorting()
@@ -115,7 +117,10 @@ def display_publisher(pid):
 
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
-    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
     return render_books_index('author.html', publisher_info, total_pages, sort_options, parameters, 'Books - %s' % publisher_info['name'])
 
 # Subject #############################
@@ -182,10 +187,31 @@ def books_index():
         else:
             total_pages, book_info = books.get_books(cur, start, limit, None, sorting, sort_direction)
 
-    parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
     return render_books_index('books_index.html',book_info, total_pages, sort_options, parameters)
+
+@app.route("/books/covers")
+def display_books_with_covers():
+    page, sorting, sort_direction = parse_sorting()
+    start, limit = get_item_limits(page)
+    with easypg.cursor() as cur:
+        if flask.ext.login.current_user.is_authenticated():
+            total_pages, publisher_info = books.get_books_with_covers(cur, start, limit, flask.session['user_id'], sorting, sort_direction)
+        else:
+            total_pages, publisher_info = books.get_books_with_covers(cur, start, limit, None, sorting, sort_direction)
+
+    sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
+                    "Number of Readers": "num_readers"}
+    if sorting:
+        parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
+    else:
+        parameters = ''
+    return render_books_index('books_index.html', publisher_info, total_pages, sort_options, parameters, 'Books With Covers')
 
 def parse_sorting():
     if 'sorting' in flask.request.args:
@@ -616,11 +642,20 @@ def current_user_profile():
 @flask.ext.login.login_required
 def moderator_dashboard():
 
-    mod_info = None
+    with easypg.cursor() as cur:
+        mod_info = users.get_moderation_info(cur)
     return flask.render_template('dashboard_moderation.html',
                                  mod_info=mod_info)
 
+@app.route("/dashboard/approve/<request_id>")
+@flask.ext.login.login_required
+def approve_request(request_id):
+    raise NotImplementedError
 
+@app.route("/dashboard/reject/<request_id>")
+@flask.ext.login.login_required
+def reject_request(request_id):
+    raise NotImplementedError
 #####################  User Management #################################################################################
 
 @app.route("/user/<uid>")
