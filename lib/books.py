@@ -72,7 +72,8 @@ QUERIES = {
         JOIN books USING (core_id)
         LEFT JOIN ratings ON core_id = ratings.book_id
         LEFT JOIN user_log ON core_id = user_log.book_id
-        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
+        WHERE is_active = TRUE
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, is_active
         %s
         LIMIT %s OFFSET %s
     ''',
@@ -84,7 +85,7 @@ QUERIES = {
         LEFT JOIN ratings ON core_id = ratings.book_id
         LEFT JOIN user_log ON core_id = user_log.book_id
         LEFT JOIN book_categorization USING (core_id)
-        %s
+        WHERE is_active = TRUE %s
         GROUP BY %s core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
         %s
         LIMIT %s OFFSET %s
@@ -318,7 +319,7 @@ def get_books_with_covers(cur, start, amount, user_id=None, sorting=None, sort_d
 
     total_pages = get_total_pages(cur, QUERIES['books_with_covers_count'])
     cur.execute(QUERIES['select_books'] % (order_by,'%s','%s'), (amount, start))
-    query = QUERIES['select_books_where'] % ('', '', 'WHERE cover_name IS NOT NULL', '', order_by,'%s','%s')
+    query = QUERIES['select_books_where'] % ('', '', ' AND cover_name IS NOT NULL', '', order_by,'%s','%s')
     cur.execute(query, (amount, start))
 
 
@@ -408,7 +409,7 @@ def get_books_by_publisher(cur, start, amount, publisher_id, user_id=None, sorti
         order_by = '' #no sorting requested or inproper parameters provided
 
     query = QUERIES['select_books_where'] % ('publisher_id,', 'JOIN book_publisher ON core_id = book_publisher.book_id',
-                                                 'WHERE publisher_id = %s', 'publisher_id,', order_by,'%s','%s')
+                                                 ' AND publisher_id = %s', 'publisher_id,', order_by,'%s','%s')
     cur.execute(query, (publisher_id, amount, start))
 
 
@@ -510,7 +511,7 @@ def get_books_by_author(cur, start, amount, author_name, user_id=None, sorting=N
     ''', (author_name,))
     author_id = cur.fetchone()[0]
     query = QUERIES['select_books_where'] % ('author_id,', 'JOIN authorship USING(core_id)',
-                                             'WHERE author_id = %s', 'author_id,', order_by,'%s','%s')
+                                             ' AND author_id = %s', 'author_id,', order_by,'%s','%s')
     cur.execute(query, (author_id, amount, start))
 
 
@@ -620,7 +621,7 @@ def get_books_by_subject(cur, start, amount, subject, user_id=None, sorting=None
 
     total_pages = get_total_pages(cur, QUERIES['books_by_subject_count'] % subject_id)
 
-    query = QUERIES['select_books_where'] % ("subject_id,", '', 'WHERE subject_id = %s',
+    query = QUERIES['select_books_where'] % ("subject_id,", '', ' AND subject_id = %s',
                                              'subject_id,', order_by, '%s', '%s')
 
     cur.execute(query, (subject_id, amount, start))
@@ -759,7 +760,7 @@ def search_books(cur, search_query, start,amount, user_id=None, sorting=None, so
     total_pages = get_total_pages(cur, QUERIES['books_search_count'] % search_query)
 
     query = QUERIES['select_books_where'] % ('', 'JOIN book_search USING (book_id)',
-                                                 'WHERE search_vector @@ plainto_tsquery(\'%s\')', 'search_vector,', order_by,'%s','%s')
+                                                 ' AND search_vector @@ plainto_tsquery(\'%s\')', 'search_vector,', order_by,'%s','%s')
     print query
     cur.execute(query % (search_query, search_query,'%s','%s'), (amount, start))
 
