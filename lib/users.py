@@ -168,6 +168,8 @@ def validate_login(cur, form):
     else:
       for id, login_name, password in cur:
         print username
+      
+      print bcrypt
       if bcrypt.checkpw(posted_password, password):
           return id
       else:

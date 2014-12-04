@@ -35,7 +35,7 @@ app.debug = True
 def home_index():
     with easypg.cursor() as cur:
         pages, book_info = books.get_spotlight_books(cur,4)
-        review_info = reviews.get_spotlight_reviews(cur,4)
+        pages, review_info = reviews.get_spotlight_reviews(cur,4)
         list_info = lists.get_spotlight_lists(cur,4)
     return flask.render_template('home.html',
                                  books=book_info,
