@@ -72,8 +72,8 @@ QUERIES = {
         JOIN books USING (core_id)
         LEFT JOIN ratings ON core_id = ratings.book_id
         LEFT JOIN user_log ON core_id = user_log.book_id
-        WHERE is_active = TRUE
-        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, is_active
+        WHERE books.is_active = TRUE
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
         %s
         LIMIT %s OFFSET %s
     ''',
@@ -85,7 +85,7 @@ QUERIES = {
         LEFT JOIN ratings ON core_id = ratings.book_id
         LEFT JOIN user_log ON core_id = user_log.book_id
         LEFT JOIN book_categorization USING (core_id)
-        WHERE is_active = TRUE %s
+        WHERE books.is_active = TRUE %s
         GROUP BY %s core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
         %s
         LIMIT %s OFFSET %s
