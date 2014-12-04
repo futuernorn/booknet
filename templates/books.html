@@ -76,17 +76,17 @@
 
 <div id="shelfForm" class="hidden">
              <form action="{{ url_for('add_reading_log') }}?next={{ request.path }}" method="POST" role="form" id="bookModalFormShelf">
-                 <input type="hidden" name="book_id" id="list_book_id_shelf"/>
+                 <input type="hidden" name="book_id" id="book_id_shelf"/>
             <div class="form-group">
                 <div class='input-group date' id='starting_date'>
-                    <input type='text' class="form-control" placeholder="Starting Date" />
+                    <input type='text' name="starting_date" class="form-control" placeholder="Starting Date" />
                     <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div>
             </div>
             <div class="form-group">
                 <div class='input-group date' id='completed_date'>
-                    <input type='text' class="form-control" placeholder="Completed Date" />
+                    <input type='text' name="date_completed" class="form-control" placeholder="Completed Date" />
                     <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
                     </span>
                 </div>
@@ -97,7 +97,7 @@
          </form>
          <hr />
           <h4><a href="{{ url_for('user_dashboard') }}?section=logs#logs">Previous Logs</a></h4>
-          <table class="table">
+          <table class="table" id="shelfPreviousLogsTable">
               <thead>
               <tr>
               <th>Date Completed</th><th>Date Started</th><th>Log</th>
@@ -188,7 +188,7 @@ $(window).load(function(){
         });
         var currentID = $(this).data('id');
         var currentTitle = $(this).data('title');
-        $("#bookModalBookId").val( currentID );
+        $("#book_id_shelf").val( currentID );
 
         $("#bookModalBookTitle").html( currentTitle );
         $("#bookModalBody").html($("#shelfForm").html())
@@ -196,6 +196,22 @@ $(window).load(function(){
         // As pointed out in comments,
         // it is superfluous to have to manually call the modal.
         // $('#addBookDialog').modal('show');
+        $("#bookModalSubmit").click(function(){
+            $("#bookModalFormShelf").submit();
+        });
+
+
+        // Can't resist a bit of ajax
+        $.getJSON($SCRIPT_ROOT + '/log/_current_user', function(data) {
+
+            if (!($.isEmptyObject(data))) {
+newContent = '';
+            } else {
+                newContent = "<td colspan='3'>None yet!</td>";
+            }
+$("#shelfPreviousLogsTable tbody").html(newContent);
+        });
+
     });
 
     $(".add_to_list").click(function() {
