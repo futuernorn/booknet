@@ -270,7 +270,6 @@ def get_user_logs(cur, user_id, book_id):
 
 def approve_request(cur, request_id, user_id):
     print "approve_request started..."
-    print "Form data: %s" % form
     update_status = True
     book_id = 0
     message = []
