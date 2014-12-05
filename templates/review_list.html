@@ -9,7 +9,7 @@
   <!-- Default panel contents -->
   <div class="panel-heading">Reviews</div>
   <!-- Table -->
-     {{ navigation.paginator('reviews_index','pull-right') }}
+     {{ navigation.paginator(url_for('reviews_index'),'pull-right') }}
   <table class="table">
     <thead><tr>
         <th>Book ID</th><th>Reviewer</th><th>Review</th><th style="width:125px;">Date Reviewed</th><th>Actions</th>
@@ -32,7 +32,7 @@
     {% endfor %}
     </tbody>
   </table>
-{{ navigation.paginator('reviews_index','pull-left') }}
+{{ navigation.paginator(url_for('reviews_index'),'pull-left') }}
 </div>
 
 
