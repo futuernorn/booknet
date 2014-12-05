@@ -78,7 +78,7 @@ QUERIES = {
         LIMIT %s OFFSET %s
     ''',
     'select_books_where': '''
-        SELECT %s core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
+        SELECT %s core_id, book_title, book_description, isbn, COALESCE(page_count,0), COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
         FROM book_core
         LEFT JOIN books USING (core_id)
         %s

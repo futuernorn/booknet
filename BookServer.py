@@ -156,7 +156,7 @@ def books_by_subject(subject):
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
-
+    
     return render_books_index('books_index.html', book_info, total_pages, sort_options, parameters, 'Books - %s' % subject)
 
 @app.route("/books/<bid>")
