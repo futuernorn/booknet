@@ -42,9 +42,29 @@ SELECT %s core_id, book_title, book_description, isbn, page_count, COALESCE(cove
   LIMIT %s OFFSET %s
 </code></pre>
                 </td>
-			  <td>Explanation.
+			  <td>Main book index query.
 			  </td>
 			</tr>
+<tr>
+                <td><pre>
+                    <code class="sql">
+SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
+        COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
+        FROM booknet_user
+        LEFT JOIN review ON user_id = reviewer
+        LEFT JOIN list USING (user_id)
+        LEFT JOIN book_list USING (list_id)
+        LEFT JOIN user_level USING (level_id)
+        LEFT JOIN user_log ON user_id = reader
+        LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
+        WHERE user_id = %s
+        GROUP BY user_id, login_name, level_name, is_followed
+                    </code>
+                </pre>
+                </td>
+                <td>Our profile page query.  Retrieves information on user.
+                </td>
+            </tr>
 			</tbody>
 		      </table>
 		</div>

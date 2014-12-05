@@ -13,8 +13,8 @@
 	      </li>
               <li class="list-group-item"><h4>Custom Features:</h4>
                             <div class="btn-group" role="group" aria-label="Extra-small button group">
-    <a type="button" class="btn btn-default" href="{{url_for('add_book',bid=0)}}" target="_blank"">Add Book</a>
-    <a type="button" class="btn btn-danger" href="{{url_for('moderator_dashboard')}}" target="_blank"">Moderation Queue</a>
+    <a type="button" class="btn btn-default" href="{{url_for('add_book',bid=0)}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Shows the starting place for generating 'reuqests_on_books' for moderation.">Add Book</a>
+    <a type="button" class="btn btn-danger" href="{{url_for('moderator_dashboard')}}" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Prelimnary page for the review and approval/denial of request ~*~*~ Custom Feature ~*~*~*">Moderation Queue</a>
     </div>
 	      </li>
               <li class="list-group-item"><h4>SQL Queries:</h4></li>
