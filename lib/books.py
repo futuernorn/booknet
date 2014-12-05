@@ -1152,6 +1152,21 @@ def set_book_active(cur,book_id):
     else:
         message.append("Unknown error!")
 
+    cur.execute('''
+TRUNCATE TABLE book_search;
+INSERT INTO book_search (book_id, search_vector)
+  SELECT book_id,
+    setweight(to_tsvector(book_title), 'A')
+    || setweight(to_tsvector(coalesce(book_description, '')), 'B')
+  FROM books
+    LEFT OUTER JOIN (SELECT core_id, book_title, book_description
+                     FROM book_core
+                     ) core_info
+    USING (core_id);
+    ''')
+
+    cur.execute("ANALYZE;")
+
     return update_status, message, core_id
 
 def add_log(cur, user_id, form):
