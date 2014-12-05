@@ -6,7 +6,7 @@
                 <table class="table table-striped">
                      <thead>
                       <tr>
-                      <th>Name</th><th>Created On</th><th># of Books</th>
+                      <th>Name</th><th>Created On</th><th># of Books</th><th>Actions</th>
                       </tr>
                       </thead>
                       <tbody>
@@ -15,6 +15,20 @@
                             <td><a href="{{url_for('display_list',lid=list.id)}}">{{list.list_name}}</a></td>
                             <td>{{list.date_created}}</td>
                             <td>{{list.num_books}}</td>
+        <td>
+            <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Show<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">--</a></li>
+
+                  <li class="divider"></li>
+
+
+                  </ul>
+                </div>
+        </td>
                         </tr>
                         {% endfor %}
                       </tbody>
