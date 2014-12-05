@@ -716,7 +716,7 @@ def moderator_presentation():
 def approve_request(request_id):
     #raise NotImplementedError
     errors = []
-    if flask.request.method == 'POST':
+    if flask.request.method == 'GET':
         with easypg.cursor() as cur:
             edit_status, messages, book_id = users.approve_request(cur, request_id, flask.ext.login.current_user.id)
             print "Posted request approval data data: %s..." % messages
