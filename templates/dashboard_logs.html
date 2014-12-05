@@ -6,17 +6,16 @@
                 <table class="table table-striped">
                      <thead>
                       <tr>
-                      <th>Year</th><th>Books Read</th><th>Pages Read</th><th>Logs</th>
+                      <th>Book</th><th style="width: 125px;">Date Completed</th><th style="width: 125px;">Date Started</th><th>Logs</th>
                       </tr>
                       </thead>
                       <tbody>
-                        {% for log_year in selected_user.reading_logs_by_year %}
+                        {% for log in selected_user.reading_logs %}
                         <tr>
-                            <td><a href="{{url_for('display_logs_by_year',year=log_year.year)}}">{{log_year.year}}</a></td>
-                            <td>{{log_year.num_books}}</td>
-                            <td>{{log_year.pages_read}}</td>
-                            <td>{{log_year.num_logs}}</td>
-                            <td></td>
+                            <td><a href="{{url_for('display_book',bid=log.core_id)}}">{{log.book_title}}</a></td>
+                            <td>{{log.date_completed}}</td>
+                            <td>{{log.date_started}}</td>
+                            <td><a href="{{url_for('display_log',lid=log.log_id)}}" class="btn btn-primary">View</a></td>
                         </tr>
                         {% endfor %}
                       </tbody>
