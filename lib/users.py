@@ -43,6 +43,16 @@ QUERIES = {
         JOIN books USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user USING (user_id)
+        WHERE status = 1
+    ''',
+    'select_one_request_on_book_info': '''
+        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
+        FROM request
+        JOIN request_on_book USING (request_id)
+        JOIN books USING (book_id)
+        JOIN book_core USING (core_id)
+        JOIN booknet_user USING (user_id)
+        WHERE request_id = %s
     '''
 }
 
@@ -258,6 +268,28 @@ def get_user_logs(cur, user_id, book_id):
 
     return logs
 
+def approve_request(cur, request_id, user_id):
+    print "approve_request started..."
+    print "Form data: %s" % form
+    update_status = True
+    book_id = 0
+    message = []
+    query = QUERIES['select_one_request_on_book_info'] % '%s'
+    cur.execute(query, (request_id,))
+
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
+        update_status, set_book_active_message = books.set_book_active(cur,book_id)
+        message.append(set_book_active_message)
+        cur.execute('''
+            UPDATE request SET
+            status = 0
+            WHERE request_id = %s
+            RETURNING status
+        ''', (request_id,))
+        return update_status, message, book_id
+    return update_status, message, book_id
+
+
 def get_moderation_info(cur):
     # mod_info.total_requests }}</h4> </li>
     #             <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
@@ -326,3 +358,6 @@ def remove_follower(cur, followee, follower):
     #     message = "User not currently authenticated!"
 
     return message
+
+
+

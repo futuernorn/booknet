@@ -1117,6 +1117,23 @@ def add_book(cur, core_id, user_id, form):
     print "Add_book completed..."
     return True, message, core_id
 
+def set_book_active(cur,book_id):
+    update_status = True
+    message = []
+    cur.execute('''
+        UPDATE books SET
+        is_active = TRUE
+        WHERE book_id = %s
+        RETURNING book_id
+    ''', (book_id,))
+    if cur.rowcount == 1:
+        message.append("Book %s updated!" % book_id)
+
+    else:
+        message.append("Unknown error!")
+
+    return update_status, message
+
 def add_log(cur, user_id, form):
     create_status = True
     message = []

@@ -714,12 +714,12 @@ def moderator_presentation():
 @app.route("/dashboard/approve/<request_id>")
 @flask.ext.login.login_required
 def approve_request(request_id):
-    raise NotImplementedError
+    #raise NotImplementedError
     errors = []
     if flask.request.method == 'POST':
         with easypg.cursor() as cur:
-            edit_status, messages, book_id = users.approve_request(cur, request_id, flask.ext.login.current_user.id, flask.request.form)
-            print "Posted book data: %s..." % messages
+            edit_status, messages, book_id = users.approve_request(cur, request_id, flask.ext.login.current_user.id)
+            print "Posted request approval data data: %s..." % messages
             if edit_status:
                 for message in messages:
                     flask.flash(message)
@@ -731,14 +731,10 @@ def approve_request(request_id):
     if 'next' in flask.request.args:
         next = flask.request.args['next']
     else:
-        next = flask.url_for("home_index")
+        next = flask.url_for("moderator_dashboard")
 
-    book_info = {'title': 'New Book Addition', 'core_id': '0'}
-    return flask.render_template("book_edit_form.html",
-                                 book_info=book_info,
-                                 page_title="Add A Book!",
-                                 error=errors,
-                                 next=next)
+
+    return moderator_dashboard()
 
 
 @app.route("/dashboard/reject/<request_id>")
