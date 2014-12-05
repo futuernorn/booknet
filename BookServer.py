@@ -638,7 +638,7 @@ def user_dashboard_lists():
     else:
         next = flask.url_for("users_index")
     return flask.render_template('dashboard_lsts.html',
-                                 user_id=uid,
+                                 user_id=current_user_id,
                                  selected_user=user_info,
                                  next=next)
 
