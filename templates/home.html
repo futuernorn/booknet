@@ -50,7 +50,7 @@
                 <img src="{{ url_for('static', filename='images/blank_cover_100-88.png') }}" alt="...">
               </a>
               <div class="media-body">
-                <h4 class="media-heading"><a href="{{url_for('display_review',rid=review.review_id)}}">{{ review.book_title }}</a></h4>
+                <h4 class="media-heading"><a href="{{url_for('display_review',rid=review.id)}}">{{ review.book_title }}</a></h4>
                 {{ review.review_text }}<br/>
                   <p class="text-muted">by: <a href="{{url_for('display_user_profile',uid=review.reviewer)}}">{{review.reviewer_name}}</a></p>
               </div>
