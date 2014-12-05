@@ -271,13 +271,13 @@ def get_user_logs(cur, user_id, book_id):
 def approve_request(cur, request_id, user_id):
     print "approve_request started..."
     update_status = True
-    book_id = 0
+    core_id = 0
     message = []
     query = QUERIES['select_one_request_on_book_info'] % '%s'
     cur.execute(query, (request_id,))
 
     for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
-        update_status, set_book_active_message = books.set_book_active(cur,book_id)
+        update_status, set_book_active_message, core_id = books.set_book_active(cur,book_id)
         message.append(set_book_active_message)
         cur.execute('''
             UPDATE request SET
@@ -285,8 +285,8 @@ def approve_request(cur, request_id, user_id):
             WHERE request_id = %s
             RETURNING status
         ''', (request_id,))
-        return update_status, message, book_id
-    return update_status, message, book_id
+        return update_status, message, core_id
+    return update_status, message, core_id
 
 
 def get_moderation_info(cur):

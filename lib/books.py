@@ -1120,6 +1120,14 @@ def add_book(cur, core_id, user_id, form):
 def set_book_active(cur,book_id):
     update_status = True
     message = []
+    core_id = 0
+    cur.execute('''
+        SELECT core_id
+        FROM books
+        JOIN book_core USING (core_id)
+	WHERE book_id = %s
+    ''', (book_id,))
+    core_id = cur.fetchone()[0]
     cur.execute('''
         UPDATE books SET
         is_active = TRUE
@@ -1127,12 +1135,24 @@ def set_book_active(cur,book_id):
         RETURNING book_id
     ''', (book_id,))
     if cur.rowcount == 1:
-        message.append("Book %s updated!" % book_id)
+        message.append("Book %s activated!" % book_id)
 
     else:
         message.append("Unknown error!")
 
-    return update_status, message
+    cur.execute('''
+        UPDATE book_core SET
+        is_active = TRUE
+        WHERE core_id = %s
+        RETURNING core_id
+    ''', (core_id,))
+    if cur.rowcount == 1:
+        message.append("Book core %s activated!" % core_id)
+
+    else:
+        message.append("Unknown error!")
+
+    return update_status, message, core_id
 
 def add_log(cur, user_id, form):
     create_status = True
