@@ -619,6 +619,15 @@ def user_dashboard():
     # print user_info
     return flask.render_template('dashboard_overview.html',
                                  user_info = user_info)
+@app.route("/dashboard/logs")
+def user_dashboard_logs():
+    raise NotImplementedError
+@app.route("/dashboard/lists")
+def user_dashboard_lists():
+    raise NotImplementedError
+@app.route("/dashboard/reviews")
+def user_dashboard_reviews():
+    raise NotImplementedError
 
 @app.route("/dashboard/followers")
 def user_dashboard_followers():
