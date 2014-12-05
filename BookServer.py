@@ -715,6 +715,31 @@ def moderator_presentation():
 @flask.ext.login.login_required
 def approve_request(request_id):
     raise NotImplementedError
+    errors = []
+    if flask.request.method == 'POST':
+        with easypg.cursor() as cur:
+            edit_status, messages, book_id = users.approve_request(cur, request_id, flask.ext.login.current_user.id, flask.request.form)
+            print "Posted book data: %s..." % messages
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=book_id))
+            else:
+                for message in messages:
+                    errors.append(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("home_index")
+
+    book_info = {'title': 'New Book Addition', 'core_id': '0'}
+    return flask.render_template("book_edit_form.html",
+                                 book_info=book_info,
+                                 page_title="Add A Book!",
+                                 error=errors,
+                                 next=next)
+
 
 @app.route("/dashboard/reject/<request_id>")
 @flask.ext.login.login_required
