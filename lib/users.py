@@ -43,7 +43,7 @@ QUERIES = {
         JOIN books USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user USING (user_id)
-        WHERE status = 1
+        WHERE status = '1'
     ''',
     'select_one_request_on_book_info': '''
         SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
@@ -282,7 +282,7 @@ def approve_request(cur, request_id, user_id):
         message.append(set_book_active_message)
         cur.execute('''
             UPDATE request SET
-            status = 0
+            status = '0'
             WHERE request_id = %s
             RETURNING status
         ''', (request_id,))
