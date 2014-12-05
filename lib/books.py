@@ -1103,7 +1103,7 @@ def add_book(cur, core_id, user_id, form):
         INSERT INTO request (user_id, type, date_requested, priority, status, date_of_status)
         VALUES(%s, %s, NOW(), %s, %s, NOW())
         RETURNING request_id
-    ''', (user_id, "Add Book", 1, "Awaiting Review"))
+    ''', (user_id, "Add Book", '1', "Awaiting Review"))
     request_id = cur.fetchone()[0]
 
         # And finally enter the new book in the queue for approval
