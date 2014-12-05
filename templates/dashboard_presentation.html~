@@ -5,8 +5,8 @@
             <ul class="list-group">
               <li class="list-group-item"><h4>Features:</h4> 
                             <div class="btn-group" role="group" aria-label="Extra-small button group">
-    <a type="button" class="btn btn-default" href="{{url_for('books_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Main book list reused in various areas (ratings, categorys,e etc.)">Books Index</a>
-    <a type="button" class="btn btn-default" href="{{url_for('display_books_with_covers')}}" target="_blank"">Books w/ Covers</a>
+    <a type="button" class="btn btn-default" href="{{url_for('books_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Main book list reused in various areas (ratings, categorys,  etc.)">Books Index</a>
+    <a type="button" class="btn btn-default" href="{{url_for('display_books_with_covers')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Fun easter egg showing the few books where covers where downloads.">Books w/ Covers</a>
     </div>
 
 
@@ -61,7 +61,7 @@ $(window).load(function(){
     hljs.highlightBlock(block);
   });
 
-
+$('[data-toggle="tooltip"]').tooltip();
 });
 </script>
 {% endblock %}
