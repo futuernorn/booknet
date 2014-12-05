@@ -455,7 +455,7 @@ def lists_index():
 def get_user_lists():
     user_id = flask.ext.login.current_user.id
     with easypg.cursor() as cur:
-        user_logs = users.get_user_ligs(cur, user_id)
+        user_logs = users.get_user_lists(cur, user_id)
     return flask.jsonify(user_logs)
 
 ################## Ratings #############################################################################################
