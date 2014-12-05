@@ -819,6 +819,7 @@ def register_index():
                     flask.ext.login.login_user(user, remember)
                     flask.flash("Registered and Logged in successfully.")
                     flask.flash("Good to meet you %s!" % flask.request.form['username'])
+                    return flask.redirect(flask.url_for('home_index'))
                 else:
                     errors.append(message)
 
