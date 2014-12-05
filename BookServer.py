@@ -620,11 +620,28 @@ def user_dashboard():
     return flask.render_template('dashboard_overview.html',
                                  user_info = user_info)
 @app.route("/dashboard/logs")
+@flask.ext.login.login_required
 def user_dashboard_logs():
     raise NotImplementedError
 @app.route("/dashboard/lists")
+@flask.ext.login.login_required
 def user_dashboard_lists():
-    raise NotImplementedError
+    user_info = None
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("users_index")
+    return flask.render_template('dashboard_lsts.html',
+                                 user_id=uid,
+                                 selected_user=user_info,
+                                 next=next)
+
 @app.route("/dashboard/reviews")
 def user_dashboard_reviews():
     raise NotImplementedError
