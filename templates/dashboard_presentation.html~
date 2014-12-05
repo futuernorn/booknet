@@ -69,6 +69,25 @@ SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_follo
                 <td>Our profile page query.  Retrieves information on user.
                 </td>
             </tr>
+<tr>
+                <td><pre>
+                    <code class="sql">
+        SELECT DISTINCT core_id,book_title, isbn, page_count, COALESCE(publisher_name,'Unknown'), book_description,
+        to_char(publication_date,'Mon. DD, YYYY') as publication_date, to_char(publication_date,'MM/DD/YYYY') as publication_date_fmt,
+        COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating
+        FROM book_core
+        LEFT JOIN books USING (core_id)
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        LEFT JOIN book_publisher ON core_id = book_publisher.book_id
+        LEFT JOIN publisher USING (publisher_id)
+        WHERE core_id = %s
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, publication_date_fmt, publisher_name
+                    </code>
+                </pre>
+                </td>
+                <td>Single book info page query.
+                </td>
+            </tr>
 			</tbody>
 		      </table>
 		</div>
