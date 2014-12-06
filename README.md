@@ -12,42 +12,42 @@ from flask.ext.login import LoginManager
 I've copied the compiled version (compiled on the class vagrant configuration) of this module to the root directory of the project as well.
 
 # Initalizing Database
-1. Import latest database data with the following command run from the root directory of the project:
+* Import latest database data with the following command run from the root directory of the project:
 ```
 gunzip < data/booknet_12061401_parsed.sql.gz  | psql booknet -U postgres
 ```
 
-Now you can run BookServer.py to start the project / flask.
+* Now you can run BookServer.py to start the project / flask.
 
-As an aside, the book covers that were able to be downloaded and used for our project are at: . However it should happily fail with blank images without that 300MB download.
+* As an aside, the book covers that were able to be downloaded and used for our project are at: . However it should happily fail with blank images without that 300MB download.
 
 # Final Report
-[Data model diagram](doc/data_model_diagram.pdf)
-[List of pages](doc/page_list.pdf)
+* [Data model diagram](doc/data_model_diagram.pdf)
+* [List of pages](doc/page_list.pdf)
 
 ---------------
 
 ## Generated Data Information
 #### ratings
-10,000 entries
-Targeting book_id 1-5000
-rater: 1-30
-rating: 0|0.5|1|1.5|2|2.5|3|3.5|4|4.5|5
-date_rated: 12/01/2011 - 12/04/2014
+* 10,000 entries
+* Targeting book_id 1-5000
+* rater: 1-30
+* rating: 0|0.5|1|1.5|2|2.5|3|3.5|4|4.5|5
+* date_rated: 12/01/2011 - 12/04/2014
 
 #### list
-500 entries
-Targeting user_id 1-30
+* 500 entries
+* Targeting user_id 1-30
 
 #### book_list
-10,000 entries
-Targeting book_id 1-5000
-Targeting list_id 1-500
+* 10,000 entries
+* Targeting book_id 1-5000
+* Targeting list_id 1-500
 
 #### user_log
-5000 entries
-Targeting book_id 1-10000
-pages_read: 1-1000
+* 5000 entries
+* Targeting book_id 1-10000
+* pages_read: 1-1000
 
 
 ## Sample Data Structure Information
