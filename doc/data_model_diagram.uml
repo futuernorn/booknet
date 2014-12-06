@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>a95d5510-cb8b-4ce9-8fc0-9186968072b0.schema:booknet.public</OriginalElement>
+  <nodes>
+    <node x="2610.675505050505" y="139.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user</node>
+    <node x="2476.2916666666665" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.follow</node>
+    <node x="3512.2916666666665" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_request</node>
+    <node x="2696.2916666666665" y="418.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request</node>
+    <node x="632.1098484848483" y="189.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.institution</node>
+    <node x="1333.5505050505049" y="159.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core</node>
+    <node x="2049.925505050505" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.ratings</node>
+    <node x="2991.425505050505" y="697.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.moderator_log</node>
+    <node x="673.5505050505049" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_author</node>
+    <node x="1852.2941919191917" y="717.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_list</node>
+    <node x="1954.7171717171714" y="179.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.permission_map</node>
+    <node x="494.55050505050485" y="498.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.publisher</node>
+    <node x="447.10984848484827" y="179.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.author</node>
+    <node x="2707.425505050505" y="707.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request_on_user</node>
+    <node x="102.625" y="189.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.series</node>
+    <node x="3831.0416666666665" y="179.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.profile_property</node>
+    <node x="1560.9255050505049" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.review</node>
+    <node x="979.0505050505047" y="488.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_subject</node>
+    <node x="3257.2916666666665" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_profile</node>
+    <node x="831.1098484848483" y="189.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.subject</node>
+    <node x="2259.925505050505" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.list</node>
+    <node x="285.55050505050485" y="488.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_series</node>
+    <node x="1324.3005050505049" y="727.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_search</node>
+    <node x="1785.9255050505049" y="438.5">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_log</node>
+    <node x="3027.2916666666665" y="458.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_lock</node>
+    <node x="515.5505050505049" y="717.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_publisher</node>
+    <node x="0.0" y="488.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.metaseries</node>
+    <node x="2611.175505050505" y="0.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_level</node>
+    <node x="1203.0505050505049" y="418.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book</node>
+    <node x="1925.4671717171714" y="10.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.permission</node>
+    <node x="3743.2916666666665" y="468.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.profile_map</node>
+    <node x="2253.859848484848" y="707.0">a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request_on_book</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_lock" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="52.5" y="-74.5" />
+      <point x="3184.7916666666665" y="378.0" />
+      <point x="2775.0088383838383" y="378.0" />
+      <point x="48.333333333333485" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.profile_map" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="-58.75" y="-64.5" />
+      <point x="3802.0416666666665" y="348.0" />
+      <point x="2833.008838383838" y="348.0" />
+      <point x="106.33333333333303" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.review" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="-51.25" y="-64.5" />
+      <point x="1612.1755050505049" y="388.0" />
+      <point x="1465.5505050505049" y="388.0" />
+      <point x="36.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request_on_book" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request">
+      <point x="0.0" y="-64.5" />
+      <point x="2387.359848484848" y="672.0" />
+      <point x="2748.125" y="672.0" />
+      <point x="-103.66666666666652" y="114.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_subject" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="51.0" y="-44.5" />
+      <point x="1132.0505050505049" y="388.0" />
+      <point x="1393.5505050505049" y="388.0" />
+      <point x="-36.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_list" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.list">
+      <point x="48.0" y="-54.5" />
+      <point x="1996.2941919191917" y="672.0" />
+      <point x="2351.925505050505" y="672.0" />
+      <point x="0.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_author" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.institution">
+      <point x="0.0" y="-64.5" />
+      <point x="793.5505050505049" y="348.0" />
+      <point x="714.6098484848483" y="348.0" />
+      <point x="0.0" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.metaseries" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.series">
+      <point x="0.0" y="-44.5" />
+      <point x="93.0" y="398.0" />
+      <point x="137.875" y="398.0" />
+      <point x="-35.25" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.profile_map" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.profile_property">
+      <point x="58.75" y="-64.5" />
+      <point x="0.0" y="44.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_log" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="-61.0" y="-94.0" />
+      <point x="1846.9255050505049" y="338.0" />
+      <point x="1489.5505050505049" y="338.0" />
+      <point x="60.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="0.0" y="-114.5" />
+      <point x="1350.5505050505049" y="398.0" />
+      <point x="1417.5505050505049" y="398.0" />
+      <point x="-12.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_series" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.series">
+      <point x="-47.25" y="-44.5" />
+      <point x="332.80050505050485" y="398.0" />
+      <point x="208.375" y="398.0" />
+      <point x="35.25" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_log" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="61.0" y="-94.0" />
+      <point x="1968.9255050505049" y="358.0" />
+      <point x="2639.675505050505" y="358.0" />
+      <point x="-87.0" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.moderator_log" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request">
+      <point x="0.0" y="-74.5" />
+      <point x="3127.425505050505" y="672.0" />
+      <point x="2955.458333333333" y="672.0" />
+      <point x="103.66666666666652" y="114.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_level">
+      <point x="0.0" y="-84.5" />
+      <point x="38.5" y="44.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.permission_map" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.permission">
+      <point x="-55.25" y="-44.5" />
+      <point x="0.0" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_author" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="80.0" y="-64.5" />
+      <point x="873.5505050505049" y="378.0" />
+      <point x="1369.5505050505049" y="378.0" />
+      <point x="-60.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.follow" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="50.0" y="-64.5" />
+      <point x="2626.2916666666665" y="398.0" />
+      <point x="2717.0088383838383" y="398.0" />
+      <point x="-9.666666666666515" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_publisher" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.publisher">
+      <point x="-58.5" y="-54.5" />
+      <point x="0.0" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_search" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book">
+      <point x="0.0" y="-44.5" />
+      <point x="73.75" y="114.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.list" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="0.0" y="-64.5" />
+      <point x="2351.925505050505" y="378.0" />
+      <point x="2678.3421717171714" y="378.0" />
+      <point x="-48.333333333333485" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_profile" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="0.0" y="-64.5" />
+      <point x="3374.7916666666665" y="368.0" />
+      <point x="2794.3421717171714" y="368.0" />
+      <point x="67.66666666666652" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.ratings" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="-47.5" y="-64.5" />
+      <point x="2097.425505050505" y="328.0" />
+      <point x="1513.5505050505049" y="328.0" />
+      <point x="84.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_subject" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.subject">
+      <point x="-51.0" y="-44.5" />
+      <point x="1030.0505050505049" y="358.0" />
+      <point x="905.6098484848483" y="358.0" />
+      <point x="0.0" y="34.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.permission_map" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_level">
+      <point x="55.25" y="-44.5" />
+      <point x="2120.4671717171714" y="114.0" />
+      <point x="2649.675505050505" y="114.0" />
+      <point x="-38.5" y="44.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="0.0" y="-114.5" />
+      <point x="2851.7916666666665" y="398.0" />
+      <point x="2736.3421717171714" y="398.0" />
+      <point x="9.666666666666515" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.ratings" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="47.5" y="-64.5" />
+      <point x="2192.425505050505" y="368.0" />
+      <point x="2659.0088383838383" y="368.0" />
+      <point x="-67.66666666666652" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_publisher" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book">
+      <point x="58.5" y="-54.5" />
+      <point x="691.0505050505049" y="672.0" />
+      <point x="1276.8005050505049" y="672.0" />
+      <point x="-73.75" y="114.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.review" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="51.25" y="-64.5" />
+      <point x="1714.6755050505049" y="348.0" />
+      <point x="2620.3421717171714" y="348.0" />
+      <point x="-106.33333333333348" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_list" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="-48.0" y="-54.5" />
+      <point x="1900.2941919191917" y="672.0" />
+      <point x="1550.4255050505049" y="672.0" />
+      <point x="1550.4255050505049" y="398.0" />
+      <point x="1441.5505050505049" y="398.0" />
+      <point x="12.0" y="64.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request_on_user" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request">
+      <point x="0.0" y="-64.5" />
+      <point x="2839.425505050505" y="672.0" />
+      <point x="2851.7916666666665" y="672.0" />
+      <point x="0.0" y="114.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.user_request" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.booknet_user">
+      <point x="0.0" y="-64.5" />
+      <point x="3617.7916666666665" y="358.0" />
+      <point x="2813.675505050505" y="358.0" />
+      <point x="87.0" y="84.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_author" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.author">
+      <point x="-80.0" y="-64.5" />
+      <point x="713.5505050505049" y="358.0" />
+      <point x="529.6098484848483" y="358.0" />
+      <point x="0.0" y="44.5" />
+    </edge>
+    <edge source="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_series" target="a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.book_core">
+      <point x="47.25" y="-44.5" />
+      <point x="427.30050505050485" y="368.0" />
+      <point x="1345.5505050505049" y="368.0" />
+      <point x="-84.0" y="64.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.5799702159344751" x="2473.4637309025547" y="740.6248555655411" />
+  <SelectedNodes>
+    <node>a95d5510-cb8b-4ce9-8fc0-9186968072b0.table:booknet.public.request_on_book</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Key columns</Category>
+    <Category>Columns</Category>
+  </Categories>
+</Diagram>
+
