@@ -19,7 +19,7 @@ gunzip < data/booknet_12061401_parsed.sql.gz  | psql booknet -U postgres
 
 * Now you can run BookServer.py to start the project / flask.
 
-* As an aside, the book covers that were able to be downloaded and used for our project are at: . However it should happily fail with blank images without that 300MB download.
+* As an aside, the book covers that were able to be downloaded and used for our project are located [here](http://goo.gl/7twwVq). However it should happily fail with blank images without that ~350MB download.
 
 # Final Report
 * [Data model diagram](doc/data_model_diagram.pdf)
