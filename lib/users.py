@@ -11,6 +11,9 @@ QUERIES = {
     'reviews_by_book_count': '''
         SELECT COUNT(*) FROM review WHERE book_id = %s;
     ''',
+    'total_requests_count': '''
+        SELECT COUNT(*) FROM request;
+    ''',
     'select_user_where': '''
         SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
         COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
@@ -31,25 +34,26 @@ QUERIES = {
       GROUP BY list_id, list_name;
     ''',
     'select_user_logs': '''
-      SELECT log_id, log_text, to_char(date_started,'Mon. DD, YYYY') as date_started,
+      SELECT log_id, log_text, status, pages_read, to_char(date_started,'Mon. DD, YYYY') as date_started,
       to_char(date_completed,'Mon. DD, YYYY') as date_completed
       FROM user_log
       WHERE reader = %s AND book_id = %s;
     ''',
     'select_request_on_book_info': '''
-        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
+        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, status, to_char(date_requested,'Mon. DD, YYYY') as date_requested
         FROM request
         JOIN request_on_book USING (request_id)
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user USING (user_id)
-        WHERE status = 'Awaiting Review'
+        %s
+        %s
     ''',
     'select_one_request_on_book_info': '''
-        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, to_char(date_requested,'Mon. DD, YYYY') as date_requested
+        SELECT request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, status, to_char(date_requested,'Mon. DD, YYYY') as date_requested
         FROM request
         JOIN request_on_book USING (request_id)
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user USING (user_id)
         WHERE request_id = %s
@@ -133,7 +137,7 @@ def get_user(cur,user_id,current_user_id=None):
         SELECT review_id, book_core.core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
         FROM review
         JOIN book_core ON review.book_id = book_core.core_id
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN booknet_user ON reviewer = user_id
         WHERE reviewer = %s
     ''', (user_id,))
@@ -263,50 +267,81 @@ def get_user_logs(cur, user_id, book_id):
     query = QUERIES['select_user_logs'] % ('%s', '%s')
     cur.execute(query, (user_id, book_id))
 
-    for log_id, log_text, date_completed, date_started in cur:
-        logs[cur.rownumber] = {'log_id': log_id, 'log_text': log_text, 'date_completed': date_completed, 'date_started': date_started};
+    for log_id, log_text, status, pages_read, date_completed, date_started in cur:
+        if status == 1:
+            status_text = "In-progress"
+        elif status == 2:
+            status_text = "Completed"
+        else:
+            status_text = "Unknown"
+        logs[cur.rownumber] = {'log_id': log_id, 'log_text': log_text, 'status': status, 'pages_read': pages_read,
+                               'status_text': status_text, 'date_completed': date_completed, 'date_started': date_started};
 
     return logs
 
-def approve_request(cur, request_id, user_id):
-    print "approve_request started..."
+def approve_request(cur, request_id, current_user_id):
     update_status = True
     core_id = 0
     message = []
+
+    # in the future, would first check to see what type of request is being approved
     query = QUERIES['select_one_request_on_book_info'] % '%s'
     cur.execute(query, (request_id,))
 
-    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, status, date_requested in cur:
         update_status, set_book_active_message, core_id = books.set_book_active(cur,book_id)
         message.append(set_book_active_message)
         cur.execute('''
             UPDATE request SET
-            status = '0'
+            status = '0',
+            date_of_status = current_timestamp,
+            moderator_notes = 'I approve this request.',
+            date_of_last_viewed = current_timestamp,
+            moderator = %s
             WHERE request_id = %s
             RETURNING status
-        ''', (request_id,))
+        ''', (current_user_id, request_id))
         return update_status, message, core_id
     return update_status, message, core_id
 
 
 def get_moderation_info(cur):
-    # mod_info.total_requests }}</h4> </li>
-    #             <li class="list-group-item"><h4># Incomplete Requests: {{ mod_info.incomplete_requests }}</h4></li>
-    #             <li class="list-group-item"><h4># Completed Requests: {{ mod_info.completed_requests
+    cur.execute(QUERIES['total_requests_count'])
+    total_requests = cur.fetchone()[0]
 
-
-
-    mod_info = {'requests': []}
-    query = QUERIES['select_request_on_book_info']
+    mod_info = {'total':total_requests, 'incomplete':0, 'complete': 0, 'incomplete_requests': [], 'complete_requests': []}
+    query = QUERIES['select_request_on_book_info'] % ('WHERE status = \'Awaiting Review\'', '')
     cur.execute(query)
 
-    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, date_requested in cur:
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, status, date_requested in cur:
+        current_request = {'request_id': request_id, 'request_on_book_id': request_on_book_id, 'request_type': request_type,
+                   'book_id': book_id, 'request_text': request_text, 'book_title': book_title.decode('utf8', 'xmlcharrefreplace'), 'requester': login_name,
+                   'user_id': user_id, 'date_requested': date_requested}
+        if status == 'Awaiting Review':
+            mod_info['incomplete'] += 1
+            mod_info['incomplete_requests'].append(current_request)
+        else:
+            mod_info['complete'] += 1
+            # mod_info['complete_requests'].append(current_request)
 
-        mod_info['requests'].append({'request_id': request_id, 'request_on_book_id': request_on_book_id, 'request_type': request_type,
-                               'book_id': book_id, 'request_text': request_text, 'book_title': book_title, 'requester': login_name,
-                               'user_id': user_id, 'date_requested': date_requested})
-    print mod_info
+    mod_info['complete_requests'] = get_completed_request(cur, 0, 25)
+    mod_info['complete'] = mod_info['total'] - mod_info['incomplete']
     return mod_info
+
+def get_completed_request(cur, start, amount):
+
+    query = QUERIES['select_request_on_book_info'] % ('WHERE status <> \'Awaiting Review\'', 'LIMIT %s OFFSET %s')
+    cur.execute(query, (amount, start))
+    requests = []
+    for request_id, request_on_book_id, request_type, book_id, request_text, book_title, login_name, user_id, status, date_requested in cur:
+        requests.append({'request_id': request_id, 'request_on_book_id': request_on_book_id, 'request_type': request_type,
+                   'book_id': book_id, 'request_text': request_text, 'book_title': book_title.decode('utf8', 'xmlcharrefreplace'), 'requester': login_name,
+                   'user_id': user_id, 'date_requested': date_requested})
+
+    return requests
+
+
+
 #################### Following #########################################################################################
 def add_follower(cur, followee, follower):
 

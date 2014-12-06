@@ -4,13 +4,26 @@ import json
 import easypg
 import operator
 import re
-import sys, traceback
+import sys,traceback
 from functools import cmp_to_key
 from shutil import copyfile
 import locale
 import os
-easypg.config_name = 'bookserver_import'
+import argparse
 
+
+
+# parser = argparse.ArgumentParser(description='Process subset of openlibrary.org "sample" data.')
+# parser.add_argument('easypg config file', metavar='F', type=str, nargs='?', default='bookserver_import',
+#                    help='file containing database connection information')
+# parser.add_argument('limit amount imported', metavar='F', type=str, nargs='?', default='bookserver_import',
+#                    help='file containing database connection information')
+# parser.add_argument('--sum', dest='accumulate', action='store_const',
+#                    const=sum, default=max,
+#                    help='sum the integers (default: find the max)')
+
+
+easypg.config_name = 'bookserver_import'
 
 # Count the occurrences of any given key for a dataset
 author_keys = {'name_too_long':0}
@@ -159,6 +172,26 @@ def import_cover_dump(cover_size='s'):
         log_file.close()
         # if cur.rowcount == 1:
 
+def generate_requests():
+    with easypg.cursor() as cur:
+        cur.execute('''
+            SELECT book_id, is_active FROM book;
+        ''')
+        for book_id, is_active in cur:
+            with easypg.cursor() as loop_cur:
+                loop_cur.execute('''
+                    INSERT INTO request (user_id, type, date_requested, priority, status, date_of_status)
+                    VALUES(%s, %s, NOW(), %s, %s, NOW())
+                    RETURNING request_id
+                ''', (1, "Add Book", '1', "Approved"))
+                request_id = loop_cur.fetchone()[0]
+
+                loop_cur.execute('''
+                    INSERT INTO request_on_book (request_id, book_id, request_type, request_text)
+                    VALUES(%s, %s, %s, %s)
+                    RETURNING request_on_book_id
+                ''', (request_id, book_id, "Add Book", "load-template.py insertion"))
+                request_on_book_id = loop_cur.fetchone()[0]
 
 def import_all():
     try:
@@ -586,7 +619,8 @@ def import_all():
 # retrieve_cover_dump_names()
 # import_all()
 # retrieve_cover_dump_names()
-import_cover_dump('m')
+# import_cover_dump('m')
+generate_requests()
 
 log_file.close()
 error_log.close()

@@ -18,7 +18,7 @@ QUERIES = {
         SELECT review_id, book_core.core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
         FROM review
         JOIN book_core ON review.book_id = book_core.core_id
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN booknet_user ON reviewer = user_id
         %s
         LIMIT %s OFFSET %s
@@ -63,7 +63,7 @@ def get_review(cur,review_id):
     cur.execute('''
         SELECT review_id, core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
         FROM review
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user ON reviewer = user_id
         WHERE review_id = %s

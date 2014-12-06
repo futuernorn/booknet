@@ -104,7 +104,12 @@ SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_follo
 {% endblock %}
 
 
+
 {% block footer_scripts %}
+<link href="{{ url_for('static', filename='css/default.css') }}" rel="stylesheet">
+
+<script src="{{ url_for('static', filename='js/defaults-en_US.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/highlight.pack.js') }}"></script>
 <script type="text/javascript">
 $(window).load(function(){
   $('pre code').each(function(i, block) {

@@ -331,6 +331,10 @@ def display_log(lid):
                           log=log_info,
                           next=next)
 
+@app.route("/log/edit/<lid>")
+def edit_log(lid):
+    raise NotImplementedError
+
 @app.route("/log/<year>")
 def display_logs_by_year(year):
     raise NotImplementedError

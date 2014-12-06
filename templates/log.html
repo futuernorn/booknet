@@ -21,6 +21,8 @@
                 </li>
                 <li class="list-group-item"><h4>Date Started: {{ log.date_completed }}</h4> </li>
                 <li class="list-group-item"><h4>Date Completed: {{ log.date_completed }}</h4> </li>
+                <li class="list-group-item"><h4>Pages Read: {{ log.pages_read }}</h4> </li>
+                <li class="list-group-item"><h4>Current Status: {{ log.status_text }}</h4> </li>
                 <li class="list-group-item"><h4>Log Text:</h4>
                 <div class="well">
                     {% if log.log_text %}
@@ -42,7 +44,7 @@
               <div class="controls">
                   {% if current_user.is_authenticated() %}
                   <a name="edit_book"></a>
-                  <a href="#" class="btn btn-lg btn-default btn-block" type="submit">Edit Book</a>
+                  <a href="{{url_for('edit_log', lid=log.id)}}" class="btn btn-lg btn-default btn-block" type="submit">Edit log</a>
                   {% endif %}
                   <a href="{{next}}" class="btn btn-lg btn-warning btn-block">Back</a>
               </div>

@@ -16,7 +16,7 @@
     <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/bootstrap-select.min.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='css/default.css') }}" rel="stylesheet">
+
 
 
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
@@ -136,7 +136,20 @@
       </div>
     </footer>
 
-
+<div class="modal fade" id="pleaseWaitDialog" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 id="pleaseWaitDialogHeading">Processing...</h1>
+            </div>
+            <div class="modal-body">
+                <div class="progress progress-striped active">
+                    <div class="progress-bar" role="progressbar" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -147,8 +160,7 @@
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-datetimepicker.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-select.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/defaults-en_US.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/highlight.pack.js') }}"></script>
+
 
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
