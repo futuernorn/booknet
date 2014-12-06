@@ -9,15 +9,23 @@ pip install flask-login
 from flask.ext.login import LoginManager
 ```
 
-# Initalizing Database
-1. Execute data/booknet_ddl.sql on the database to drop / reinitalize all tables.
-2. Import parsed sample data using data/booknet_11291400_parsed.sql.gz 
-```
-gunzip < booknet_11291400_parsed.sql.gz  | psql booknet -U postgres
-```
-~~Use python to execute load-template.py. This will parse and import all sample_data (**provided books.json, authors.json, & works.json should be in data/sample-data**). *TODO: When load-template.py is finalize, replace this step with a (chunkified?) SQL file for import.*~~
+I've copied the compiled version (compiled on the class vagrant configuration) of this module to the root directory of the project as well.
 
-3. Execute data/starting_data.sql on the database to import generic starting manual and randomly generated data.
+# Initalizing Database
+1. Import latest database data with the following command run from the root directory of the project:
+```
+gunzip < data/booknet_12061401_parsed.sql.gz  | psql booknet -U postgres
+```
+
+Now you can run BookServer.py to start the project / flask.
+
+As an aside, the book covers that were able to be downloaded and used for our project are at: . However it should happily fail with blank images without that 300MB download.
+
+# Final Report
+[Data model diagram](doc/data_model_diagram.pdf)
+[List of pages](doc/page_list.pdf)
+
+---------------
 
 ## Generated Data Information
 #### ratings
