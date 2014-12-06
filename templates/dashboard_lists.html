@@ -1,0 +1,45 @@
+{% extends "dashboard.html" %}
+{% set active_page = 'user_dashboard' %}
+{% block dashboard_body %}
+          <h1 class="page-header">{{ selected_user.name }}'s Lists</h1>
+<div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Name</th><th>Created On</th><th># of Books</th><th>Actions</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for list in selected_user.lists %}
+                        <tr>
+                            <td><a href="{{url_for('display_list',lid=list.id)}}">{{list.list_name}}</a></td>
+                            <td>{{list.date_created}}</td>
+                            <td>{{list.num_books}}</td>
+        <td>
+            <div class="btn-group">
+                  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Show<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">--</a></li>
+
+                  <li class="divider"></li>
+
+
+                  </ul>
+                </div>
+        </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+
+</script>
+{% endblock %}

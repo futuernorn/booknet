@@ -20,7 +20,7 @@ is_active BOOLEAN NOT NULL
 );
 
 
-DROP TABLE IF EXISTS "subject_genre" CASCADE;
+DROP TABLE IF EXISTS subject CASCADE;
 CREATE TABLE subject_genre(
 subject_id serial Primary Key	NOT NULL,
 subject_name varchar(255) NOT NULL
@@ -42,7 +42,7 @@ edition VARCHAR(255) NOT NULL
 
 
 DROP TABLE IF EXISTS book CASCADE;
-DROP TABLE IF EXISTS books CASCADE;
+DROP TABLE IF EXISTS book CASCADE;
 CREATE TABLE books(
 book_id serial PRIMARY KEY NOT NULL,
 core_id INTEGER NOT NULL REFERENCES book_core,
@@ -58,7 +58,7 @@ cover_name varchar(255)
 DROP TABLE IF EXISTS "review" CASCADE;
 CREATE TABLE review(
 review_id serial Primary Key	NOT NULL,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 reviewer bigint NOT NULL REFERENCES booknet_user,
 date_reviewed timestamp NOT NULL,
 review_text text NOT NULL
@@ -74,11 +74,11 @@ request_text text NOT NULL
 );
 
 
-DROP TABLE IF EXISTS "book_categorization" CASCADE;
+DROP TABLE IF EXISTS book_subject CASCADE;
 CREATE TABLE book_categorization(
 categorize_id SERIAL PRIMARY KEY	NOT NULL,
 core_id bigint NOT NULL REFERENCES book_core,
-subject_id bigint NOT NULL REFERENCES subject_genre
+subject_id bigint NOT NULL REFERENCES subject
 );
 
 DROP TABLE IF EXISTS "book_series" CASCADE;
@@ -97,7 +97,7 @@ publicist_name VARCHAR(255) NOT NULL
 DROP TABLE IF EXISTS book_publisher CASCADE;
 CREATE TABLE book_publication(
 publication_id SERIAL PRIMARY KEY NOT NULL,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 publicist_id bigint NOT NULL REFERENCES publisher,
 position smallint NOT NULL
 );
@@ -152,7 +152,7 @@ author_name varchar(255) NOT NULL,
 author_alias varchar(255) 
 );
 
-DROP TABLE IF EXISTS "authorship" CASCADE;
+DROP TABLE IF EXISTS book_author CASCADE;
 CREATE TABLE authorship(
 authorship_id serial PRIMARY KEY NOT NULL,
 core_id bigint NOT NULL REFERENCES book_core,
@@ -182,7 +182,7 @@ tag_id int NOT NULL
 DROP TABLE IF EXISTS "bookmark" CASCADE;
 CREATE TABLE bookmark(
 bookmark_id SERIAL PRIMARY KEY NOT NULL,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 reader bigint NOT NULL REFERENCES booknet_user,
 page_number varchar(7) NOT NULL,
 date_marked TIMESTAMP NOT NULL,
@@ -203,14 +203,14 @@ DROP TABLE IF EXISTS "book_list" CASCADE;
 CREATE TABLE book_list(
 booklist_id serial PRIMARY KEY NOT NULL,
 list_id bigint NOT NULL REFERENCES list,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 date_added timestamp NOT NULL
 );
 
 DROP TABLE IF EXISTS "ratings" CASCADE;
 CREATE TABLE ratings (
 ratings serial PRIMARY KEY NOT NULL,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 rater bigint NOT NULL REFERENCES booknet_user,
 rating FLOAT NOT NULL,
 date_rated timestamp NOT NULL
@@ -269,7 +269,7 @@ DROP TABLE IF EXISTS "request_on_book" CASCADE;
 CREATE TABLE request_on_book(
 request_on_book_id SERIAL PRIMARY KEY NOT NULL,
 request_id bigint NOT NULL REFERENCES Request,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 request_type varchar(255) NOT NULL,
 request_text text NOT NULL
 );
@@ -301,7 +301,7 @@ DROP TABLE IF EXISTS "log" CASCADE;
 CREATE TABLE "log"(
   log_id SERIAL PRIMARY KEY NOT NULL,
   user_id bigint NOT NULL REFERENCES booknet_user,
-  book_id bigint NOT NULL REFERENCES books,
+  book_id bigint NOT NULL REFERENCES book,
   log_status varchar(255) NOT NULL,
   date_logged TIMESTAMP NOT NULL,
   pages_read integer NOT NULL,
@@ -311,7 +311,7 @@ CREATE TABLE "log"(
 DROP TABLE IF EXISTS "book_search" CASCADE;
 CREATE TABLE book_search(
 book_search_id SERIAL PRIMARY KEY NOT NULL,
-book_id bigint NOT NULL REFERENCES books,
+book_id bigint NOT NULL REFERENCES book,
 search_vector TSVECTOR NOT NULL
 );
 

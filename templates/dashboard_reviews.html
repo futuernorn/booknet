@@ -1,0 +1,37 @@
+{% extends "dashboard.html" %}
+{% set active_page = 'user_dashboard' %}
+{% block dashboard_body %}
+          <h1 class="page-header">{{ selected_user.name }}'s Reviews</h1>
+<div class="table-responsive">
+          <table class="table">
+            <thead><tr>
+                <th>Book ID</th><th>Review</th><th style="width:125px;">Date Reviewed</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+            {% for review in selected_user.reviews %}
+            <tr>
+                <td><a href="{{ url_for('display_book', bid=review.core_id)}}?next={{ request.path }}?page={{ page }}">{{ review.book_title }}</a></td>
+
+
+                <td class="truncate">{{ review.review_text }}</td>
+                <td>{{ review.date_reviewed }}</td>
+                <td>
+                    <div class="btn-group" role="group" aria-label="User Actions">
+                            <a href="{{url_for('display_review',rid=review.id)}}" class="btn btn-default">View</a>
+                        </div>
+                </td>
+
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+                  </div>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+
+</script>
+{% endblock %}

@@ -16,15 +16,18 @@
             {{navigation.menuitem('user_dashboard_followers','Followers')}}
           </ul>
           <ul class="nav nav-sidebar">
-            <li><a href="#logs">Reading Logs</a></li>
-            <li><a href="">Reviews</a></li>
-            <li><a href="">Lists</a></li>
+            {{navigation.menuitem('user_dashboard_logs','Reading Logs')}}
+            {{navigation.menuitem('user_dashboard_lists','Lists')}}
+            {{navigation.menuitem('user_dashboard_reviews','Reviews')}}
           </ul>
-          {% if current_user.access_level == 2 %}
+          
               <ul class="nav nav-sidebar">
-            {{navigation.menuitem('moderator_dashboard','Moderation')}}
-          </ul>
-          {% endif %}
+		{% if current_user.access_level == 2 %}  
+		<li><a href="">My Requests</a></li>        
+		{{navigation.menuitem('moderator_dashboard','Moderation')}}
+                {{navigation.menuitem('moderator_presentation','[Final Presentation]')}}
+		{% endif %}
+              </ul>          
         </div>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
   {% block dashboard_body %}{% endblock %}

@@ -31,7 +31,7 @@ def get_log_range(cur,start,amount):
     cur.execute('''
         SELECT review_id, core_id, book_id, book_title, reviewer, login_name, to_char(date_reviewed,'Mon. DD, YYYY'), review_text
         FROM review
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user ON reviewer = user_id
         LIMIT %s OFFSET %s
@@ -44,17 +44,24 @@ def get_log_range(cur,start,amount):
 
 def get_log(cur,log_id):
     cur.execute('''
-        SELECT log_id, core_id, book_id, book_title, reader, login_name, log_text, to_char(date_started,'Mon. DD, YYYY') as date_started, to_char(date_completed,'Mon. DD, YYYY') as date_completed
+        SELECT log_id, core_id, book_id, book_title, reader, login_name, log_text, status, pages_read, to_char(date_started,'Mon. DD, YYYY') as date_started, to_char(date_completed,'Mon. DD, YYYY') as date_completed
         FROM user_log
-        JOIN books USING (book_id)
+        JOIN book USING (book_id)
         JOIN book_core USING (core_id)
         JOIN booknet_user ON reader = user_id
         WHERE log_id = %s
     ''', (log_id,))
     log_info = {}
-    for  id, core_id, book_id, book_title, reader, login_name, log_text, date_started, date_completed  in cur:
+    for  id, core_id, book_id, book_title, reader, login_name, log_text, status, pages_read, date_started, date_completed  in cur:
+        if status == 1:
+            status_text = "In-progress"
+        elif status == 2:
+            status_text = "Completed"
+        else:
+            status_text = "Unknown"
         log_info = {'core_id':core_id, 'id':id, 'book_id': book_id, 'book_title':book_title.decode('utf8', 'xmlcharrefreplace'),
-                       'user_id':reader, 'reader': login_name, 'log_text': log_text, 'date_started': date_started, 'date_completed':date_completed}
+                       'user_id':reader, 'reader': login_name, 'log_text': log_text, 'status': status, 'pages_read': pages_read,
+                       'status_text': status_text, 'date_started': date_started, 'date_completed':date_completed}
 
     log_info['book'] = books.get_book(cur, log_info['book_id'])
     return log_info

@@ -1,0 +1,32 @@
+{% extends "dashboard.html" %}
+{% set active_page = 'user_dashboard' %}
+{% block dashboard_body %}
+          <h1 class="page-header">{{ selected_user.name }}'s Logs</h1>
+<div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>Book</th><th style="width: 125px;">Date Completed</th><th style="width: 125px;">Date Started</th><th>Logs</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for log in selected_user.reading_logs %}
+                        <tr>
+                            <td><a href="{{url_for('display_book',bid=log.core_id)}}">{{log.book_title}}</a></td>
+                            <td>{{log.date_completed}}</td>
+                            <td>{{log.date_started}}</td>
+                            <td><a href="{{url_for('display_log',lid=log.log_id)}}" class="btn btn-primary">View</a></td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+
+</script>
+{% endblock %}

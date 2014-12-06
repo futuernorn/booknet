@@ -1,0 +1,117 @@
+{% extends "dashboard.html" %}
+{% set active_page = 'user_dashboard' %}
+{% block dashboard_body %}
+          <h1 class="page-header">Final Presentation</h1>
+            <ul class="list-group">
+              <li class="list-group-item"><h4>Features:</h4> 
+                            <div class="btn-group" role="group" aria-label="Extra-small button group">
+    <a type="button" class="btn btn-default" href="{{url_for('books_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Main book list reused in various areas (ratings, categorys,  etc.)">Books Index</a>
+    <a type="button" class="btn btn-default" href="{{url_for('display_books_with_covers')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Fun easter egg showing the few books where covers where downloads.">Books w/ Covers</a>
+   <a type="button" class="btn btn-default" href="{{url_for('reviews_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Index of reviews">Reviews</a>
+   <a type="button" class="btn btn-default" href="{{url_for('lists_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Index of lists">Lists</a>
+   <a type="button" class="btn btn-default" href="{{url_for('users_index')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Index of users">Users</a>
+   <a type="button" class="btn btn-default" href="{{url_for('user_dashboard_following')}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Feed(TM) of users being followed">Following</a>
+    </div>
+
+
+	      </li>
+              <li class="list-group-item"><h4>Custom Features:</h4>
+                            <div class="btn-group" role="group" aria-label="Extra-small button group">
+    <a type="button" class="btn btn-default" href="{{url_for('add_book',bid=0)}}" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Shows the starting place for generating 'reuqests_on_books' for moderation.">Add Book</a>
+    <a type="button" class="btn btn-danger" href="{{url_for('moderator_dashboard')}}" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Prelimnary page for the review and approval/denial of request ~*~*~ Custom Feature ~*~*~*">Moderation Queue</a>
+    </div>
+	      </li>
+              <li class="list-group-item"><h4>SQL Queries:</h4>
+	      <div class="table-responsive">
+                <table class="table table-striped">
+                     <thead>
+                      <tr>
+                      <th>SQL</th><th>Explanation</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+			<tr>
+			  <td><pre>
+			      <code class="sql">
+SELECT %s core_id, book_title, book_description, isbn, page_count, COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating, COUNT(DISTINCT log_id) as num_readers
+  FROM book_core
+  LEFT JOIN books USING (core_id)
+  %s
+  LEFT JOIN ratings ON core_id = ratings.book_id
+  LEFT JOIN user_log ON core_id = user_log.book_id
+  LEFT JOIN book_categorization USING (core_id)  
+  %s
+  GROUP BY %s core_id, book_title, book_description, cover_name, isbn, page_count, publication_date
+  %s
+  LIMIT %s OFFSET %s
+</code></pre>
+                </td>
+			  <td>Main book index query.
+			  </td>
+			</tr>
+<tr>
+                <td><pre>
+                    <code class="sql">
+SELECT user_id, login_name, level_name, COALESCE(is_followed, FALSE) as is_followed, COUNT(DISTINCT book_list.book_id) as num_unique_list_books,
+        COUNT(DISTINCT user_log.book_id) as num_total_books_read, COUNT(DISTINCT log_id) as num_unique_books_read, COUNT(DISTINCT review_id) as num_reviews
+        FROM booknet_user
+        LEFT JOIN review ON user_id = reviewer
+        LEFT JOIN list USING (user_id)
+        LEFT JOIN book_list USING (list_id)
+        LEFT JOIN user_level USING (level_id)
+        LEFT JOIN user_log ON user_id = reader
+        LEFT JOIN  ( SELECT user_followed, is_followed FROM follow WHERE follower = %s ) is_followed_table ON user_id = user_followed
+        WHERE user_id = %s
+        GROUP BY user_id, login_name, level_name, is_followed
+                    </code>
+                </pre>
+                </td>
+                <td>Our profile page query.  Retrieves information on user.
+                </td>
+            </tr>
+<tr>
+                <td><pre>
+                    <code class="sql">
+        SELECT DISTINCT core_id,book_title, isbn, page_count, COALESCE(publisher_name,'Unknown'), book_description,
+        to_char(publication_date,'Mon. DD, YYYY') as publication_date, to_char(publication_date,'MM/DD/YYYY') as publication_date_fmt,
+        COALESCE(cover_name,'_placeholder') as cover_name, AVG(rating) as avg_rating
+        FROM book_core
+        LEFT JOIN books USING (core_id)
+        LEFT JOIN ratings ON core_id = ratings.book_id
+        LEFT JOIN book_publisher ON core_id = book_publisher.book_id
+        LEFT JOIN publisher USING (publisher_id)
+        WHERE core_id = %s
+        GROUP BY core_id, book_title, book_description, cover_name, isbn, page_count, publication_date, publication_date_fmt, publisher_name
+                    </code>
+                </pre>
+                </td>
+                <td>Single book info page query.
+                </td>
+            </tr>
+			</tbody>
+		      </table>
+		</div></li>
+                <li class="list-group-item"><h4>Source:</h4>                            
+<div class="btn-group" role="group" aria-label="Extra-small button group">
+    <a type="button" class="btn btn-success" href="https://github.com/futuernorn/booknet" target="_blank" data-toggle="tooltip" data-placement="bottom" title="Our source code!">On Github</a>
+    <a type="button" class="btn btn-warning" href="https://github.com/futuernorn/booknet#author-keys-occurrences-89823" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Breakdown of sample data key occurances...">Sample Data Stats</a>
+    <a type="button" class="btn btn-warning" href=https://github.com/futuernorn/booknet/blob/master/templates/book_helpers.html" target="_blank"  data-toggle="tooltip" data-placement="bottom" title="Example script where some multi-purpose macros are stored.">Example Jinja Macros</a>
+    </div></li>
+                <li class="list-group-item"><h4>Test data generated using this script:</h4>http://generatedata.com/</li>
+
+             </ul>
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script type="text/javascript">
+$(window).load(function(){
+  $('pre code').each(function(i, block) {
+    hljs.highlightBlock(block);
+  });
+
+$('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

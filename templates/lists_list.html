@@ -10,7 +10,7 @@
   <!-- Default panel contents -->
   <div class="panel-heading">Lists</div>
   <!-- Table -->
-    {{ navigation.paginator('lists_index','pull-right') }}
+    {{ navigation.paginator(url_for('lists_index'),'pull-right') }}
   <table class="table">
     <thead><tr>
         <th>Name</th><th style="width:450px;">Description</th><th>Creator</th><th># of Books</th><th style="width:125px;">Created On</th><th>Actions</th>
@@ -44,7 +44,7 @@
     {% endfor %}
     </tbody>
   </table>
-{{ navigation.paginator('lists_index','pull-left') }}
+{{ navigation.paginator(url_for('lists_index'),'pull-left') }}
 </div>
 
 

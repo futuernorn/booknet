@@ -156,7 +156,7 @@ def books_by_subject(subject):
     sort_options = {"Title": "book_title", "Publication Date": "publication_date", "Avg. Rating": "avg_rating",
                     "Number of Readers": "num_readers"}
     parameters = "&sorting=%s&sort_direction=%s" % (sorting, sort_direction)
-
+    
     return render_books_index('books_index.html', book_info, total_pages, sort_options, parameters, 'Books - %s' % subject)
 
 @app.route("/books/<bid>")
@@ -331,6 +331,10 @@ def display_log(lid):
                           log=log_info,
                           next=next)
 
+@app.route("/log/edit/<lid>")
+def edit_log(lid):
+    raise NotImplementedError
+
 @app.route("/log/<year>")
 def display_logs_by_year(year):
     raise NotImplementedError
@@ -455,7 +459,7 @@ def lists_index():
 def get_user_lists():
     user_id = flask.ext.login.current_user.id
     with easypg.cursor() as cur:
-        user_logs = users.get_user_ligs(cur, user_id)
+        user_logs = users.get_user_lists(cur, user_id)
     return flask.jsonify(user_logs)
 
 ################## Ratings #############################################################################################
@@ -619,6 +623,62 @@ def user_dashboard():
     # print user_info
     return flask.render_template('dashboard_overview.html',
                                  user_info = user_info)
+@app.route("/dashboard/logs")
+@flask.ext.login.login_required
+def user_dashboard_logs():
+    user_info = None
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("user_dashboard")
+    return flask.render_template('dashboard_logs.html',
+                                 user_id=current_user_id,
+                                 selected_user=user_info,
+                                 next=next)
+
+@app.route("/dashboard/lists")
+@flask.ext.login.login_required
+def user_dashboard_lists():
+    user_info = None
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("user_dashboard")
+    return flask.render_template('dashboard_lists.html',
+                                 user_id=current_user_id,
+                                 selected_user=user_info,
+                                 next=next)
+
+@app.route("/dashboard/reviews")
+@flask.ext.login.login_required
+def user_dashboard_reviews():
+    user_info = None
+    if flask.ext.login.current_user.is_authenticated():
+        current_user_id = flask.session['user_id']
+    else:
+        current_user_id = None
+    with easypg.cursor() as cur:
+        user_info = users.get_user(cur, current_user_id, current_user_id)
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("user_dashboard")
+    return flask.render_template('dashboard_reviews.html',
+                                 user_id=current_user_id,
+                                 selected_user=user_info,
+                                 next=next)
 
 @app.route("/dashboard/followers")
 def user_dashboard_followers():
@@ -647,10 +707,39 @@ def moderator_dashboard():
     return flask.render_template('dashboard_moderation.html',
                                  mod_info=mod_info)
 
+@app.route("/dashboard/presentation")
+@flask.ext.login.login_required
+def moderator_presentation():
+
+    return flask.render_template('dashboard_presentation.html')
+
+
+
 @app.route("/dashboard/approve/<request_id>")
 @flask.ext.login.login_required
 def approve_request(request_id):
-    raise NotImplementedError
+    #raise NotImplementedError
+    errors = []
+    if flask.request.method == 'GET':
+        with easypg.cursor() as cur:
+            edit_status, messages, book_id = users.approve_request(cur, request_id, flask.ext.login.current_user.id)
+            print "Posted request approval data data: %s..." % messages
+            if edit_status:
+                for message in messages:
+                    flask.flash(message)
+                return flask.redirect(flask.request.args.get("next") or flask.url_for("display_book", bid=book_id))
+            else:
+                for message in messages:
+                    errors.append(message)
+
+    if 'next' in flask.request.args:
+        next = flask.request.args['next']
+    else:
+        next = flask.url_for("moderator_dashboard")
+
+
+    return moderator_dashboard()
+
 
 @app.route("/dashboard/reject/<request_id>")
 @flask.ext.login.login_required
@@ -811,6 +900,7 @@ def register_index():
                     flask.ext.login.login_user(user, remember)
                     flask.flash("Registered and Logged in successfully.")
                     flask.flash("Good to meet you %s!" % flask.request.form['username'])
+                    return flask.redirect(flask.url_for('home_index'))
                 else:
                     errors.append(message)
 
