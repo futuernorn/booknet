@@ -1,0 +1,30 @@
+Full formatted instructions at: https://github.com/futuernorn/booknet
+
+Feel free to either clone our group repository or download it directly at: 
+https://github.com/futuernorn/booknet/archive/master.zip
+
+
+---------------------------------------------------------------
+booknet
+=======
+# Getting Started
+Aside from the software listed on the course website / included in the provided vagrant configuration, the following python library is needed:
+
+(https://github.com/maxcountryman/flask-login)
+```
+pip install flask-login
+from flask.ext.login import LoginManager
+```
+
+I've copied the compiled version (compiled on the class vagrant configuration) of this module to the root directory of the project as well.
+
+# Initalizing Database
+* Import latest database data with the following command run from the root directory of the project:
+```
+gunzip < data/booknet_12061401_parsed.sql.gz  | psql booknet -U postgres
+```
+
+* Now you can run BookServer.py to start the project / flask.
+
+* As an aside, the book covers that were able to be downloaded and used for our project are at: http://goo.gl/7twwVq. However it should happily fail with blank images without that ~350MB download.
+
