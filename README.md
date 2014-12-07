@@ -14,7 +14,7 @@ I've copied the compiled version (compiled on the class vagrant configuration) o
 # Initalizing Database
 * Import latest database data with the following command run from the root directory of the project:
 ```
-gunzip < data/export.sql.gz  | psql booknet -U postgres
+gunzip < data/data-dump.sql.gz  | psql booknet -U postgres
 ```
 
 * Now you can run BookServer.py to start the project / flask.
